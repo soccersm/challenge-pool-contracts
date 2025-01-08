@@ -4,6 +4,13 @@ pragma solidity ^0.8.28;
 import "./IPoolResolver.sol";
 import "./IDataProvider.sol";
 
+/**
+ * @author  .
+ * @title   .
+ * @dev     Handles logic for registration of pool topics
+ * @notice  .
+ */
+
 interface ITopicRegistry {
     enum TopicState {
         active,
@@ -33,7 +40,7 @@ interface ITopicRegistry {
 
     /**
      * @notice  .
-     * @dev     .
+     * @dev     creates a new topic
      * @param   _id  example football-correct-score
      * @param   _name  example Football Correct Score
      * @param   _poolResolver  address of the pool resolver for this topic
