@@ -89,6 +89,18 @@ contract ChallengePool is IChallengePool, Helpers {
         }
     }
 
+    function _depositOrPaymaster(
+        address _paymaster,
+        address _token,
+        uint256 _amount
+    ) internal {
+        if (_paymaster == address(0)) {
+            _deposit(_token, _amount);
+        } else {
+            _depositFromPaymaster(_paymaster, _token, _amount);
+        }
+    }
+
     function _send(address _token, uint256 _amount) internal {
         uint256 balanceBefore = IERC20(_token).balanceOf(address(this));
         SafeERC20.safeTransfer(IERC20(_token), msg.sender, _amount);
@@ -140,16 +152,22 @@ contract ChallengePool is IChallengePool, Helpers {
         );
     }
 
-    function _computeJoinFee(
+    function _computeStakeFee(
         uint256 _stakePrice
     ) internal view returns (uint256) {
-        return basisPoint(_stakePrice, CPStorage.load().joinPoolFee);
+        return basisPoint(_stakePrice, CPStorage.load().stakeFee);
     }
 
     function _computeCreateFee(
         uint256 _stakePrice
     ) internal view returns (uint256) {
         return basisPoint(_stakePrice, CPStorage.load().createPoolFee);
+    }
+
+    function _computeEarlyWithdrawFee(
+        uint256 _stakePrice
+    ) internal view returns (uint256) {
+        return basisPoint(_stakePrice, CPStorage.load().earlyWithdrawFee);
     }
 
     function _validateEvent(
@@ -279,11 +297,7 @@ contract ChallengePool is IChallengePool, Helpers {
             _quantity,
             totalPrice
         );
-        if (_paymaster == address(0)) {
-            _deposit(_stakeToken, totalPrice + fee);
-        } else {
-            _depositFromPaymaster(_paymaster, _stakeToken, totalPrice + fee);
-        }
+        _depositOrPaymaster(_paymaster, _stakeToken, totalPrice + fee);
         s.challenges[s.challengeId] = Challenge(
             ChallengeState.open,
             multi,
@@ -332,31 +346,46 @@ contract ChallengePool is IChallengePool, Helpers {
         nonZero(_maxPrice)
         poolInState(_challengeId, ChallengeState.open)
     {
-        // CPStore storage s = CPStorage.load();
+        CPStore storage s = CPStorage.load();
         if (_deadline > block.timestamp) {
             revert DeadlineExceeded();
         }
-        uint256 currentPrice = _price(_challengeId, _prediction, _quantity);
+        uint256 currentPrice = _price(
+            _challengeId,
+            _prediction,
+            _quantity,
+            PoolAction.stake
+        );
         if (currentPrice > _maxPrice) {
             revert MaxPriceExceeded();
         }
-    }
-
-    function withdraw(
-        uint256 _challengeId
-    )
-        external
-        override
-        validChallenge(_challengeId)
-        poolInState(_challengeId, ChallengeState.closed)
-    {
-        _withdrawWinnigs(_challengeId);
-    }
-
-    function bulkWithdraw(uint256[] calldata _challengeIds) external override {
-        for (uint i = 0; i < _challengeIds.length; i++) {
-            _withdrawWinnigs(_challengeIds[i]);
+        uint256 totalAmount = currentPrice * _quantity;
+        uint256 fee = _computeEarlyWithdrawFee(currentPrice);
+        _depositOrPaymaster(
+            _paymaster,
+            s.challenges[_challengeId].stakeToken,
+            fee + totalAmount
+        );
+        PlayerSupply storage playerSupply = s.playerSupply[msg.sender][
+            _challengeId
+        ][_prediction];
+        if (playerSupply.stakes < _quantity) {
+            revert InsufficientStakes(_quantity, playerSupply.stakes);
         }
+        playerSupply.stakes += _quantity;
+        playerSupply.tokens += totalAmount;
+        s.optionSupply[_challengeId][_prediction].stakes += _quantity;
+        s.optionSupply[_challengeId][_prediction].tokens += totalAmount;
+        s.poolSupply[_challengeId].stakes += _quantity;
+        s.poolSupply[_challengeId].tokens += totalAmount;
+        _send(s.challenges[_challengeId].stakeToken, totalAmount);
+        emit Withdraw(
+            msg.sender,
+            _challengeId,
+            _prediction,
+            _quantity,
+            totalAmount
+        );
     }
 
     function earlyWithdraw(
@@ -379,29 +408,62 @@ contract ChallengePool is IChallengePool, Helpers {
         if (_deadline < block.timestamp) {
             revert DeadlineExceeded();
         }
-        uint256 currentPrice = _price(_challengeId, _prediction, _quantity);
+        uint256 currentPrice = _price(
+            _challengeId,
+            _prediction,
+            _quantity,
+            PoolAction.withdraw
+        );
         if (currentPrice < _minPrice) {
             revert BelowMinPrie();
         }
         uint256 totalAmount = currentPrice * _quantity;
+        uint256 fee = _computeEarlyWithdrawFee(currentPrice);
+        _deposit(s.challenges[_challengeId].stakeToken, fee);
         PlayerSupply storage playerSupply = s.playerSupply[msg.sender][
-            s.challengeId
+            _challengeId
         ][_prediction];
-        if(playerSupply.stakes < _quantity) {
+        if (playerSupply.stakes < _quantity) {
             revert InsufficientStakes(_quantity, playerSupply.stakes);
         }
         playerSupply.stakes -= _quantity;
         playerSupply.tokens -= totalAmount;
-        s.optionSupply[s.challengeId][_prediction].stakes -= _quantity;
-        s.optionSupply[s.challengeId][_prediction].tokens -= totalAmount;
-        s.poolSupply[s.challengeId].stakes -= _quantity;
-        s.poolSupply[s.challengeId].tokens -= totalAmount;
+        s.optionSupply[_challengeId][_prediction].stakes -= _quantity;
+        s.optionSupply[_challengeId][_prediction].tokens -= totalAmount;
+        s.poolSupply[_challengeId].stakes -= _quantity;
+        s.poolSupply[_challengeId].tokens -= totalAmount;
+        _send(s.challenges[_challengeId].stakeToken, totalAmount);
+        emit Withdraw(
+            msg.sender,
+            _challengeId,
+            _prediction,
+            _quantity,
+            totalAmount
+        );
+    }
+
+    function withdraw(
+        uint256 _challengeId
+    )
+        external
+        override
+        validChallenge(_challengeId)
+        poolInState(_challengeId, ChallengeState.closed)
+    {
+        _withdrawWinnigs(_challengeId);
+    }
+
+    function bulkWithdraw(uint256[] calldata _challengeIds) external override {
+        for (uint i = 0; i < _challengeIds.length; i++) {
+            _withdrawWinnigs(_challengeIds[i]);
+        }
     }
 
     function price(
         uint256 _challengeId,
         bytes calldata _option,
-        uint256 _quantity
+        uint256 _quantity,
+        PoolAction _action
     ) external view override returns (uint256) {
         if (
             CPStorage.load().challenges[_challengeId].maturity >=
@@ -409,21 +471,23 @@ contract ChallengePool is IChallengePool, Helpers {
         ) {
             revert ChallengePoolClosed();
         }
-        return _price(_challengeId, _option, _quantity);
+        return _price(_challengeId, _option, _quantity, _action);
     }
 
     function _price(
         uint256 _challengeId,
         bytes calldata _option,
-        uint256 _quantity
+        uint256 _quantity,
+        PoolAction _action
     ) internal view returns (uint256) {
-        return _simplePrice(_challengeId, _option, _quantity);
+        return _simplePrice(_challengeId, _option, _quantity, _action);
     }
 
     function _optionPrice(
         uint256 _challengeId,
         bytes calldata _option,
-        uint256 _quantity
+        uint256 _quantity,
+        PoolAction _action
     ) internal view returns (uint256) {
         CPStore storage s = CPStorage.load();
         return
@@ -432,14 +496,16 @@ contract ChallengePool is IChallengePool, Helpers {
                 s.poolSupply[_challengeId].stakes,
                 s.optionSupply[_challengeId][_option].stakes,
                 s.challenges[_challengeId].maturity - block.timestamp,
-                _quantity
+                _quantity,
+                _action
             );
     }
 
     function _simplePrice(
         uint256 _challengeId,
         bytes calldata /*_option*/,
-        uint256 /*_quantity*/
+        uint256 /*_quantity*/,
+        PoolAction /*_action*/
     ) internal view returns (uint256) {
         CPStore storage s = CPStorage.load();
         return LibPrice.simplePrice(s.challenges[_challengeId].basePrice);

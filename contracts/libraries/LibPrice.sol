@@ -2,6 +2,7 @@
 pragma solidity ^0.8.28;
 
 import "@openzeppelin/contracts/utils/math/Math.sol";
+import "../interfaces/IChallengePool.sol";
 
 library LibPrice {
     function computeOptionPrice(
@@ -9,7 +10,8 @@ library LibPrice {
         uint256 _poolSupply,
         uint256 _optionSupply,
         uint256 _timeToMaturity,
-        uint256 _quantity
+        uint256 _quantity,
+        IChallengePool.PoolAction _action
     ) internal pure returns (uint256) {}
 
     // @dev computes fraction of [value] in [bps]

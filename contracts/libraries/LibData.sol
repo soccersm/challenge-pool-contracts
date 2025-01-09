@@ -28,7 +28,8 @@ struct CPStore {
     mapping(uint256 => IChallengePool.Supply) poolSupply; // challengeId -> supply
     mapping(address => IChallengePool.StakeToken) stakeTokens;
     uint256 challengeId;
-    uint256 joinPoolFee;
+    uint256 stakeFee;
+    uint256 earlyWithdrawFee;
     uint256 createPoolFee;
     uint256 maxMaturityPeriod;
     uint256 maxPlayersPerPool;

@@ -11,6 +11,11 @@ interface IChallengePool {
         matured
     }
 
+    enum PoolAction {
+        stake,
+        withdraw
+    }
+
     struct ChallengeEvent {
         bytes params;
         string topicId;
@@ -53,7 +58,7 @@ interface IChallengePool {
         uint256 tokens;
     }
 
-    event StakeTokenAdded(address indexed token);
+    event StakeTokenAdded(address indexed token, bool active);
     event NewChallenge(
         uint256 indexed challengeId,
         address indexed creator,
@@ -99,8 +104,9 @@ interface IChallengePool {
     event Withdraw(
         address indexed participant,
         uint256 indexed challengeId,
-        uint256 amountWon,
-        uint256 amountWithdrawn
+        bytes option,
+        uint256 stakes,
+        uint256 amount
     );
 
     error InvalidChallenge();
@@ -210,7 +216,8 @@ interface IChallengePool {
     function price(
         uint256 _challengeId,
         bytes calldata _option,
-        uint256 _quantity
+        uint256 _quantity,
+        PoolAction _action
     ) external view returns (uint256);
 
     /**
