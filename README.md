@@ -1,7 +1,7 @@
 # challenge-pool-contracts
 
 Soccersm prediction markets are called challenge pools, since players are challenging each other in a peer-to-peer manner faciliated by smart contracts.
-This repo holds the code for soccersm challenge pool smart contracts. Contracts are implemented using the diamond pattern https://eips.ethereum.org/EIPS/eip-2535 and good old hardhat for framework.
+This repo holds the code for soccersm challenge pool smart contracts. Contracts are implemented using the diamond pattern (https://eips.ethereum.org/EIPS/eip-2535, https://github.com/mudgen/awesome-diamonds) and good old hardhat for framework.
 
 ## Concepts
 
