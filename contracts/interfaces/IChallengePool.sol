@@ -26,7 +26,7 @@ interface IChallengePool {
         ChallengeState state;
         bool multi;
         bytes outcome;
-        uint256 totalTickets;
+        uint256 totalStakes;
         uint256 createdAt;
         uint256 maturity;
         uint256 basePrice;
@@ -68,7 +68,7 @@ interface IChallengePool {
         bytes result,
         uint256 basePrice,
         uint256 fee,
-        uint256 totalTickets,
+        uint256 totalStakes,
         bytes prediction,
         ChallengeEvent[] events,
         bytes[] options,
@@ -138,8 +138,8 @@ interface IChallengePool {
      * @param   _options  challenge options, if empty then it is a yes or no pool
      * @param   _stakeToken  token used for staking on this challenge
      * @param   _prediction  prediction of user creating the challenge
-     * @param   _quantity  how many tickets user is purchasing for this prediction
-     * @param   _basePrice  the base price of a ticket. total amount to be transferred is _basePrice * _quantity
+     * @param   _quantity  how many stakes user is purchasing for this prediction
+     * @param   _basePrice  the base price of a stake. total amount to be transferred is _basePrice * _quantity
      * @param   _paymaster  a contract the pays the total amount on behalf of the user set to 0x if none
      */
     function createChallenge(
@@ -157,7 +157,7 @@ interface IChallengePool {
      * @dev     stake on a pool
      * @param   _challengeId  .
      * @param   _prediction  .
-     * @param   _quantity  how many tickets user is purchasing for this prediction
+     * @param   _quantity  how many stakes user is purchasing for this prediction
      * @param   _maxPrice  the maximum price user is willing to pay.
      * @param   _deadline  time after which this stake transaction will revert
      * @param   _paymaster  a contract the pays the total amount on behalf of the user set to 0x if none
@@ -190,7 +190,7 @@ interface IChallengePool {
      * @dev     early withdrawal allows player to get out of their stake. price of option calculated accordingly and applied
      * @param   _challengeId  .
      * @param   _option  option to withdraw from
-     * @param   _quantity  of tickets to withdraw.
+     * @param   _quantity  of stakes to withdraw.
      * @param   _minPrice  minumum price user is willing to accept for selling their position.
      * @param   _deadline  ime after which this early withdraw transaction will revert
      */
