@@ -245,8 +245,8 @@ contract ChallengePool is IChallengePool, Helpers {
             }
             poolOptions = Helpers.yesNoOptions();
             if (
-                !compareBytes(_prediction, poolOptions[0]) ||
-                !compareBytes(_prediction, poolOptions[1])
+                !compareBytes(_prediction, yes) ||
+                !compareBytes(_prediction, no)
             ) {
                 revert InvalidPrediction();
             }
@@ -459,18 +459,75 @@ contract ChallengePool is IChallengePool, Helpers {
         }
     }
 
+    function close(
+        uint256 _challengeId
+    ) external override poolInState(_challengeId, ChallengeState.open) {
+        TRStore storage t = TRStorage.load();
+        CPStore storage s = CPStorage.load();
+        Challenge storage c = s.challenges[_challengeId];
+        if (compareBytes(emptyBytes, c.outcome)) {
+            revert InvalidOutcome();
+        }
+        c.state = ChallengeState.closed;
+        bytes memory result = emptyBytes;
+        if (c.multi) {
+            bool allCorrect = false;
+            for (uint i = 0; i < c.events.length; i++) {
+                if (
+                    t.registry[c.events[i].topicId].state ==
+                    ITopicRegistry.TopicState.disabled
+                ) {
+                    revert InvalidEventTopic();
+                }
+                if (
+                    c.events[i].maturity <
+                    (block.timestamp + s.minMaturityPeriod)
+                ) {
+                    revert InvalidEventMaturity();
+                }
+            }
+            if (allCorrect) {
+                c.outcome = yes;
+                result = yes;
+            } else {
+                c.outcome = no;
+                result = no;
+            }
+        } else {}
+
+        emit ClosedChallenge(
+            _challengeId,
+            msg.sender,
+            ChallengeState.closed,
+            result
+        );
+    }
+
+    function cancel(
+        uint256 _challengeId
+    ) external override poolInState(_challengeId, ChallengeState.open) {
+        CPStore storage s = CPStorage.load();
+        Challenge storage c = s.challenges[_challengeId];
+        c.state = ChallengeState.cancelled;
+        emit CancelChallenge(
+            _challengeId,
+            msg.sender,
+            ChallengeState.cancelled
+        );
+    }
+
     function price(
         uint256 _challengeId,
         bytes calldata _option,
         uint256 _quantity,
         PoolAction _action
-    ) external view override returns (uint256) {
-        if (
-            CPStorage.load().challenges[_challengeId].maturity >=
-            block.timestamp
-        ) {
-            revert ChallengePoolClosed();
-        }
+    )
+        external
+        view
+        override
+        poolInState(_challengeId, ChallengeState.open)
+        returns (uint256)
+    {
         return _price(_challengeId, _option, _quantity, _action);
     }
 

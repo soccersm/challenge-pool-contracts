@@ -4,6 +4,8 @@ pragma solidity ^0.8.26;
 import "@openzeppelin/contracts/utils/math/Math.sol";
 abstract contract Helpers {
     bytes internal constant emptyBytes = "";
+    bytes internal constant yes = abi.encode("yes");
+    bytes internal constant no = abi.encode("no");
     error EmptyString();
     error EmptyBytes();
     error ZeroAddress();
@@ -71,7 +73,7 @@ abstract contract Helpers {
     }
 
     function yesNoOptions() internal pure returns (bytes[] memory yesNo) {
-        yesNo[0] = (abi.encode("yes"));
-        yesNo[1] = (abi.encode("no"));
+        yesNo[0] = yes;
+        yesNo[1] = no;
     }
 }

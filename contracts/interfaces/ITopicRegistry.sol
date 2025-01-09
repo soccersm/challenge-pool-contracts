@@ -115,5 +115,5 @@ interface ITopicRegistry {
     function hasData(
         string calldata _topicId,
         bytes calldata _params
-    ) external view returns (bool);
+    ) external returns (bool);
 }

@@ -111,15 +111,12 @@ interface IChallengePool {
 
     error InvalidChallenge();
     error InvalidPrediction();
-    error ChallengePoolClosed();
-    error InvalidMaxDeadLine();
     error ActionNotAllowedForState(ChallengeState _state);
     error PlayerLimitReached();
     error PlayerDidNotWinPool();
     error PlayerAlreadyWithdrawn();
     error StakeLowerThanMinimum();
     error ProtocolInvariantCheckFailed();
-    error UserLacksBalls();
     error InvalidEventTopic();
     error InvalidEventParam();
     error InvalidEventMaturity();
@@ -204,6 +201,20 @@ interface IChallengePool {
         uint256 _minPrice,
         uint256 _deadline
     ) external;
+
+    /**
+     * @notice  .
+     * @dev     close pool once it's matured
+     * @param   _challengeId  .
+     */
+    function close(uint256 _challengeId) external;
+
+    /**
+     * @notice  .
+     * @dev     cancel pool for some reason
+     * @param   _challengeId  .
+     */
+    function cancel(uint256 _challengeId) external;
 
     /**
      * @notice  .

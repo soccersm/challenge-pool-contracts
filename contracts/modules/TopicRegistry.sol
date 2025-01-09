@@ -9,10 +9,12 @@ import "../interfaces/IPoolResolver.sol";
 import "../interfaces/IDataProvider.sol";
 import "../utils/Helpers.sol";
 
+import "../utils/Errors.sol";
+
 contract TopicRegistry is ITopicRegistry, Helpers {
     modifier validTopic(string calldata _topicId) {
-        TRStore storage s = TRStorage.load();
-        if (bytes(s.registry[_topicId].name).length == 0) {
+        TRStore storage t = TRStorage.load();
+        if (bytes(t.registry[_topicId].name).length == 0) {
             revert ITopicRegistry.InvalidTopic();
         }
         _;
@@ -31,11 +33,11 @@ contract TopicRegistry is ITopicRegistry, Helpers {
         positiveAddress(_poolResolver)
         positiveAddress(_dataProvider)
     {
-        TRStore storage s = TRStorage.load();
-        if (bytes(s.registry[_topicId].name).length > 0) {
+        TRStore storage t = TRStorage.load();
+        if (bytes(t.registry[_topicId].name).length > 0) {
             revert ITopicRegistry.ExistingTopic();
         }
-        s.registry[_topicId] = ITopicRegistry.Topic({
+        t.registry[_topicId] = ITopicRegistry.Topic({
             topicId: _topicId,
             name: _name,
             poolResolver: IPoolResolver(_poolResolver),
@@ -54,8 +56,8 @@ contract TopicRegistry is ITopicRegistry, Helpers {
     function disableTopic(
         string calldata _topicId
     ) external override validTopic(_topicId) {
-        TRStore storage s = TRStorage.load();
-        s.registry[_topicId].state = ITopicRegistry.TopicState.disabled;
+        TRStore storage t = TRStorage.load();
+        t.registry[_topicId].state = ITopicRegistry.TopicState.disabled;
         emit ITopicRegistry.TopicDisabled(
             _topicId,
             ITopicRegistry.TopicState.disabled
@@ -65,8 +67,8 @@ contract TopicRegistry is ITopicRegistry, Helpers {
     function enableTopic(
         string calldata _topicId
     ) external override validTopic(_topicId) {
-        TRStore storage s = TRStorage.load();
-        s.registry[_topicId].state = ITopicRegistry.TopicState.disabled;
+        TRStore storage t = TRStorage.load();
+        t.registry[_topicId].state = ITopicRegistry.TopicState.disabled;
         emit ITopicRegistry.TopicDisabled(
             _topicId,
             ITopicRegistry.TopicState.disabled
@@ -76,37 +78,99 @@ contract TopicRegistry is ITopicRegistry, Helpers {
     function getTopic(
         string calldata _topicId
     ) external view override validTopic(_topicId) returns (Topic memory) {
-        TRStore storage s = TRStorage.load();
-        return s.registry[_topicId];
+        TRStore storage t = TRStorage.load();
+        return t.registry[_topicId];
     }
 
     function provideData(
         string calldata _topicId,
         bytes calldata _params
-    ) external override {}
+    ) external override {
+        TRStore storage t = TRStorage.load();
+        IDataProvider provider = t.registry[_topicId].dataProvider;
+        (bool success, ) = address(provider).delegatecall(
+            abi.encodeWithSelector(IDataProvider.provideData.selector, _params)
+        );
+        if (!success) {
+            revert DelegateCallFailed("provideData");
+        }
+    }
 
     function registerEvent(
         string calldata _topicId,
         bytes calldata _params
-    ) external override {}
+    ) external override {
+        TRStore storage t = TRStorage.load();
+        IDataProvider provider = t.registry[_topicId].dataProvider;
+        (bool success, ) = address(provider).delegatecall(
+            abi.encodeWithSelector(
+                IDataProvider.registerEvent.selector,
+                _params
+            )
+        );
+        if (!success) {
+            revert DelegateCallFailed("registerEvent");
+        }
+    }
 
     function getData(
         string calldata _topicId,
         bytes calldata _params
-    ) external override returns (bytes memory _data) {}
+    ) external override returns (bytes memory) {
+        TRStore storage t = TRStorage.load();
+        IDataProvider provider = t.registry[_topicId].dataProvider;
+        (bool success, bytes memory result) = address(provider).delegatecall(
+            abi.encodeWithSelector(IDataProvider.getData.selector, _params)
+        );
+        if (!success) {
+            revert DelegateCallFailed("getData");
+        }
+        return result;
+    }
 
     function disputeData(
         string calldata _topicId,
         bytes calldata _params
-    ) external override {}
+    ) external override {
+        TRStore storage t = TRStorage.load();
+        IDataProvider provider = t.registry[_topicId].dataProvider;
+        (bool success, ) = address(provider).delegatecall(
+            abi.encodeWithSelector(IDataProvider.disputeData.selector, _params)
+        );
+        if (!success) {
+            revert DelegateCallFailed("disputeData");
+        }
+    }
 
     function settleDispute(
         string calldata _topicId,
         bytes calldata _params
-    ) external override {}
+    ) external override {
+        TRStore storage t = TRStorage.load();
+        IDataProvider provider = t.registry[_topicId].dataProvider;
+        (bool success, ) = address(provider).delegatecall(
+            abi.encodeWithSelector(
+                IDataProvider.settleDispute.selector,
+                _params
+            )
+        );
+        if (!success) {
+            revert DelegateCallFailed("settleDispute");
+        }
+    }
 
     function hasData(
         string calldata _topicId,
         bytes calldata _params
-    ) external view override returns (bool) {}
+    ) external override returns (bool) {
+        TRStore storage t = TRStorage.load();
+        IDataProvider provider = t.registry[_topicId].dataProvider;
+        (bool success, bytes memory result) = address(provider).delegatecall(
+            abi.encodeWithSelector(IDataProvider.hasData.selector, _params)
+        );
+        if (!success) {
+            revert DelegateCallFailed("hasData");
+        }
+        return abi.decode(result, (bool));
+    }
 }
