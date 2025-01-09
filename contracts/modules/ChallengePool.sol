@@ -322,8 +322,24 @@ contract ChallengePool is IChallengePool, Helpers {
         uint256 _maxPrice,
         uint256 _deadline,
         address _paymaster
-    ) external override poolInState(_challengeId, ChallengeState.open) {
-        CPStore storage s = CPStorage.load();
+    )
+        external
+        override
+        validChallenge(_challengeId)
+        validPrediction(_prediction)
+        nonZero(_quantity)
+        nonZero(_deadline)
+        nonZero(_maxPrice)
+        poolInState(_challengeId, ChallengeState.open)
+    {
+        // CPStore storage s = CPStorage.load();
+        if (_deadline > block.timestamp) {
+            revert DeadlineExceeded();
+        }
+        uint256 currentPrice = _price(_challengeId, _prediction, _quantity);
+        if (currentPrice > _maxPrice) {
+            revert MaxPriceExceeded();
+        }
     }
 
     function withdraw(
@@ -349,8 +365,37 @@ contract ChallengePool is IChallengePool, Helpers {
         uint256 _quantity,
         uint256 _minPrice,
         uint256 _deadline
-    ) external override {
+    )
+        external
+        override
+        validChallenge(_challengeId)
+        validPrediction(_prediction)
+        nonZero(_quantity)
+        nonZero(_deadline)
+        nonZero(_minPrice)
+        poolInState(_challengeId, ChallengeState.open)
+    {
         CPStore storage s = CPStorage.load();
+        if (_deadline < block.timestamp) {
+            revert DeadlineExceeded();
+        }
+        uint256 currentPrice = _price(_challengeId, _prediction, _quantity);
+        if (currentPrice < _minPrice) {
+            revert BelowMinPrie();
+        }
+        uint256 totalAmount = currentPrice * _quantity;
+        PlayerSupply storage playerSupply = s.playerSupply[msg.sender][
+            s.challengeId
+        ][_prediction];
+        if(playerSupply.stakes < _quantity) {
+            revert InsufficientStakes(_quantity, playerSupply.stakes);
+        }
+        playerSupply.stakes -= _quantity;
+        playerSupply.tokens -= totalAmount;
+        s.optionSupply[s.challengeId][_prediction].stakes -= _quantity;
+        s.optionSupply[s.challengeId][_prediction].tokens -= totalAmount;
+        s.poolSupply[s.challengeId].stakes -= _quantity;
+        s.poolSupply[s.challengeId].tokens -= totalAmount;
     }
 
     function price(
@@ -364,10 +409,18 @@ contract ChallengePool is IChallengePool, Helpers {
         ) {
             revert ChallengePoolClosed();
         }
-        return _simplePrice(_challengeId, _option, _quantity);
+        return _price(_challengeId, _option, _quantity);
     }
 
     function _price(
+        uint256 _challengeId,
+        bytes calldata _option,
+        uint256 _quantity
+    ) internal view returns (uint256) {
+        return _simplePrice(_challengeId, _option, _quantity);
+    }
+
+    function _optionPrice(
         uint256 _challengeId,
         bytes calldata _option,
         uint256 _quantity

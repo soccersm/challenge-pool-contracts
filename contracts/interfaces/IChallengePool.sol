@@ -123,6 +123,10 @@ interface IChallengePool {
     error InvalidOutcome();
     error DelegateCallFailed(string _functionName);
     error UnsupportedToken(address _token);
+    error MaxPriceExceeded();
+    error DeadlineExceeded();
+    error BelowMinPrie();
+    error InsufficientStakes(uint256 _requested, uint256 _available);
 
     /**
      * @notice  .
