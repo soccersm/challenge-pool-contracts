@@ -5,6 +5,7 @@ import "@openzeppelin/contracts/utils/math/Math.sol";
 abstract contract Helpers {
     bytes internal constant emptyBytes = "";
     error EmptyString();
+    error EmptyBytes();
     error ZeroAddress();
     error ZeroNumber();
     modifier positiveAddress(address addr) {
@@ -17,6 +18,13 @@ abstract contract Helpers {
     modifier nonEmptyString(string memory str) {
         if (bytes(str).length == 0) {
             revert EmptyString();
+        }
+        _;
+    }
+
+    modifier nonEmptyBytes(bytes memory bte) {
+        if (bte.length == 0) {
+            revert EmptyBytes();
         }
         _;
     }
@@ -45,6 +53,13 @@ abstract contract Helpers {
         return (keccak256(abi.encodePacked((a))) ==
             keccak256(abi.encodePacked((b))));
     }
+    /**
+     * @notice  .
+     * @dev     compare two bytes.
+     * @param   _bytes1  .
+     * @param   _bytes2  .
+     * @return  bool  true if the are same.
+     */
     function compareBytes(
         bytes memory _bytes1,
         bytes memory _bytes2
@@ -53,5 +68,10 @@ abstract contract Helpers {
             return false;
         }
         return keccak256(_bytes1) == keccak256(_bytes2);
+    }
+
+    function yesNoOptions() internal pure returns (bytes[] memory yesNo) {
+        yesNo[0] = (abi.encode("yes"));
+        yesNo[1] = (abi.encode("no"));
     }
 }

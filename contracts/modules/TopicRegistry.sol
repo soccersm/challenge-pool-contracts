@@ -1,29 +1,17 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.28;
 
+import "../libraries/LibData.sol";
+
 import "../interfaces/ITopicRegistry.sol";
+
 import "../interfaces/IPoolResolver.sol";
 import "../interfaces/IDataProvider.sol";
 import "../utils/Helpers.sol";
-import "../diamond/facets/OwnershipFacet.sol";
 
-contract TopicRegistry is ITopicRegistry, Helpers, OwnershipFacet {
-    bytes32 constant TOPIC_REGISTRY_STORAGE_POSITION =
-        keccak256("soccersm.topic.registry");
-
-    struct TopicRegistryStore {
-        mapping(string => ITopicRegistry.Topic) registry;
-    }
-
-    function store() internal pure returns (TopicRegistryStore storage s) {
-        bytes32 position = TOPIC_REGISTRY_STORAGE_POSITION;
-        assembly {
-            s.slot := position
-        }
-    }
-
+contract TopicRegistry is ITopicRegistry, Helpers {
     modifier validTopic(string calldata _topicId) {
-        TopicRegistryStore storage s = store();
+        TRStore storage s = TRStorage.load();
         if (bytes(s.registry[_topicId].name).length == 0) {
             revert ITopicRegistry.InvalidTopic();
         }
@@ -38,13 +26,12 @@ contract TopicRegistry is ITopicRegistry, Helpers, OwnershipFacet {
     )
         external
         override
-        onlyOwner
         nonEmptyString(_topicId)
         nonEmptyString(_name)
         positiveAddress(_poolResolver)
         positiveAddress(_dataProvider)
     {
-        TopicRegistryStore storage s = store();
+        TRStore storage s = TRStorage.load();
         if (bytes(s.registry[_topicId].name).length > 0) {
             revert ITopicRegistry.ExistingTopic();
         }
@@ -66,8 +53,8 @@ contract TopicRegistry is ITopicRegistry, Helpers, OwnershipFacet {
 
     function disableTopic(
         string calldata _topicId
-    ) external override onlyOwner validTopic(_topicId) {
-        TopicRegistryStore storage s = store();
+    ) external override validTopic(_topicId) {
+        TRStore storage s = TRStorage.load();
         s.registry[_topicId].state = ITopicRegistry.TopicState.disabled;
         emit ITopicRegistry.TopicDisabled(
             _topicId,
@@ -77,8 +64,8 @@ contract TopicRegistry is ITopicRegistry, Helpers, OwnershipFacet {
 
     function enableTopic(
         string calldata _topicId
-    ) external override onlyOwner validTopic(_topicId) {
-        TopicRegistryStore storage s = store();
+    ) external override validTopic(_topicId) {
+        TRStore storage s = TRStorage.load();
         s.registry[_topicId].state = ITopicRegistry.TopicState.disabled;
         emit ITopicRegistry.TopicDisabled(
             _topicId,
@@ -89,7 +76,37 @@ contract TopicRegistry is ITopicRegistry, Helpers, OwnershipFacet {
     function getTopic(
         string calldata _topicId
     ) external view override validTopic(_topicId) returns (Topic memory) {
-        TopicRegistryStore storage s = store();
+        TRStore storage s = TRStorage.load();
         return s.registry[_topicId];
     }
+
+    function provideData(
+        string calldata _topicId,
+        bytes calldata _params
+    ) external override {}
+
+    function registerEvent(
+        string calldata _topicId,
+        bytes calldata _params
+    ) external override {}
+
+    function getData(
+        string calldata _topicId,
+        bytes calldata _params
+    ) external override returns (bytes memory _data) {}
+
+    function disputeData(
+        string calldata _topicId,
+        bytes calldata _params
+    ) external override {}
+
+    function settleDispute(
+        string calldata _topicId,
+        bytes calldata _params
+    ) external override {}
+
+    function hasData(
+        string calldata _topicId,
+        bytes calldata _params
+    ) external view override returns (bool) {}
 }

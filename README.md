@@ -37,8 +37,7 @@ This is important to ensure a fair market. A simple implementation would use a f
 2. Time revealled information
 
 Suppose a simple yes/no challenge has 90% / 10% probability after the market has been active for some time, then new participants would simply join the one with higher probability and pay the same as those who joined earlier. It should be more expensive to join the side with higher probability.
-A
-side obvious market probabilities, there's lots of information hidden in time. As such, those who join later should pay more. Hence a pricing model that takes into account the market probabilities and time is ideal.
+Aside obvious market probabilities, there's lots of information hidden in time. As such, those who join later should pay more. Hence a pricing model that takes into account the market probabilities and time is ideal.
 
 #### Evaluate Winners & Distribute Rewards
 

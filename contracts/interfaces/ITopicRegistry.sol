@@ -13,8 +13,8 @@ import "./IDataProvider.sol";
 
 interface ITopicRegistry {
     enum TopicState {
-        active,
-        disabled
+        disabled,
+        active
     }
     struct Topic {
         string topicId;
@@ -53,9 +53,67 @@ interface ITopicRegistry {
         address _dataProvider
     ) external;
 
-    function disableTopic(string calldata topicId) external;
+    function disableTopic(string calldata _topicId) external;
 
-    function enableTopic(string calldata topicId) external;
+    function enableTopic(string calldata _topicId) external;
 
-    function getTopic(string calldata topicId) external view returns (Topic memory);
+    function getTopic(
+        string calldata _topicId
+    ) external view returns (Topic memory);
+
+    /**
+     * @notice  .
+     * @dev     offchain oracles call this to provide initially requested data.
+     * @param _topicId topic id helps determine which data provider to use
+     * @param   _params  decoded and applied based on the event topic type.
+     */
+    function provideData(
+        string calldata _topicId,
+        bytes calldata _params
+    ) external;
+    /**
+     * @notice  .
+     * @dev     sometimes events need to be registered onchain ahead of time before they can be requested this is the case of general statements.
+     * @param _topicId topic id helps determine which data provider to use
+     * @param   _params  decoded and applied based on the event topic type.
+     */
+    function registerEvent(
+        string calldata _topicId,
+        bytes calldata _params
+    ) external;
+    /**
+     * @notice  .
+     * @dev     onchain contracts can call this to request provided data.
+     * @param _topicId topic id helps determine which data provider to use
+     * @param   _params  decoded and applied based on the event topic type..
+     * @return  _data  requested data is encoded and sent as calling contract should know how to decode it.
+     */
+    function getData(
+        string calldata _topicId,
+        bytes calldata _params
+    ) external returns (bytes memory _data);
+    /**
+     * @notice  .
+     * @dev     anyone can call this to dispute the data provided.
+     * @param _topicId topic id helps determine which data provider to use
+     * @param   _params  decoded and applied based on the event topic type.
+     */
+    function disputeData(
+        string calldata _topicId,
+        bytes calldata _params
+    ) external;
+    /**
+     * @notice  .
+     * @dev      dispute admin can call this to settle dispute.
+     * @param _topicId topic id helps determine which data provider to use
+     * @param   _params  decoded and applied based on the event topic type.
+     */
+    function settleDispute(
+        string calldata _topicId,
+        bytes calldata _params
+    ) external;
+    function hasData(
+        string calldata _topicId,
+        bytes calldata _params
+    ) external view returns (bool);
 }

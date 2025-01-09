@@ -15,23 +15,17 @@ interface IChallengePool {
         bytes params;
         string topicId;
         uint256 maturity;
-        bytes outcome;
-    }
-
-    struct PartialChallengeEvent {
-        bytes params;
-        string topicId;
-        uint256 maturity;
     }
 
     struct Challenge {
         ChallengeState state;
         bool multi;
         bytes outcome;
-        uint256 totalParticipants;
         uint256 totalTickets;
         uint256 createdAt;
         uint256 maturity;
+        uint256 basePrice;
+        address stakeToken;
         ChallengeEvent[] events;
         bytes[] options;
     }
@@ -42,16 +36,72 @@ interface IChallengePool {
         bool active;
     }
 
-    struct Ticket {
-        uint256 quantity;
-        bytes choice;
-        bool withdrawn;
+    struct Supply {
+        uint256 stakes;
+        uint256 tokens;
     }
 
-    struct OptionTicket {
-        bool isOption;
-        uint256 totalSupply;
+    struct OptionSupply {
+        bool exists;
+        uint256 stakes;
+        uint256 tokens;
     }
+
+    struct PlayerSupply {
+        bool withdrawn;
+        uint256 stakes;
+        uint256 tokens;
+    }
+
+    event StakeTokenAdded(address indexed token);
+    event NewChallenge(
+        uint256 indexed challengeId,
+        address indexed creator,
+        uint256 createdAt,
+        uint256 maturity,
+        ChallengeState state,
+        bytes result,
+        uint256 basePrice,
+        uint256 fee,
+        uint256 totalTickets,
+        bytes prediction,
+        ChallengeEvent[] events,
+        bytes[] options,
+        address stakeToken,
+        address paymaster
+    );
+    event ClosedChallenge(
+        uint256 indexed challengeId,
+        address indexed closer,
+        ChallengeState state,
+        bytes result
+    );
+    event CancelChallenge(
+        uint256 indexed challengeId,
+        address indexed canceller,
+        ChallengeState state
+    );
+    event Stake(
+        uint256 indexed challengeId,
+        address indexed participant,
+        uint256 fee,
+        uint256 ticketQuantity,
+        uint256 price,
+        bytes choice,
+        ChallengeState state
+    );
+    event WinningsWithdrawn(
+        address indexed participant,
+        uint256 indexed challengeId,
+        uint256 amountWon,
+        uint256 amountWithdrawn
+    );
+    event Withdraw(
+        address indexed participant,
+        uint256 indexed challengeId,
+        uint256 amountWon,
+        uint256 amountWithdrawn
+    );
 
     error InvalidChallenge();
     error InvalidPrediction();
@@ -59,78 +109,113 @@ interface IChallengePool {
     error InvalidMaxDeadLine();
     error ActionNotAllowedForState(ChallengeState _state);
     error PlayerLimitReached();
-    error PlayerAlreadyInPool();
-    error PlayerNotInPool();
     error PlayerDidNotWinPool();
-    error PlayerWinningAlreadyWithdrawn();
+    error PlayerAlreadyWithdrawn();
     error StakeLowerThanMinimum();
     error ProtocolInvariantCheckFailed();
     error UserLacksBalls();
-    error InvalidPollTopic();
-    error InvalidPollParam();
-    error InvalidPollMaturity();
+    error InvalidEventTopic();
+    error InvalidEventParam();
+    error InvalidEventMaturity();
+    error InvalidEventLength();
     error InvalidOptionsLength();
-    error InvalidPollOption();
+    error InvalidPoolOption();
+    error InvalidOutcome();
+    error DelegateCallFailed(string _functionName);
+    error UnsupportedToken(address _token);
 
     /**
      * @notice  .
-     * @dev     .
-     * @param   events  .
-     * @param   options  .
-     * @param   _prediction  .
-     * @param   _quantity  .
-     * @param   _stake  .
-     * @param   _paymaster  .
+     * @dev     create a new challenge
+     * @param   _events  events in the challenge, maximum of one event if _options is not empty
+     * @param   _options  challenge options, if empty then it is a yes or no pool
+     * @param   _stakeToken  token used for staking on this challenge
+     * @param   _prediction  prediction of user creating the challenge
+     * @param   _quantity  how many tickets user is purchasing for this prediction
+     * @param   _basePrice  the base price of a ticket. total amount to be transferred is _basePrice * _quantity
+     * @param   _paymaster  a contract the pays the total amount on behalf of the user set to 0x if none
      */
     function createChallenge(
-        PartialChallengeEvent[] calldata events,
-        bytes[] calldata options,
+        ChallengeEvent[] calldata _events,
+        bytes[] calldata _options,
+        address _stakeToken,
         bytes calldata _prediction,
         uint256 _quantity,
-        uint256 _stake,
-        IPaymaster _paymaster
+        uint256 _basePrice,
+        address _paymaster
     ) external;
 
     /**
      * @notice  .
-     * @dev     .
+     * @dev     stake on a pool
      * @param   _challengeId  .
      * @param   _prediction  .
-     * @param   _quantity  .
-     * @param   _stake  .
-     * @param   _paymaster  .
+     * @param   _quantity  how many tickets user is purchasing for this prediction
+     * @param   _maxPrice  the maximum price user is willing to pay.
+     * @param   _deadline  time after which this stake transaction will revert
+     * @param   _paymaster  a contract the pays the total amount on behalf of the user set to 0x if none
      */
     function stake(
         uint256 _challengeId,
         bytes calldata _prediction,
         uint256 _quantity,
-        uint256 _stake,
-        IPaymaster _paymaster
+        uint256 _maxPrice,
+        uint256 _deadline,
+        address _paymaster
     ) external;
 
     /**
      * @notice  .
-     * @dev     .
+     * @dev     withdraw winnings from pool, reverts if user lost
      * @param   _challengeId  .
      */
     function withdraw(uint256 _challengeId) external;
 
     /**
      * @notice  .
-     * @dev     .
+     * @dev     bulk withdrawal
      * @param   _challengeIds  .
      */
     function bulkWithdraw(uint256[] calldata _challengeIds) external;
 
+    /**
+     * @notice  .
+     * @dev     early withdrawal allows player to get out of their stake. price of option calculated accordingly and applied
+     * @param   _challengeId  .
+     * @param   _option  option to withdraw from
+     * @param   _quantity  of tickets to withdraw.
+     * @param   _minPrice  minumum price user is willing to accept for selling their position.
+     * @param   _deadline  ime after which this early withdraw transaction will revert
+     */
     function earlyWithdraw(
         uint256 _challengeId,
-        bytes calldata _prediction,
-        uint256 _quantity
+        bytes calldata _option,
+        uint256 _quantity,
+        uint256 _minPrice,
+        uint256 _deadline
     ) external;
 
+    /**
+     * @notice  .
+     * @dev     price calculation for a pool option
+     * @param   _challengeId  .
+     * @param   _option  .
+     * @param   _quantity  .
+     * @return  uint256  .
+     */
     function price(
         uint256 _challengeId,
-        bytes calldata _prediction,
+        bytes calldata _option,
         uint256 _quantity
-    ) external returns(uint256);
+    ) external view returns (uint256);
+
+    /**
+     * @notice  .
+     * @dev     returns the Challenge struct.
+     * @param   _challengeId  id of the challenge to return.
+     * @return  Challenge  .
+     */
+    function getChallenge(
+        uint256 _challengeId
+    ) external view returns (Challenge memory);
 }
