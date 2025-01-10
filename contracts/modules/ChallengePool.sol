@@ -271,12 +271,18 @@ contract ChallengePool is IChallengePool, Helpers {
         if (_options.length > s.maxOptionsPerPool) {
             revert InvalidOptionsLength();
         }
+        if (_options.length > s.maxOptionsPerPool) {
+            revert InvalidOptionsLength();
+        }
         TRStore storage t = TRStorage.load();
         bytes[] memory poolOptions;
         bool multi;
         if (_options.length == 0) {
             multi = false;
-            if (_events.length > 1) {
+            if (_events.length < 1) {
+                revert InvalidEventLength();
+            }
+            if (_events.length > s.maxEventsPerPool) {
                 revert InvalidEventLength();
             }
             poolOptions = Helpers.yesNoOptions();
@@ -288,8 +294,11 @@ contract ChallengePool is IChallengePool, Helpers {
             }
         } else {
             multi = true;
-            if (_options.length == 1) {
+            if (_options.length < 2) {
                 revert InvalidOptionsLength();
+            }
+            if (_events.length != 1) {
+                revert InvalidEventLength();
             }
             poolOptions = _options;
             _validateOptions(t, _events[0], poolOptions);

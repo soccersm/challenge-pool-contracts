@@ -53,8 +53,18 @@ interface ITopicRegistry {
         address _dataProvider
     ) external;
 
+    /**
+     * @notice  .
+     * @dev     disable topic.
+     * @param   _topicId  .
+     */
     function disableTopic(string calldata _topicId) external;
 
+    /**
+     * @notice  .
+     * @dev     enable topic.
+     * @param   _topicId  .
+     */
     function enableTopic(string calldata _topicId) external;
 
     function getTopic(

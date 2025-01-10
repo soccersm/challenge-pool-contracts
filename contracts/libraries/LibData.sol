@@ -31,9 +31,6 @@ struct CPStore {
     uint256 stakeFee;
     uint256 earlyWithdrawFee;
     uint256 createPoolFee;
-    uint256 maxMaturityPeriod;
-    uint256 maxPlayersPerPool;
-    uint256 maxStakesPerPool;
     uint256 minStakeAmount;
     uint256 maxOptionsPerPool;
     uint256 maxEventsPerPool;
