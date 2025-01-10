@@ -146,8 +146,8 @@ contract ChallengePool is IChallengePool, Helpers {
         uint256 totalAmount = playerShare + playerSupply.tokens;
         _send(c.stakeToken, totalAmount);
         emit WinningsWithdrawn(
-            msg.sender,
             _challengeId,
+            msg.sender,
             playerShare,
             totalAmount
         );
@@ -395,8 +395,8 @@ contract ChallengePool is IChallengePool, Helpers {
         s.poolSupply[_challengeId].tokens += totalAmount;
         _send(s.challenges[_challengeId].stakeToken, totalAmount);
         emit Stake(
-            msg.sender,
             _challengeId,
+            msg.sender,
             _prediction,
             _quantity,
             totalAmount,
@@ -450,8 +450,8 @@ contract ChallengePool is IChallengePool, Helpers {
         s.poolSupply[_challengeId].tokens -= totalAmount;
         _send(s.challenges[_challengeId].stakeToken, totalAmount);
         emit Withdraw(
-            msg.sender,
             _challengeId,
+            msg.sender,
             _prediction,
             _quantity,
             totalAmount,

@@ -95,14 +95,14 @@ interface IChallengePool {
         uint256 fee
     );
     event WinningsWithdrawn(
-        address indexed participant,
         uint256 indexed challengeId,
+        address indexed participant,
         uint256 amountWon,
         uint256 amountWithdrawn
     );
     event Withdraw(
-        address indexed participant,
         uint256 indexed challengeId,
+        address indexed participant,
         bytes option,
         uint256 stakes,
         uint256 amount,
