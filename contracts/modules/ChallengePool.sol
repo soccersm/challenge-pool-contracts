@@ -153,6 +153,27 @@ contract ChallengePool is IChallengePool, Helpers {
         );
     }
 
+    function _withdrawAfterCancelled(uint256 _challengeId) internal {
+        CPStore storage s = CPStorage.load();
+        Challenge storage c = s.challenges[_challengeId];
+
+        uint256 totalAmount = 0;
+        for (uint i = 0; i < c.options.length; i++) {
+            PlayerSupply storage playerSupply = s.playerSupply[msg.sender][
+                _challengeId
+            ][c.options[i]];
+            if (playerSupply.withdrawn) {
+                revert PlayerAlreadyWithdrawn();
+            }
+            if (playerSupply.tokens > 0) {
+                playerSupply.withdrawn = true;
+                totalAmount += playerSupply.tokens;
+            }
+        }
+        _send(c.stakeToken, totalAmount);
+        emit WinningsWithdrawn(_challengeId, msg.sender, 0, totalAmount);
+    }
+
     function _computeStakeFee(
         uint256 _stakePrice
     ) internal view returns (uint256) {
@@ -461,13 +482,16 @@ contract ChallengePool is IChallengePool, Helpers {
 
     function withdraw(
         uint256 _challengeId
-    )
-        external
-        override
-        validChallenge(_challengeId)
-        poolInState(_challengeId, ChallengeState.closed)
-    {
-        _withdrawWinnigs(_challengeId);
+    ) external override validChallenge(_challengeId) {
+        ChallengeState state = CPStorage.load().challenges[_challengeId].state;
+
+        if (state == ChallengeState.closed) {
+            _withdrawWinnigs(_challengeId);
+        } else if (state == ChallengeState.cancelled) {
+            _withdrawAfterCancelled(_challengeId);
+        } else {
+            revert ActionNotAllowedForState(state);
+        }
     }
 
     function bulkWithdraw(uint256[] calldata _challengeIds) external override {

@@ -1,4 +1,4 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.28;
 
-error DelegateCallFailed(string _functionName);
+event StakeTokenAdded(address indexed token, bool active);

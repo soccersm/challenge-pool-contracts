@@ -58,7 +58,6 @@ interface IChallengePool {
         uint256 tokens;
     }
 
-    event StakeTokenAdded(address indexed token, bool active);
     event NewChallenge(
         uint256 indexed challengeId,
         address indexed creator,
