@@ -14,7 +14,7 @@ interface IPoolResolver {
     )
         external
         view
-        returns (bytes memory, IChallengePool.ChallengeEvent[] memory);
+        returns (bytes memory);
 
     /**
      * @notice  .

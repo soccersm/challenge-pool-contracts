@@ -9,6 +9,7 @@ import "../interfaces/IChallengePool.sol";
 import "../libraries/LibPrice.sol";
 
 import "../utils/Helpers.sol";
+import "../utils/Errors.sol";
 
 import "./TopicRegistry.sol";
 
@@ -185,6 +186,20 @@ contract ChallengePool is IChallengePool, Helpers {
         if (!validParam) {
             revert InvalidEventParam();
         }
+    }
+
+    function _resolveEvent(
+        TRStore storage t,
+        ChallengeEvent memory _event
+    ) internal returns (bytes memory) {
+        IPoolResolver resolver = t.registry[_event.topicId].poolResolver;
+        (bool success, bytes memory result) = address(resolver).delegatecall(
+            abi.encodeWithSelector(IPoolResolver.resolveEvent.selector, _event)
+        );
+        if (!success) {
+            revert DelegateCallFailed("_resolveEvent");
+        }
+        return result;
     }
 
     function _validateOptions(
@@ -379,12 +394,13 @@ contract ChallengePool is IChallengePool, Helpers {
         s.poolSupply[_challengeId].stakes += _quantity;
         s.poolSupply[_challengeId].tokens += totalAmount;
         _send(s.challenges[_challengeId].stakeToken, totalAmount);
-        emit Withdraw(
+        emit Stake(
             msg.sender,
             _challengeId,
             _prediction,
             _quantity,
-            totalAmount
+            totalAmount,
+            fee
         );
     }
 
@@ -438,7 +454,8 @@ contract ChallengePool is IChallengePool, Helpers {
             _challengeId,
             _prediction,
             _quantity,
-            totalAmount
+            totalAmount,
+            fee
         );
     }
 
@@ -471,7 +488,7 @@ contract ChallengePool is IChallengePool, Helpers {
         c.state = ChallengeState.closed;
         bytes memory result = emptyBytes;
         if (c.multi) {
-            bool allCorrect = false;
+            bool allCorrect = true;
             for (uint i = 0; i < c.events.length; i++) {
                 if (
                     t.registry[c.events[i].topicId].state ==
@@ -485,6 +502,9 @@ contract ChallengePool is IChallengePool, Helpers {
                 ) {
                     revert InvalidEventMaturity();
                 }
+                if (compareBytes(no, _resolveEvent(t, c.events[i]))) {
+                    allCorrect = false;
+                }
             }
             if (allCorrect) {
                 c.outcome = yes;
@@ -493,7 +513,9 @@ contract ChallengePool is IChallengePool, Helpers {
                 c.outcome = no;
                 result = no;
             }
-        } else {}
+        } else {
+            c.outcome = _resolveEvent(t, c.events[0]);
+        }
 
         emit ClosedChallenge(
             _challengeId,

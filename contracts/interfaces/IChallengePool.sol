@@ -89,11 +89,10 @@ interface IChallengePool {
     event Stake(
         uint256 indexed challengeId,
         address indexed participant,
-        uint256 fee,
-        uint256 ticketQuantity,
-        uint256 price,
-        bytes choice,
-        ChallengeState state
+        bytes option,
+        uint256 stakes,
+        uint256 amount,
+        uint256 fee
     );
     event WinningsWithdrawn(
         address indexed participant,
@@ -106,7 +105,8 @@ interface IChallengePool {
         uint256 indexed challengeId,
         bytes option,
         uint256 stakes,
-        uint256 amount
+        uint256 amount,
+        uint256 fee
     );
 
     error InvalidChallenge();
@@ -124,7 +124,6 @@ interface IChallengePool {
     error InvalidOptionsLength();
     error InvalidPoolOption();
     error InvalidOutcome();
-    error DelegateCallFailed(string _functionName);
     error UnsupportedToken(address _token);
     error MaxPriceExceeded();
     error DeadlineExceeded();
