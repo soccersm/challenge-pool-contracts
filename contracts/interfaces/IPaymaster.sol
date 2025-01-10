@@ -9,6 +9,21 @@ pragma solidity ^0.8.28;
  */
 
 interface IPaymaster {
+    event Pay (
+        address token,
+        address sender,
+        address from,
+        address to,
+        uint256 amount
+    );
+
+    event Deposit (
+        address token,
+        address sender,
+        address from,
+        address to,
+        uint256 amount
+    );
     /**
      * @notice  .
      * @dev     custodial requests paymaster to pay for _owner
@@ -47,4 +62,8 @@ interface IPaymaster {
      * @param   _amt  .
      */
     function depositFor(address _token, address _addr, uint256 _amt) external;
+
+    function balance(address _token, address _owner) external returns(uint256);
+
+    function allowance(address _token, address _owner, address _custodial) external returns(uint256);
 }
