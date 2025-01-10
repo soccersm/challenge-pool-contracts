@@ -3,6 +3,11 @@ pragma solidity ^0.8.28;
 
 
 interface IChallengePoolManager {
+    struct StakeToken {
+        address token;
+        uint256 accumulatedFee;
+        bool active;
+    }
     event StakeTokenAdded(address indexed token, bool active);
     
     function setFeeAddress(address _feeAddress) external;
@@ -24,4 +29,6 @@ interface IChallengePoolManager {
     function addStakeToken(address _stakeToken) external;
 
     function removeStakeToken(address _stakeToken) external;
+
+    function withdrawFee(address _stakeToken) external;
 }

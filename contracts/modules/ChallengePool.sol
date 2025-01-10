@@ -111,6 +111,10 @@ contract ChallengePool is IChallengePool, Helpers {
         }
     }
 
+    function _recordFee(address _token, uint256 _fee) internal {
+        CPStorage.load().stakeTokens[_token].accumulatedFee += _fee;
+    }
+
     function _computeWinnerShare(
         uint256 _challengeId,
         uint256 stakes
@@ -330,6 +334,7 @@ contract ChallengePool is IChallengePool, Helpers {
             _validateEvent(t, _events[i]);
         }
         uint256 fee = _computeCreateFee(_basePrice);
+        _recordFee(_stakeToken, fee);
         uint256 totalPrice = _basePrice * _quantity;
         s.poolSupply[s.challengeId] = Supply(_quantity, totalPrice);
         s.optionSupply[s.challengeId][_prediction] = OptionSupply(
@@ -405,7 +410,8 @@ contract ChallengePool is IChallengePool, Helpers {
             revert MaxPriceExceeded();
         }
         uint256 totalAmount = currentPrice * _quantity;
-        uint256 fee = _computeEarlyWithdrawFee(currentPrice);
+        uint256 fee = _computeStakeFee(currentPrice);
+        _recordFee(s.challenges[_challengeId].stakeToken, fee);
         _depositOrPaymaster(
             _paymaster,
             s.challenges[_challengeId].stakeToken,
@@ -465,6 +471,7 @@ contract ChallengePool is IChallengePool, Helpers {
         }
         uint256 totalAmount = currentPrice * _quantity;
         uint256 fee = _computeEarlyWithdrawFee(currentPrice);
+        _recordFee(s.challenges[_challengeId].stakeToken, fee);
         _deposit(s.challenges[_challengeId].stakeToken, fee);
         PlayerSupply storage playerSupply = s.playerSupply[msg.sender][
             _challengeId

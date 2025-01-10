@@ -5,6 +5,8 @@ import "../interfaces/ITopicRegistry.sol";
 
 import "../interfaces/IChallengePool.sol";
 
+import "../interfaces/IChallengePoolManager.sol";
+
 struct TRStore {
     mapping(string => ITopicRegistry.Topic) registry;
 }
@@ -26,7 +28,7 @@ struct CPStore {
     mapping(address => mapping(uint256 => mapping(bytes => IChallengePool.PlayerSupply))) playerSupply; // player -> challengeId > option > supply
     mapping(uint256 => mapping(bytes => IChallengePool.OptionSupply)) optionSupply; // challengeId > option > supply
     mapping(uint256 => IChallengePool.Supply) poolSupply; // challengeId -> supply
-    mapping(address => IChallengePool.StakeToken) stakeTokens;
+    mapping(address => IChallengePoolManager.StakeToken) stakeTokens;
     uint256 challengeId;
     uint256 stakeFee;
     uint256 earlyWithdrawFee;

@@ -34,13 +34,6 @@ interface IChallengePool {
         ChallengeEvent[] events;
         bytes[] options;
     }
-
-    struct StakeToken {
-        address token;
-        uint256 accumulatedFee;
-        bool active;
-    }
-
     struct Supply {
         uint256 stakes;
         uint256 tokens;
@@ -111,11 +104,9 @@ interface IChallengePool {
     error InvalidChallenge();
     error InvalidPrediction();
     error ActionNotAllowedForState(ChallengeState _state);
-    error PlayerLimitReached();
     error PlayerDidNotWinPool();
     error PlayerAlreadyWithdrawn();
     error StakeLowerThanMinimum();
-    error ProtocolInvariantCheckFailed();
     error InvalidEventTopic();
     error InvalidEventParam();
     error InvalidEventMaturity();
