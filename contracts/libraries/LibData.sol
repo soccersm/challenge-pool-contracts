@@ -7,6 +7,8 @@ import "../interfaces/IChallengePool.sol";
 
 import "../interfaces/IChallengePoolManager.sol";
 
+import "../interfaces/IDataProvider.sol";
+
 struct TRStore {
     mapping(string => ITopicRegistry.Topic) registry;
 }
@@ -46,6 +48,25 @@ library CPStorage {
 
     function load() internal pure returns (CPStore storage s) {
         bytes32 position = CHALLENGE_POOL_STORAGE_POSITION;
+        assembly {
+            s.slot := position
+        }
+    }
+}
+
+struct DPStore {
+    mapping(bytes => IDataProvider.DataRequest) dataRequest; // requestId -> data request
+    mapping(bytes => mapping (address => IDataProvider.DataDispute)) dataDispute; // requestId -> disputer -> data dispute
+    uint256 disputePeriod;
+    uint256 disputeStake;
+}
+
+library DPStorage {
+    bytes32 constant DATA_PROVIDER_STORAGE_POSITION =
+        keccak256("soccersm.data.provider");
+
+    function load() internal pure returns (DPStore storage s) {
+        bytes32 position = DATA_PROVIDER_STORAGE_POSITION;
         assembly {
             s.slot := position
         }

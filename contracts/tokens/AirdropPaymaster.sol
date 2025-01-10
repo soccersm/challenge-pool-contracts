@@ -5,6 +5,7 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "../interfaces/IPaymaster.sol";
+import "../libraries/LibTransfer.sol";
 
 contract AirdropPaymaster is IPaymaster, Ownable {
     mapping(address => mapping(address => uint256)) public balance; // token -> user -> balance
@@ -17,7 +18,6 @@ contract AirdropPaymaster is IPaymaster, Ownable {
         soccersm = _soccersm;
     }
 
-    error ProtocolInvariantCheckFailed();
     error NotImplemented();
 
     function payFor(
@@ -28,7 +28,7 @@ contract AirdropPaymaster is IPaymaster, Ownable {
         require(msg.sender == soccersm, "Must be soccersm ...");
         require(balance[_token][_owner] >= _amt, "low balance ...");
         balance[_token][_owner] -= _amt;
-        _send(_token, _amt, msg.sender);
+        LibTransfer._send(_token, _amt, msg.sender);
         emit Pay(_token, msg.sender, _owner, msg.sender, _amt);
     }
 
@@ -38,31 +38,8 @@ contract AirdropPaymaster is IPaymaster, Ownable {
         uint256 _amt
     ) external override {
         balance[_token][_addr] += _amt;
-        _receive(_token, _amt);
+        LibTransfer._receive(_token, _amt);
         emit Deposit(_token, msg.sender, msg.sender, _addr, _amt);
-    }
-
-    function _send(address _token, uint256 _amount, address _to) internal {
-        uint256 balanceBefore = IERC20(_token).balanceOf(address(this));
-        SafeERC20.safeTransfer(IERC20(_token), _to, _amount);
-        uint256 balanceAfter = IERC20(_token).balanceOf(address(this));
-        if ((balanceBefore - balanceAfter) != _amount) {
-            revert ProtocolInvariantCheckFailed();
-        }
-    }
-
-    function _receive(address _token, uint256 _amount) internal {
-        uint256 balanceBefore = IERC20(_token).balanceOf(address(this));
-        SafeERC20.safeTransferFrom(
-            IERC20(_token),
-            msg.sender,
-            address(this),
-            _amount
-        );
-        uint256 balanceAfter = IERC20(_token).balanceOf(address(this));
-        if ((balanceAfter - balanceBefore) != _amount) {
-            revert ProtocolInvariantCheckFailed();
-        }
     }
 
     function drain(address _token) external onlyOwner {

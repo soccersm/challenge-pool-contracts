@@ -7,6 +7,7 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "../libraries/LibData.sol";
 import "../interfaces/IChallengePool.sol";
 import "../libraries/LibPrice.sol";
+import "../libraries/LibTransfer.sol";
 
 import "../utils/Helpers.sol";
 import "../utils/Errors.sol";
@@ -63,20 +64,6 @@ contract ChallengePool is IChallengePool, Helpers {
         return _challenge.state;
     }
 
-    function _deposit(address _token, uint256 _amount) internal {
-        uint256 balanceBefore = IERC20(_token).balanceOf(address(this));
-        SafeERC20.safeTransferFrom(
-            IERC20(_token),
-            msg.sender,
-            address(this),
-            _amount
-        );
-        uint256 balanceAfter = IERC20(_token).balanceOf(address(this));
-        if ((balanceAfter - balanceBefore) != _amount) {
-            revert ProtocolInvariantCheckFailed();
-        }
-    }
-
     function _depositFromPaymaster(
         address _paymaster,
         address _token,
@@ -96,18 +83,9 @@ contract ChallengePool is IChallengePool, Helpers {
         uint256 _amount
     ) internal {
         if (_paymaster == address(0)) {
-            _deposit(_token, _amount);
+            LibTransfer._receive(_token, _amount);
         } else {
             _depositFromPaymaster(_paymaster, _token, _amount);
-        }
-    }
-
-    function _send(address _token, uint256 _amount) internal {
-        uint256 balanceBefore = IERC20(_token).balanceOf(address(this));
-        SafeERC20.safeTransfer(IERC20(_token), msg.sender, _amount);
-        uint256 balanceAfter = IERC20(_token).balanceOf(address(this));
-        if ((balanceBefore - balanceAfter) != _amount) {
-            revert ProtocolInvariantCheckFailed();
         }
     }
 
@@ -148,7 +126,7 @@ contract ChallengePool is IChallengePool, Helpers {
             playerSupply.stakes
         );
         uint256 totalAmount = playerShare + playerSupply.tokens;
-        _send(c.stakeToken, totalAmount);
+        LibTransfer._send(c.stakeToken, totalAmount, msg.sender);
         emit WinningsWithdrawn(
             _challengeId,
             msg.sender,
@@ -174,7 +152,7 @@ contract ChallengePool is IChallengePool, Helpers {
                 totalAmount += playerSupply.tokens;
             }
         }
-        _send(c.stakeToken, totalAmount);
+        LibTransfer._send(c.stakeToken, totalAmount, msg.sender);
         emit WinningsWithdrawn(_challengeId, msg.sender, 0, totalAmount);
     }
 
@@ -429,7 +407,11 @@ contract ChallengePool is IChallengePool, Helpers {
         s.optionSupply[_challengeId][_prediction].tokens += totalAmount;
         s.poolSupply[_challengeId].stakes += _quantity;
         s.poolSupply[_challengeId].tokens += totalAmount;
-        _send(s.challenges[_challengeId].stakeToken, totalAmount);
+        LibTransfer._send(
+            s.challenges[_challengeId].stakeToken,
+            totalAmount,
+            msg.sender
+        );
         emit Stake(
             _challengeId,
             msg.sender,
@@ -472,7 +454,7 @@ contract ChallengePool is IChallengePool, Helpers {
         uint256 totalAmount = currentPrice * _quantity;
         uint256 fee = _computeEarlyWithdrawFee(currentPrice);
         _recordFee(s.challenges[_challengeId].stakeToken, fee);
-        _deposit(s.challenges[_challengeId].stakeToken, fee);
+        LibTransfer._receive(s.challenges[_challengeId].stakeToken, fee);
         PlayerSupply storage playerSupply = s.playerSupply[msg.sender][
             _challengeId
         ][_prediction];
@@ -485,7 +467,11 @@ contract ChallengePool is IChallengePool, Helpers {
         s.optionSupply[_challengeId][_prediction].tokens -= totalAmount;
         s.poolSupply[_challengeId].stakes -= _quantity;
         s.poolSupply[_challengeId].tokens -= totalAmount;
-        _send(s.challenges[_challengeId].stakeToken, totalAmount);
+        LibTransfer._send(
+            s.challenges[_challengeId].stakeToken,
+            totalAmount,
+            msg.sender
+        );
         emit Withdraw(
             _challengeId,
             msg.sender,

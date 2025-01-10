@@ -2,12 +2,48 @@
 pragma solidity ^0.8.28;
 
 interface IDataProvider {
+    struct DataRequest {
+        bytes requested;
+        bytes provided;
+        uint256 lastProvidedTime;
+        bool disputed;
+        bool register;
+    }
+    struct DataDispute {
+        bytes params;
+        uint256 stake;
+    }
+    event DataRequested(
+        address indexed caller,
+        string indexed namespace,
+        bytes requestId,
+        bytes params
+    );
+    event DataProvided(
+        address indexed caller,
+        string indexed namespace,
+        bytes requestId,
+        bytes params
+    );
+    event DataRegistered(
+        address indexed caller,
+        string indexed namespace,
+        bytes requestId,
+        bytes params
+    );
+    event DataDisputed(
+        address indexed caller,
+        string indexed namespace,
+        bytes requestId,
+        bytes provided,
+        bytes dispute
+    );
     /**
      * @notice  .
      * @dev     used to make data request to offchain listeners.
      * @param   _params  decoded and sent based on the event topic type.
      */
-    function requestData(bytes calldata _params) external returns(bool);
+    function requestData(bytes calldata _params) external returns (bool);
     /**
      * @notice  can only be called by registered oracle
      * @dev     offchain oracles call this to provide initially requested data.
@@ -55,5 +91,14 @@ interface IDataProvider {
      * @param   _options  options from a pool.
      * @return  bool  true if all options are valid.
      */
-    function validateOptions(bytes[] calldata _options) external pure returns (bool);
+    function validateOptions(
+        bytes[] calldata _options
+    ) external pure returns (bool);
+
+    /**
+     * @notice  .
+     * @dev     every data provider should have a namespace.
+     * @return  string  .
+     */
+    function namspace() external pure returns (string memory);
 }
