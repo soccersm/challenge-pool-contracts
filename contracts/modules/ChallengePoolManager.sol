@@ -4,6 +4,7 @@ pragma solidity ^0.8.28;
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "../libraries/LibData.sol";
+import "../libraries/LibTransfer.sol";
 import "../interfaces/IChallengePoolManager.sol";
 import "../utils/Helpers.sol";
 import "../utils/Errors.sol";
@@ -117,16 +118,23 @@ contract ChallengePoolManager is IChallengePoolManager, Helpers {
         require(st.accumulatedFee > 0, "no fee to extra");
         uint256 accumulatedFee = st.accumulatedFee;
         st.accumulatedFee = 0;
-        _send(_stakeToken, accumulatedFee);
+        LibTransfer._send(_stakeToken, accumulatedFee, msg.sender);
         emit FeeWithdrawn(msg.sender, _stakeToken, msg.sender, accumulatedFee);
     }
 
-    function _send(address _token, uint256 _amount) internal {
-        uint256 balanceBefore = IERC20(_token).balanceOf(address(this));
-        SafeERC20.safeTransfer(IERC20(_token), msg.sender, _amount);
-        uint256 balanceAfter = IERC20(_token).balanceOf(address(this));
-        if ((balanceBefore - balanceAfter) != _amount) {
-            revert ProtocolInvariantCheckFailed();
-        }
+    function setDisputePeriod(
+        uint256 _disputePeriod
+    ) external override nonZero(_disputePeriod) {
+        uint256 oldDisputePeriod = CPStorage.load().disputePeriod;
+        CPStorage.load().disputePeriod = _disputePeriod;
+        emit SetDisputePeriod(msg.sender, oldDisputePeriod, _disputePeriod);
+    }
+
+    function setDisputeStake(
+        uint256 _disputeStake
+    ) external override nonZero(_disputeStake) {
+        uint256 oldDisputeStake = CPStorage.load().disputeStake;
+        CPStorage.load().disputeStake = _disputeStake;
+        emit SetDisputeStake(msg.sender, oldDisputeStake, _disputeStake);
     }
 }
