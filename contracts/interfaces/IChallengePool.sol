@@ -13,7 +13,6 @@ interface IChallengePool {
         settled,
         disputed
     }
-
     enum PoolAction {
         stake,
         withdraw
@@ -24,7 +23,6 @@ interface IChallengePool {
         string topicId;
         uint256 maturity;
     }
-
     struct Challenge {
         ChallengeState state;
         bool multi;
@@ -43,7 +41,6 @@ interface IChallengePool {
         uint256 stakes;
         uint256 tokens;
     }
-
     struct OptionSupply {
         bool exists;
         uint256 stakes;
@@ -57,6 +54,7 @@ interface IChallengePool {
     struct Dispute {
         bytes dispute;
         uint256 stake;
+        bool released;
     }
 
     event NewChallenge(
@@ -91,13 +89,22 @@ interface IChallengePool {
         uint256 indexed challengeId,
         address indexed disputor,
         ChallengeState state,
-        bytes result
+        bytes result,
+        uint256 amount
+    );
+    event DisputeReleased(
+        uint256 indexed challengeId,
+        address indexed disputor,
+        ChallengeState state,
+        bytes result,
+        uint256 amount
     );
     event SettleDispute(
         uint256 indexed challengeId,
         address indexed disputor,
         ChallengeState state,
-        bytes result
+        bytes result,
+        uint256 amount
     );
     event CancelChallenge(
         uint256 indexed challengeId,
@@ -148,6 +155,8 @@ interface IChallengePool {
     error InsufficientStakes(uint256 _requested, uint256 _available);
     error DisputePeriodElapsed();
     error PlayerAlreadyDisputed();
+    error PlayerAlreadyReleased();
+    error PlayerDidNotDispute();
 
     /**
      * @notice  .
@@ -169,7 +178,6 @@ interface IChallengePool {
         uint256 _basePrice,
         address _paymaster
     ) external;
-
     /**
      * @notice  .
      * @dev     stake on a pool
@@ -188,21 +196,18 @@ interface IChallengePool {
         uint256 _deadline,
         address _paymaster
     ) external;
-
     /**
      * @notice  .
      * @dev     withdraw winnings from pool, reverts if user lost
      * @param   _challengeId  .
      */
     function withdraw(uint256 _challengeId) external;
-
     /**
      * @notice  .
      * @dev     bulk withdrawal
      * @param   _challengeIds  .
      */
     function bulkWithdraw(uint256[] calldata _challengeIds) external;
-
     /**
      * @notice  .
      * @dev     early withdrawal allows player to get out of their stake. price of option calculated accordingly and applied
@@ -219,7 +224,6 @@ interface IChallengePool {
         uint256 _minPrice,
         uint256 _deadline
     ) external;
-
     /**
      * @notice  .
      * @dev     evaluate pool once it's matured
@@ -233,6 +237,7 @@ interface IChallengePool {
      * @param   _outcome  their suggested outcome.
      */
     function dispute(uint256 _challengeId, bytes calldata _outcome) external;
+    function releaseDispute(uint256 _challengeId) external;
     /**
      * @notice  .
      * @dev      dispute admin can call this to settle dispute.
@@ -240,21 +245,18 @@ interface IChallengePool {
      * @param   _outcome  decoded and applied based on the event topic type.
      */
     function settle(uint256 _challengeId, bytes calldata _outcome) external;
-
     /**
      * @notice  .
      * @dev     cancel pool for some reason
      * @param   _challengeId  .
      */
     function cancel(uint256 _challengeId) external;
-
     /**
      * @notice  .
      * @dev     close pool once it's evaluated or settled
      * @param   _challengeId  .
      */
     function close(uint256 _challengeId) external;
-
     /**
      * @notice  .
      * @dev     price calculation for a pool option
@@ -269,7 +271,6 @@ interface IChallengePool {
         uint256 _quantity,
         PoolAction _action
     ) external view returns (uint256);
-
     /**
      * @notice  .
      * @dev     returns the Challenge struct.

@@ -617,18 +617,55 @@ contract ChallengePool is IChallengePool, Helpers {
         if (block.timestamp - c.lastOutcomeSet > s.disputePeriod) {
             revert DisputePeriodElapsed();
         }
-        Dispute storage d = s.poolDisputes[_challengeId][msg.sender];
-        if (s.poolDisputes[_challengeId][msg.sender].stake > 0) {
+        Dispute storage d = s.playerDisputes[_challengeId][msg.sender];
+        if (d.stake > 0) {
             revert PlayerAlreadyDisputed();
         }
         d.dispute = _outcome;
         d.stake = s.disputeStake;
+        if (!c.disputed) {
+            c.disputed = true;
+        }
+        s.optionDisputes[_challengeId][_outcome] += s.disputeStake;
+        s.poolDisputes[_challengeId] += s.disputeStake;
         LibTransfer._receive(c.stakeToken, s.disputeStake);
         emit DisputeOutcome(
             _challengeId,
             msg.sender,
             ChallengeState.disputed,
-            _outcome
+            _outcome,
+            s.disputeStake
+        );
+    }
+
+    function releaseDispute(
+        uint256 _challengeId
+    )
+        external
+        override
+        validChallenge(_challengeId)
+        poolInState(_challengeId, ChallengeState.closed)
+    {
+        CPStore storage s = CPStorage.load();
+        Challenge storage c = s.challenges[_challengeId];
+        if (s.playerSupply[msg.sender][_challengeId].stakes == 0) {
+            revert PlayerNotInPool();
+        }
+        Dispute storage d = s.playerDisputes[_challengeId][msg.sender];
+        if(d.stake == 0) {
+            revert PlayerDidNotDispute();
+        }
+        if (d.released) {
+            revert PlayerAlreadyReleased();
+        }
+        d.released = true;
+        LibTransfer._send(c.stakeToken, d.stake, msg.sender);
+        emit DisputeReleased(
+            _challengeId,
+            msg.sender,
+            c.state,
+            d.dispute,
+            d.stake
         );
     }
 
@@ -648,11 +685,15 @@ contract ChallengePool is IChallengePool, Helpers {
         Challenge storage c = s.challenges[_challengeId];
         c.state = ChallengeState.settled;
         c.outcome = _outcome;
+        uint256 slashed = s.poolDisputes[_challengeId] -
+            s.optionDisputes[_challengeId][_outcome];
+        LibTransfer._send(c.stakeToken, slashed, s.feeAddress);
         emit SettleDispute(
             _challengeId,
             msg.sender,
             ChallengeState.settled,
-            _outcome
+            _outcome,
+            slashed
         );
     }
 
