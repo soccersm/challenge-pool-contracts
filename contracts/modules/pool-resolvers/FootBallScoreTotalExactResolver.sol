@@ -10,7 +10,7 @@ contract FootBallScoreTotalExactResolver is BaseResolver {
         external
         view
         override
-        returns (bytes memory, IChallengePool.ChallengeEvent[] memory)
+        returns (bytes memory)
     {}
 
     function validateEvent(

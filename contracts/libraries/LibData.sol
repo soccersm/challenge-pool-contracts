@@ -27,10 +27,12 @@ library TRStorage {
 
 struct CPStore {
     mapping(uint256 => IChallengePool.Challenge) challenges;
-    mapping(address => mapping(uint256 => mapping(bytes => IChallengePool.PlayerSupply))) playerSupply; // player -> challengeId > option > supply
+    mapping(address => mapping(uint256 => mapping(bytes => IChallengePool.PlayerSupply))) playerOptionSupply; // player -> challengeId > option > supply
+    mapping(address => mapping(uint256 => IChallengePool.PlayerSupply)) playerSupply; // player -> challengeId > supply
     mapping(uint256 => mapping(bytes => IChallengePool.OptionSupply)) optionSupply; // challengeId > option > supply
     mapping(uint256 => IChallengePool.Supply) poolSupply; // challengeId -> supply
     mapping(address => IChallengePoolManager.StakeToken) stakeTokens;
+    mapping(uint256 => mapping(address => IChallengePool.Dispute)) poolDisputes; // challengeId -> disputer -> data dispute
     uint256 challengeId;
     uint256 stakeFee;
     uint256 earlyWithdrawFee;
@@ -40,6 +42,8 @@ struct CPStore {
     uint256 maxEventsPerPool;
     uint256 minMaturityPeriod;
     address feeAddress;
+    uint256 disputePeriod;
+    uint256 disputeStake;
 }
 
 library CPStorage {
@@ -56,9 +60,6 @@ library CPStorage {
 
 struct DPStore {
     mapping(bytes => IDataProvider.DataRequest) dataRequest; // requestId -> data request
-    mapping(bytes => mapping (address => IDataProvider.DataDispute)) dataDispute; // requestId -> disputer -> data dispute
-    uint256 disputePeriod;
-    uint256 disputeStake;
 }
 
 library DPStorage {

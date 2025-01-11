@@ -6,12 +6,7 @@ interface IDataProvider {
         bytes requested;
         bytes provided;
         uint256 lastProvidedTime;
-        bool disputed;
         bool register;
-    }
-    struct DataDispute {
-        bytes params;
-        uint256 stake;
     }
     event DataRequested(
         address indexed caller,
@@ -31,13 +26,6 @@ interface IDataProvider {
         bytes requestId,
         bytes params
     );
-    event DataDisputed(
-        address indexed caller,
-        string indexed namespace,
-        bytes requestId,
-        bytes provided,
-        bytes dispute
-    );
     /**
      * @notice  .
      * @dev     used to make data request to offchain listeners.
@@ -50,6 +38,12 @@ interface IDataProvider {
      * @param   _params  decoded and applied based on the event topic type.
      */
     function provideData(bytes calldata _params) external;
+    /**
+     * @notice  can only be called by soccersm council
+     * @dev     in case of dispute and wrong data provided, this can be called to provide correct data.
+     * @param   _params  decoded and applied based on the event topic type.
+     */
+    function updateProvision(bytes calldata _params) external;
     /**
      * @notice  .
      * @dev     sometimes events need to be registered onchain ahead of time before they can be requested this is the case of general statements.
@@ -65,18 +59,6 @@ interface IDataProvider {
     function getData(
         bytes calldata _params
     ) external returns (bytes memory _data);
-    /**
-     * @notice  .
-     * @dev     anyone can call this to dispute the data provided.
-     * @param   _params  decoded and applied based on the event topic type.
-     */
-    function disputeData(bytes calldata _params) external;
-    /**
-     * @notice  .
-     * @dev      dispute admin can call this to settle dispute.
-     * @param   _params  decoded and applied based on the event topic type.
-     */
-    function settleDispute(bytes calldata _params) external;
     /**
      * @notice  .
      * @dev     .

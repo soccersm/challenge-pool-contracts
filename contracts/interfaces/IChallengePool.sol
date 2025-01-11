@@ -8,7 +8,10 @@ interface IChallengePool {
         open,
         closed,
         cancelled,
-        matured
+        matured,
+        evaluated,
+        settled,
+        disputed
     }
 
     enum PoolAction {
@@ -33,6 +36,8 @@ interface IChallengePool {
         address stakeToken;
         ChallengeEvent[] events;
         bytes[] options;
+        bool disputed;
+        uint256 lastOutcomeSet;
     }
     struct Supply {
         uint256 stakes;
@@ -44,11 +49,14 @@ interface IChallengePool {
         uint256 stakes;
         uint256 tokens;
     }
-
     struct PlayerSupply {
         bool withdrawn;
         uint256 stakes;
         uint256 tokens;
+    }
+    struct Dispute {
+        bytes dispute;
+        uint256 stake;
     }
 
     event NewChallenge(
@@ -67,9 +75,27 @@ interface IChallengePool {
         address stakeToken,
         address paymaster
     );
-    event ClosedChallenge(
+    event CloseChallenge(
         uint256 indexed challengeId,
         address indexed closer,
+        ChallengeState state,
+        bytes result
+    );
+    event EvaluateChallenge(
+        uint256 indexed challengeId,
+        address indexed evaluator,
+        ChallengeState state,
+        bytes result
+    );
+    event DisputeOutcome(
+        uint256 indexed challengeId,
+        address indexed disputor,
+        ChallengeState state,
+        bytes result
+    );
+    event SettleDispute(
+        uint256 indexed challengeId,
+        address indexed disputor,
         ChallengeState state,
         bytes result
     );
@@ -105,6 +131,7 @@ interface IChallengePool {
     error InvalidPrediction();
     error ActionNotAllowedForState(ChallengeState _state);
     error PlayerDidNotWinPool();
+    error PlayerNotInPool();
     error PlayerAlreadyWithdrawn();
     error StakeLowerThanMinimum();
     error InvalidEventTopic();
@@ -119,6 +146,8 @@ interface IChallengePool {
     error DeadlineExceeded();
     error BelowMinPrie();
     error InsufficientStakes(uint256 _requested, uint256 _available);
+    error DisputePeriodElapsed();
+    error PlayerAlreadyDisputed();
 
     /**
      * @notice  .
@@ -193,10 +222,24 @@ interface IChallengePool {
 
     /**
      * @notice  .
-     * @dev     close pool once it's matured
+     * @dev     evaluate pool once it's matured
      * @param   _challengeId  .
      */
-    function close(uint256 _challengeId) external;
+    function evaluate(uint256 _challengeId) external;
+    /**
+     * @notice  .
+     * @dev     anyone can call this to dispute the outcome.
+     * @param   _challengeId  .
+     * @param   _outcome  their suggested outcome.
+     */
+    function dispute(uint256 _challengeId, bytes calldata _outcome) external;
+    /**
+     * @notice  .
+     * @dev      dispute admin can call this to settle dispute.
+     * @param   _challengeId  .
+     * @param   _outcome  decoded and applied based on the event topic type.
+     */
+    function settle(uint256 _challengeId, bytes calldata _outcome) external;
 
     /**
      * @notice  .
@@ -204,6 +247,13 @@ interface IChallengePool {
      * @param   _challengeId  .
      */
     function cancel(uint256 _challengeId) external;
+
+    /**
+     * @notice  .
+     * @dev     close pool once it's evaluated or settled
+     * @param   _challengeId  .
+     */
+    function close(uint256 _challengeId) external;
 
     /**
      * @notice  .

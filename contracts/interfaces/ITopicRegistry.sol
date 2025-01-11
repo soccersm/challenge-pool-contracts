@@ -104,24 +104,11 @@ interface ITopicRegistry {
     ) external returns (bytes memory _data);
     /**
      * @notice  .
-     * @dev     anyone can call this to dispute the data provided.
-     * @param _topicId topic id helps determine which data provider to use
-     * @param   _params  decoded and applied based on the event topic type.
+     * @dev     .
+     * @param   _topicId  .
+     * @param   _params  .
+     * @return  bool  .
      */
-    function disputeData(
-        string calldata _topicId,
-        bytes calldata _params
-    ) external;
-    /**
-     * @notice  .
-     * @dev      dispute admin can call this to settle dispute.
-     * @param _topicId topic id helps determine which data provider to use
-     * @param   _params  decoded and applied based on the event topic type.
-     */
-    function settleDispute(
-        string calldata _topicId,
-        bytes calldata _params
-    ) external;
     function hasData(
         string calldata _topicId,
         bytes calldata _params
