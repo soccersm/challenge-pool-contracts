@@ -4,11 +4,7 @@ pragma solidity ^0.8.28;
 import "./BaseResolver.sol";
 
 contract AssetPriceTargetResolver is BaseResolver {
-    function _decodeParams(
-        bytes memory _params
-    ) internal pure returns (string memory, uint256, string memory) {
-        return abi.decode(_params, (string, uint256, string));
-    }
+
     function validateEvent(
         IDataProvider dataProvider,
         IChallengePool.ChallengeEvent memory _event
