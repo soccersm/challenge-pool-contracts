@@ -2,18 +2,56 @@
 pragma solidity ^0.8.28;
 
 interface IDataProvider {
+    struct DataRequest {
+        bytes requested;
+        bytes provided;
+        bool register;
+    }
+    event DataRequested(
+        address indexed caller,
+        string indexed namespace,
+        bytes requestId,
+        bytes params
+    );
+    event DataProvided(
+        address indexed caller,
+        string indexed namespace,
+        bytes requestId,
+        bytes params
+    );
+    event DataRegistered(
+        address indexed caller,
+        string indexed namespace,
+        bytes requestId,
+        bytes params
+    );
+
+    error DataAlreadyProvided();
+    error InvalidSubmissionDate(uint256 _date);
+    error DataNotRequested();
+    error DataNotProvided();
+    error DataNotRegistered();
+    error DataAlreadyRegistered();
+    error InvalidResult();
+
     /**
      * @notice  .
      * @dev     used to make data request to offchain listeners.
      * @param   _params  decoded and sent based on the event topic type.
      */
-    function requestData(bytes calldata _params) external returns(bool);
+    function requestData(bytes calldata _params) external returns (bool);
     /**
      * @notice  can only be called by registered oracle
      * @dev     offchain oracles call this to provide initially requested data.
      * @param   _params  decoded and applied based on the event topic type.
      */
     function provideData(bytes calldata _params) external;
+    /**
+     * @notice  can only be called by soccersm council
+     * @dev     in case of dispute and wrong data provided, this can be called to provide correct data.
+     * @param   _params  decoded and applied based on the event topic type.
+     */
+    function updateProvision(bytes calldata _params) external;
     /**
      * @notice  .
      * @dev     sometimes events need to be registered onchain ahead of time before they can be requested this is the case of general statements.
@@ -31,18 +69,6 @@ interface IDataProvider {
     ) external returns (bytes memory _data);
     /**
      * @notice  .
-     * @dev     anyone can call this to dispute the data provided.
-     * @param   _params  decoded and applied based on the event topic type.
-     */
-    function disputeData(bytes calldata _params) external;
-    /**
-     * @notice  .
-     * @dev      dispute admin can call this to settle dispute.
-     * @param   _params  decoded and applied based on the event topic type.
-     */
-    function settleDispute(bytes calldata _params) external;
-    /**
-     * @notice  .
      * @dev     .
      * @param   _params  decoded and applied based on the event topic type.
      * @return  bool  true if data exists otherwise false
@@ -55,5 +81,15 @@ interface IDataProvider {
      * @param   _options  options from a pool.
      * @return  bool  true if all options are valid.
      */
-    function validateOptions(bytes[] calldata _options) external pure returns (bool);
+    function validateOptions(
+        bytes calldata _params,
+        bytes[] calldata _options
+    ) external pure returns (bool);
+
+    /**
+     * @notice  .
+     * @dev     every data provider should have a namespace.
+     * @return  string  .
+     */
+    function namspace() external pure returns (string memory);
 }

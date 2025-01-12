@@ -92,7 +92,7 @@ contract TopicRegistry is ITopicRegistry, Helpers {
             abi.encodeWithSelector(IDataProvider.provideData.selector, _params)
         );
         if (!success) {
-            revert DelegateCallFailed("provideData");
+            revert DelegateCallFailed("TopicRegistry.provideData");
         }
     }
 
@@ -109,7 +109,7 @@ contract TopicRegistry is ITopicRegistry, Helpers {
             )
         );
         if (!success) {
-            revert DelegateCallFailed("registerEvent");
+            revert DelegateCallFailed("TopicRegistry.registerEvent");
         }
     }
 
@@ -123,40 +123,9 @@ contract TopicRegistry is ITopicRegistry, Helpers {
             abi.encodeWithSelector(IDataProvider.getData.selector, _params)
         );
         if (!success) {
-            revert DelegateCallFailed("getData");
+            revert DelegateCallFailed("TopicRegistry.getData");
         }
         return result;
-    }
-
-    function disputeData(
-        string calldata _topicId,
-        bytes calldata _params
-    ) external override {
-        TRStore storage t = TRStorage.load();
-        IDataProvider provider = t.registry[_topicId].dataProvider;
-        (bool success, ) = address(provider).delegatecall(
-            abi.encodeWithSelector(IDataProvider.disputeData.selector, _params)
-        );
-        if (!success) {
-            revert DelegateCallFailed("disputeData");
-        }
-    }
-
-    function settleDispute(
-        string calldata _topicId,
-        bytes calldata _params
-    ) external override {
-        TRStore storage t = TRStorage.load();
-        IDataProvider provider = t.registry[_topicId].dataProvider;
-        (bool success, ) = address(provider).delegatecall(
-            abi.encodeWithSelector(
-                IDataProvider.settleDispute.selector,
-                _params
-            )
-        );
-        if (!success) {
-            revert DelegateCallFailed("settleDispute");
-        }
     }
 
     function hasData(
@@ -169,7 +138,7 @@ contract TopicRegistry is ITopicRegistry, Helpers {
             abi.encodeWithSelector(IDataProvider.hasData.selector, _params)
         );
         if (!success) {
-            revert DelegateCallFailed("hasData");
+            revert DelegateCallFailed("TopicRegistry.hasData");
         }
         return abi.decode(result, (bool));
     }

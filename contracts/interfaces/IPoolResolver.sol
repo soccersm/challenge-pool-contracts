@@ -10,10 +10,11 @@ interface IPoolResolver {
      * @param   _event  .
      */
     function resolveEvent(
-        IChallengePool.ChallengeEvent memory _event
+        IDataProvider dataProvider,
+        IChallengePool.ChallengeEvent memory _event,
+        bytes[] calldata _options
     )
         external
-        view
         returns (bytes memory);
 
     /**
@@ -23,8 +24,9 @@ interface IPoolResolver {
      * @return  bool  true if event is valid.
      */
     function validateEvent(
+        IDataProvider dataProvider,
         IChallengePool.ChallengeEvent memory _event
-    ) external view returns (bool);
+    ) external returns (bool);
 
     /**
      * @notice  .
@@ -34,6 +36,7 @@ interface IPoolResolver {
      */
     function validateOptions(
         IDataProvider dataProvider,
+        IChallengePool.ChallengeEvent memory _event,
         bytes[] calldata _options
-    ) external pure returns (bool);
+    ) external returns (bool);
 }

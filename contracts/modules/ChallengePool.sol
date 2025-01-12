@@ -7,6 +7,7 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "../libraries/LibData.sol";
 import "../interfaces/IChallengePool.sol";
 import "../libraries/LibPrice.sol";
+import "../libraries/LibTransfer.sol";
 
 import "../utils/Helpers.sol";
 import "../utils/Errors.sol";
@@ -63,20 +64,6 @@ contract ChallengePool is IChallengePool, Helpers {
         return _challenge.state;
     }
 
-    function _deposit(address _token, uint256 _amount) internal {
-        uint256 balanceBefore = IERC20(_token).balanceOf(address(this));
-        SafeERC20.safeTransferFrom(
-            IERC20(_token),
-            msg.sender,
-            address(this),
-            _amount
-        );
-        uint256 balanceAfter = IERC20(_token).balanceOf(address(this));
-        if ((balanceAfter - balanceBefore) != _amount) {
-            revert ProtocolInvariantCheckFailed();
-        }
-    }
-
     function _depositFromPaymaster(
         address _paymaster,
         address _token,
@@ -96,18 +83,9 @@ contract ChallengePool is IChallengePool, Helpers {
         uint256 _amount
     ) internal {
         if (_paymaster == address(0)) {
-            _deposit(_token, _amount);
+            LibTransfer._receive(_token, _amount);
         } else {
             _depositFromPaymaster(_paymaster, _token, _amount);
-        }
-    }
-
-    function _send(address _token, uint256 _amount) internal {
-        uint256 balanceBefore = IERC20(_token).balanceOf(address(this));
-        SafeERC20.safeTransfer(IERC20(_token), msg.sender, _amount);
-        uint256 balanceAfter = IERC20(_token).balanceOf(address(this));
-        if ((balanceBefore - balanceAfter) != _amount) {
-            revert ProtocolInvariantCheckFailed();
         }
     }
 
@@ -133,22 +111,25 @@ contract ChallengePool is IChallengePool, Helpers {
         if (compareBytes(emptyBytes, c.outcome)) {
             revert InvalidOutcome();
         }
-        PlayerSupply storage playerSupply = s.playerSupply[msg.sender][
-            _challengeId
-        ][c.outcome];
-        if (playerSupply.withdrawn) {
+        if (s.playerSupply[msg.sender][_challengeId].stakes == 0) {
+            revert PlayerNotInPool();
+        }
+        PlayerSupply storage playerOptionSupply = s.playerOptionSupply[
+            msg.sender
+        ][_challengeId][c.outcome];
+        if (playerOptionSupply.withdrawn) {
             revert PlayerAlreadyWithdrawn();
         }
-        if (playerSupply.stakes == 0) {
+        if (playerOptionSupply.stakes == 0) {
             revert PlayerDidNotWinPool();
         }
-        playerSupply.withdrawn = true;
+        playerOptionSupply.withdrawn = true;
         uint256 playerShare = _computeWinnerShare(
             _challengeId,
-            playerSupply.stakes
+            playerOptionSupply.stakes
         );
-        uint256 totalAmount = playerShare + playerSupply.tokens;
-        _send(c.stakeToken, totalAmount);
+        uint256 totalAmount = playerShare + playerOptionSupply.tokens;
+        LibTransfer._send(c.stakeToken, totalAmount, msg.sender);
         emit WinningsWithdrawn(
             _challengeId,
             msg.sender,
@@ -160,21 +141,15 @@ contract ChallengePool is IChallengePool, Helpers {
     function _withdrawAfterCancelled(uint256 _challengeId) internal {
         CPStore storage s = CPStorage.load();
         Challenge storage c = s.challenges[_challengeId];
-
-        uint256 totalAmount = 0;
-        for (uint i = 0; i < c.options.length; i++) {
-            PlayerSupply storage playerSupply = s.playerSupply[msg.sender][
-                _challengeId
-            ][c.options[i]];
-            if (playerSupply.withdrawn) {
-                revert PlayerAlreadyWithdrawn();
-            }
-            if (playerSupply.tokens > 0) {
-                playerSupply.withdrawn = true;
-                totalAmount += playerSupply.tokens;
-            }
+        if (s.playerSupply[msg.sender][_challengeId].stakes == 0) {
+            revert PlayerNotInPool();
         }
-        _send(c.stakeToken, totalAmount);
+        if (s.playerSupply[msg.sender][_challengeId].withdrawn) {
+            revert PlayerAlreadyWithdrawn();
+        }
+        s.playerSupply[msg.sender][_challengeId].withdrawn = true;
+        uint256 totalAmount = s.playerSupply[msg.sender][_challengeId].tokens;
+        LibTransfer._send(c.stakeToken, totalAmount, msg.sender);
         emit WinningsWithdrawn(_challengeId, msg.sender, 0, totalAmount);
     }
 
@@ -238,6 +213,7 @@ contract ChallengePool is IChallengePool, Helpers {
             abi.encodeWithSelector(
                 IPoolResolver.validateOptions.selector,
                 provider,
+                _event,
                 _options
             )
         );
@@ -342,11 +318,9 @@ contract ChallengePool is IChallengePool, Helpers {
             _quantity,
             totalPrice
         );
-        s.playerSupply[msg.sender][s.challengeId][_prediction] = PlayerSupply(
-            false,
-            _quantity,
-            totalPrice
-        );
+        s.playerOptionSupply[msg.sender][s.challengeId][
+            _prediction
+        ] = PlayerSupply(false, _quantity, totalPrice);
         _depositOrPaymaster(_paymaster, _stakeToken, totalPrice + fee);
         s.challenges[s.challengeId] = Challenge(
             ChallengeState.open,
@@ -358,7 +332,9 @@ contract ChallengePool is IChallengePool, Helpers {
             _basePrice,
             _stakeToken,
             _events,
-            poolOptions
+            poolOptions,
+            false,
+            0
         );
         s.challengeId += 1;
         emit NewChallenge(
@@ -417,19 +393,25 @@ contract ChallengePool is IChallengePool, Helpers {
             s.challenges[_challengeId].stakeToken,
             fee + totalAmount
         );
-        PlayerSupply storage playerSupply = s.playerSupply[msg.sender][
-            _challengeId
-        ][_prediction];
-        if (playerSupply.stakes < _quantity) {
-            revert InsufficientStakes(_quantity, playerSupply.stakes);
+        PlayerSupply storage playerOptionSupply = s.playerOptionSupply[
+            msg.sender
+        ][_challengeId][_prediction];
+        if (playerOptionSupply.stakes < _quantity) {
+            revert InsufficientStakes(_quantity, playerOptionSupply.stakes);
         }
-        playerSupply.stakes += _quantity;
-        playerSupply.tokens += totalAmount;
+        playerOptionSupply.stakes += _quantity;
+        playerOptionSupply.tokens += totalAmount;
+        s.playerSupply[msg.sender][_challengeId].stakes += _quantity;
+        s.playerSupply[msg.sender][_challengeId].tokens += totalAmount;
         s.optionSupply[_challengeId][_prediction].stakes += _quantity;
         s.optionSupply[_challengeId][_prediction].tokens += totalAmount;
         s.poolSupply[_challengeId].stakes += _quantity;
         s.poolSupply[_challengeId].tokens += totalAmount;
-        _send(s.challenges[_challengeId].stakeToken, totalAmount);
+        LibTransfer._send(
+            s.challenges[_challengeId].stakeToken,
+            totalAmount,
+            msg.sender
+        );
         emit Stake(
             _challengeId,
             msg.sender,
@@ -472,20 +454,26 @@ contract ChallengePool is IChallengePool, Helpers {
         uint256 totalAmount = currentPrice * _quantity;
         uint256 fee = _computeEarlyWithdrawFee(currentPrice);
         _recordFee(s.challenges[_challengeId].stakeToken, fee);
-        _deposit(s.challenges[_challengeId].stakeToken, fee);
-        PlayerSupply storage playerSupply = s.playerSupply[msg.sender][
-            _challengeId
-        ][_prediction];
-        if (playerSupply.stakes < _quantity) {
-            revert InsufficientStakes(_quantity, playerSupply.stakes);
+        LibTransfer._receive(s.challenges[_challengeId].stakeToken, fee);
+        PlayerSupply storage playerOptionSupply = s.playerOptionSupply[
+            msg.sender
+        ][_challengeId][_prediction];
+        if (playerOptionSupply.stakes < _quantity) {
+            revert InsufficientStakes(_quantity, playerOptionSupply.stakes);
         }
-        playerSupply.stakes -= _quantity;
-        playerSupply.tokens -= totalAmount;
+        playerOptionSupply.stakes -= _quantity;
+        playerOptionSupply.tokens -= totalAmount;
+        s.playerSupply[msg.sender][_challengeId].stakes -= _quantity;
+        s.playerSupply[msg.sender][_challengeId].tokens -= totalAmount;
         s.optionSupply[_challengeId][_prediction].stakes -= _quantity;
         s.optionSupply[_challengeId][_prediction].tokens -= totalAmount;
         s.poolSupply[_challengeId].stakes -= _quantity;
         s.poolSupply[_challengeId].tokens -= totalAmount;
-        _send(s.challenges[_challengeId].stakeToken, totalAmount);
+        LibTransfer._send(
+            s.challenges[_challengeId].stakeToken,
+            totalAmount,
+            msg.sender
+        );
         emit Withdraw(
             _challengeId,
             msg.sender,
@@ -516,9 +504,14 @@ contract ChallengePool is IChallengePool, Helpers {
         }
     }
 
-    function close(
+    function evaluate(
         uint256 _challengeId
-    ) external override poolInState(_challengeId, ChallengeState.open) {
+    )
+        external
+        override
+        validChallenge(_challengeId)
+        poolInState(_challengeId, ChallengeState.matured)
+    {
         TRStore storage t = TRStorage.load();
         CPStore storage s = CPStorage.load();
         Challenge storage c = s.challenges[_challengeId];
@@ -556,8 +549,9 @@ contract ChallengePool is IChallengePool, Helpers {
         } else {
             c.outcome = _resolveEvent(t, c.events[0]);
         }
+        c.lastOutcomeSet = block.timestamp;
 
-        emit ClosedChallenge(
+        emit EvaluateChallenge(
             _challengeId,
             msg.sender,
             ChallengeState.closed,
@@ -567,7 +561,7 @@ contract ChallengePool is IChallengePool, Helpers {
 
     function cancel(
         uint256 _challengeId
-    ) external override poolInState(_challengeId, ChallengeState.open) {
+    ) external override validChallenge(_challengeId) {
         CPStore storage s = CPStorage.load();
         Challenge storage c = s.challenges[_challengeId];
         c.state = ChallengeState.cancelled;
@@ -575,6 +569,132 @@ contract ChallengePool is IChallengePool, Helpers {
             _challengeId,
             msg.sender,
             ChallengeState.cancelled
+        );
+    }
+
+    function close(
+        uint256 _challengeId
+    ) external override validChallenge(_challengeId) {
+        CPStore storage s = CPStorage.load();
+        Challenge storage c = s.challenges[_challengeId];
+        if (
+            c.state != ChallengeState.settled ||
+            c.state != ChallengeState.evaluated
+        ) {
+            revert ActionNotAllowedForState(c.state);
+        }
+        if (compareBytes(emptyBytes, c.outcome)) {
+            revert InvalidOutcome();
+        }
+        c.state = ChallengeState.closed;
+        emit CloseChallenge(
+            _challengeId,
+            msg.sender,
+            ChallengeState.closed,
+            c.outcome
+        );
+    }
+
+    function dispute(
+        uint256 _challengeId,
+        bytes calldata _outcome
+    )
+        external
+        override
+        validChallenge(_challengeId)
+        poolInState(_challengeId, ChallengeState.evaluated)
+    {
+        if (compareBytes(emptyBytes, _outcome)) {
+            revert InvalidOutcome();
+        }
+        CPStore storage s = CPStorage.load();
+        Challenge storage c = s.challenges[_challengeId];
+        if (!s.optionSupply[_challengeId][_outcome].exists) {
+            revert InvalidOutcome();
+        }
+        if (s.playerSupply[msg.sender][_challengeId].stakes == 0) {
+            revert PlayerNotInPool();
+        }
+        if (block.timestamp - c.lastOutcomeSet > s.disputePeriod) {
+            revert DisputePeriodElapsed();
+        }
+        Dispute storage d = s.playerDisputes[_challengeId][msg.sender];
+        if (d.stake > 0) {
+            revert PlayerAlreadyDisputed();
+        }
+        d.dispute = _outcome;
+        d.stake = s.disputeStake;
+        if (!c.disputed) {
+            c.disputed = true;
+        }
+        s.optionDisputes[_challengeId][_outcome] += s.disputeStake;
+        s.poolDisputes[_challengeId] += s.disputeStake;
+        LibTransfer._receive(c.stakeToken, s.disputeStake);
+        emit DisputeOutcome(
+            _challengeId,
+            msg.sender,
+            ChallengeState.disputed,
+            _outcome,
+            s.disputeStake
+        );
+    }
+
+    function releaseDispute(
+        uint256 _challengeId
+    )
+        external
+        override
+        validChallenge(_challengeId)
+        poolInState(_challengeId, ChallengeState.closed)
+    {
+        CPStore storage s = CPStorage.load();
+        Challenge storage c = s.challenges[_challengeId];
+        if (s.playerSupply[msg.sender][_challengeId].stakes == 0) {
+            revert PlayerNotInPool();
+        }
+        Dispute storage d = s.playerDisputes[_challengeId][msg.sender];
+        if(d.stake == 0) {
+            revert PlayerDidNotDispute();
+        }
+        if (d.released) {
+            revert PlayerAlreadyReleased();
+        }
+        d.released = true;
+        LibTransfer._send(c.stakeToken, d.stake, msg.sender);
+        emit DisputeReleased(
+            _challengeId,
+            msg.sender,
+            c.state,
+            d.dispute,
+            d.stake
+        );
+    }
+
+    function settle(
+        uint256 _challengeId,
+        bytes calldata _outcome
+    )
+        external
+        override
+        validChallenge(_challengeId)
+        poolInState(_challengeId, ChallengeState.disputed)
+    {
+        if (compareBytes(emptyBytes, _outcome)) {
+            revert InvalidOutcome();
+        }
+        CPStore storage s = CPStorage.load();
+        Challenge storage c = s.challenges[_challengeId];
+        c.state = ChallengeState.settled;
+        c.outcome = _outcome;
+        uint256 slashed = s.poolDisputes[_challengeId] -
+            s.optionDisputes[_challengeId][_outcome];
+        LibTransfer._send(c.stakeToken, slashed, s.feeAddress);
+        emit SettleDispute(
+            _challengeId,
+            msg.sender,
+            ChallengeState.settled,
+            _outcome,
+            slashed
         );
     }
 
@@ -587,6 +707,7 @@ contract ChallengePool is IChallengePool, Helpers {
         external
         view
         override
+        validChallenge(_challengeId)
         poolInState(_challengeId, ChallengeState.open)
         returns (uint256)
     {
