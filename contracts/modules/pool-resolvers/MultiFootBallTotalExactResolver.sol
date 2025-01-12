@@ -3,16 +3,12 @@ pragma solidity ^0.8.28;
 
 import "./BaseResolver.sol";
 
-contract FootBallCorrectScoreResolver is BaseResolver {
+contract MultiFootBallTotalExactResolver is BaseResolver {
     function validateEvent(
         IDataProvider dataProvider,
         IChallengePool.ChallengeEvent memory _event
     ) external override returns (bool) {
-        (string memory matchId, , ) = abi.decode(
-            _event.params,
-            (string, uint256, uint256)
-        );
-        return _requestData(dataProvider, abi.encode(matchId));
+        return _requestData(dataProvider, _event.params);
     }
 
     function resolveEvent(
@@ -20,22 +16,11 @@ contract FootBallCorrectScoreResolver is BaseResolver {
         IChallengePool.ChallengeEvent memory _event,
         bytes[] calldata /*_options*/
     ) external override returns (bytes memory) {
-        (
-            string memory matchId,
-            uint256 predictedHomeScore,
-            uint256 predictedAwayScore
-        ) = abi.decode(_event.params, (string, uint256, uint256));
         (uint256 homeScore, uint256 awayScore) = abi.decode(
-            _getData(dataProvider, abi.encode(matchId)),
+            _getData(dataProvider, _event.params),
             (uint256, uint256)
         );
-        if (
-            homeScore == predictedHomeScore && awayScore == predictedAwayScore
-        ) {
-            return yes;
-        } else {
-            return no;
-        }
+        return abi.encode(homeScore + awayScore);
     }
 
     function validateOptions(
@@ -43,6 +28,6 @@ contract FootBallCorrectScoreResolver is BaseResolver {
         IChallengePool.ChallengeEvent memory /*_event*/,
         bytes[] calldata /*_options*/
     ) external pure override returns (bool) {
-        revert NotImplemented();
+        return true;
     }
 }

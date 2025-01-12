@@ -38,12 +38,10 @@ contract AssetPriceBoundedResolver is BaseResolver {
             uint256 priceUpperBound,
             string memory outcome
         ) = abi.decode(_event.params, (string, uint256, uint256, string));
-
         uint256 assetPrice = abi.decode(
             _getData(dataProvider, abi.encode(assetSymbol, _event.maturity)),
             (uint256)
         );
-
         if (compareStrings(outcome, IN)) {
             if (
                 assetPrice >= priceLowerBound && assetPrice <= priceUpperBound

@@ -3,17 +3,12 @@ pragma solidity ^0.8.28;
 
 import "./BaseResolver.sol";
 
-contract AssetRangeResolver is BaseResolver {
+contract MultiFootBallTotalScoreRangeResolver is BaseResolver {
     function validateEvent(
         IDataProvider dataProvider,
         IChallengePool.ChallengeEvent memory _event
     ) external override returns (bool) {
-        string memory assetSymbol = abi.decode(_event.params, (string));
-        return
-            _requestData(
-                dataProvider,
-                abi.encode(assetSymbol, _event.maturity)
-            );
+        return _requestData(dataProvider, _event.params);
     }
 
     function resolveEvent(
@@ -21,17 +16,19 @@ contract AssetRangeResolver is BaseResolver {
         IChallengePool.ChallengeEvent memory _event,
         bytes[] calldata _options
     ) external override returns (bytes memory) {
-        string memory assetSymbol = abi.decode(_event.params, (string));
-        uint256 assetPrice = abi.decode(
-            _getData(dataProvider, abi.encode(assetSymbol, _event.maturity)),
-            (uint256)
+        string memory matchId = abi.decode(_event.params, (string));
+
+        (uint256 homeScore, uint256 awayScore) = abi.decode(
+            _getData(dataProvider, abi.encode(matchId)),
+            (uint256, uint256)
         );
+        uint256 totalScore = homeScore + awayScore;
         for (uint256 i = 0; i < _options.length; i++) {
             (uint256 low, uint256 high) = abi.decode(
                 _options[i],
                 (uint256, uint256)
             );
-            if (assetPrice >= low && assetPrice <= high) {
+            if (totalScore >= low && totalScore <= high) {
                 return _options[i];
             }
         }
@@ -39,7 +36,7 @@ contract AssetRangeResolver is BaseResolver {
     }
 
     function validateOptions(
-        IDataProvider /*dataProvider*/,
+        IDataProvider /* dataProvider*/,
         IChallengePool.ChallengeEvent memory /*_event*/,
         bytes[] calldata _options
     ) external pure override returns (bool) {
