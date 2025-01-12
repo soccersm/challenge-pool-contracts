@@ -34,6 +34,7 @@ interface IPoolResolver {
      */
     function validateOptions(
         IDataProvider dataProvider,
+        bytes calldata _params,
         bytes[] calldata _options
     ) external pure returns (bool);
 }

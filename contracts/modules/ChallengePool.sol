@@ -213,6 +213,7 @@ contract ChallengePool is IChallengePool, Helpers {
             abi.encodeWithSelector(
                 IPoolResolver.validateOptions.selector,
                 provider,
+                _event.params,
                 _options
             )
         );

@@ -5,7 +5,6 @@ interface IDataProvider {
     struct DataRequest {
         bytes requested;
         bytes provided;
-        uint256 lastProvidedTime;
         bool register;
     }
     event DataRequested(
@@ -26,6 +25,15 @@ interface IDataProvider {
         bytes requestId,
         bytes params
     );
+
+    error DataAlreadyProvided();
+    error InvalidSubmissionDate(uint256 _date);
+    error DataNotRequested();
+    error DataNotProvided();
+    error DataNotRegistered();
+    error DataAlreadyRegistered();
+    error InvalidResult();
+
     /**
      * @notice  .
      * @dev     used to make data request to offchain listeners.
@@ -74,6 +82,7 @@ interface IDataProvider {
      * @return  bool  true if all options are valid.
      */
     function validateOptions(
+        bytes calldata _params,
         bytes[] calldata _options
     ) external pure returns (bool);
 

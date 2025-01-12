@@ -6,6 +6,7 @@ import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "../interfaces/IPaymaster.sol";
 import "../libraries/LibTransfer.sol";
+import "../utils/Errors.sol";
 
 contract AirdropPaymaster is IPaymaster, Ownable {
     mapping(address => mapping(address => uint256)) public balance; // token -> user -> balance
@@ -17,8 +18,6 @@ contract AirdropPaymaster is IPaymaster, Ownable {
     constructor(address _soccersm) Ownable(msg.sender) {
         soccersm = _soccersm;
     }
-
-    error NotImplemented();
 
     function payFor(
         address _token,

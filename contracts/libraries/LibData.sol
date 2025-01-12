@@ -62,6 +62,7 @@ library CPStorage {
 
 struct DPStore {
     mapping(bytes => IDataProvider.DataRequest) dataRequest; // requestId -> data request
+    mapping(bytes => mapping(bytes => bool)) requestOptions; // requestId -> option -> bool
 }
 
 library DPStorage {
