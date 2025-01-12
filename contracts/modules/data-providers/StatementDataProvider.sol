@@ -101,12 +101,12 @@ contract StatementDataProvider is BaseProvider {
         emit DataProvided(msg.sender, namspace(), requestId, _params);
     }
 
-    function registerEvent(bytes calldata _params) external pure override {
+    function registerEvent(bytes calldata _params) external override {
         (
             string memory statementId,
             string memory statement,
             uint256 maturity,
-            bytes[] memory options
+            
         ) = abi.decode(_params, (string, string, uint256, bytes[]));
         if (block.timestamp >= maturity) {
             revert InvalidSubmissionDate(maturity);
@@ -159,7 +159,7 @@ contract StatementDataProvider is BaseProvider {
     function validateOptions(
         bytes calldata _params,
         bytes[] calldata _options
-    ) external pure override returns (bool) {
+    ) external view override returns (bool) {
         (
             string memory statementId,
             string memory statement,

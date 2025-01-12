@@ -31,14 +31,14 @@ abstract contract BaseProvider is IDataProvider, Helpers {
         return d.dataRequest[requestId].register;
     }
 
-    function registerEvent(bytes calldata /*_params*/) external pure override {
+    function registerEvent(bytes calldata /*_params*/) external virtual {
         revert NotImplemented();
     }
 
     function validateOptions(
         bytes calldata /*_params*/,
         bytes[] calldata _options
-    ) external pure override returns (bool) {
+    ) external virtual returns (bool) {
         return _options.length > 1;
     }
 }

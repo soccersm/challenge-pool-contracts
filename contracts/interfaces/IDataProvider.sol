@@ -84,7 +84,7 @@ interface IDataProvider {
     function validateOptions(
         bytes calldata _params,
         bytes[] calldata _options
-    ) external pure returns (bool);
+    ) external returns (bool);
 
     /**
      * @notice  .
