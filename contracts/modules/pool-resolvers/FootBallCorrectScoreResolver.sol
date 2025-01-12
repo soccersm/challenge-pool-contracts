@@ -12,7 +12,6 @@ contract FootBallCorrectScoreResolver is BaseResolver {
             _event.params,
             (string, uint256, uint256)
         );
-
         return _requestData(dataProvider, abi.encode(matchId));
     }
 
@@ -26,7 +25,6 @@ contract FootBallCorrectScoreResolver is BaseResolver {
             uint256 predictedHomeScore,
             uint256 predictedAwayScore
         ) = abi.decode(_event.params, (string, uint256, uint256));
-
         (uint256 homeScore, uint256 awayScore) = abi.decode(
             _getData(dataProvider, abi.encode(matchId)),
             (uint256, uint256)

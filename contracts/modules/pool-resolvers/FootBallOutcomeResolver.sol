@@ -52,7 +52,6 @@ contract FootBallOutcomeResolver is BaseResolver {
             (uint256, uint256)
         );
         string memory result = _scoreToOutcome(homeScore, awayScore);
-
         if (compareStrings(outcome, HOME)) {
             if (compareStrings(HOME, result)) {
                 return yes;

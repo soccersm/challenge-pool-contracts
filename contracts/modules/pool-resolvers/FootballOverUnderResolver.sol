@@ -32,14 +32,11 @@ contract FootballOverUnderResolver is BaseResolver {
             uint256 predictedTotal,
             string memory outcome
         ) = abi.decode(_event.params, (string, uint256, string));
-
         (uint256 homeScore, uint256 awayScore) = abi.decode(
             _getData(dataProvider, abi.encode(matchId)),
             (uint256, uint256)
         );
-
         uint256 actualTotal = homeScore + awayScore;
-
         if (compareStrings(outcome, OVER)) {
             if (actualTotal > predictedTotal) {
                 return yes;
