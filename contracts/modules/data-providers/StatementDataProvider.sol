@@ -25,6 +25,10 @@ contract StatementDataProvider is BaseProvider {
             uint256 maturity
         ) = _decodeParams(_params);
 
+        if (block.timestamp > maturity) {
+            revert InvalidSubmissionDate(maturity);
+        }
+
         bytes memory requestId = _requestId(statementId, statement, maturity);
 
         if (!registerExists(requestId)) {

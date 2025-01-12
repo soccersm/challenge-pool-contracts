@@ -92,7 +92,7 @@ contract TopicRegistry is ITopicRegistry, Helpers {
             abi.encodeWithSelector(IDataProvider.provideData.selector, _params)
         );
         if (!success) {
-            revert DelegateCallFailed("provideData");
+            revert DelegateCallFailed("TopicRegistry.provideData");
         }
     }
 
@@ -109,7 +109,7 @@ contract TopicRegistry is ITopicRegistry, Helpers {
             )
         );
         if (!success) {
-            revert DelegateCallFailed("registerEvent");
+            revert DelegateCallFailed("TopicRegistry.registerEvent");
         }
     }
 
@@ -123,7 +123,7 @@ contract TopicRegistry is ITopicRegistry, Helpers {
             abi.encodeWithSelector(IDataProvider.getData.selector, _params)
         );
         if (!success) {
-            revert DelegateCallFailed("getData");
+            revert DelegateCallFailed("TopicRegistry.getData");
         }
         return result;
     }
@@ -138,7 +138,7 @@ contract TopicRegistry is ITopicRegistry, Helpers {
             abi.encodeWithSelector(IDataProvider.hasData.selector, _params)
         );
         if (!success) {
-            revert DelegateCallFailed("hasData");
+            revert DelegateCallFailed("TopicRegistry.hasData");
         }
         return abi.decode(result, (bool));
     }

@@ -6,10 +6,24 @@ abstract contract Helpers {
     bytes internal constant emptyBytes = "";
     bytes internal constant yes = abi.encode("yes");
     bytes internal constant no = abi.encode("no");
+    string internal constant ABOVE = "above";
+    string internal constant BELOW = "below";
+    string internal constant HOME = "home";
+    string internal constant AWAY = "away";
+    string internal constant DRAW = "draw";
+    string internal constant HOME_AWAY = "home-away";
+    string internal constant HOME_DRAW = "home-draw";
+    string internal constant AWAY_DRAW = "away-draw";
+    string internal constant OVER = "over";
+    string internal constant UNDER = "under";
+    string internal constant IN = "in";
+    string internal constant OUT = "out";
+
     error EmptyString();
     error EmptyBytes();
     error ZeroAddress();
     error ZeroNumber();
+
     modifier positiveAddress(address addr) {
         if (address(0) == addr) {
             revert ZeroAddress();
