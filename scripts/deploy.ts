@@ -1,4 +1,4 @@
-import { ethers, ignition } from "hardhat";
+import { ignition } from "hardhat";
 import SoccersmModule from "../ignition/modules/Soccersm";
 import ChallengePoolModule from "../ignition/modules/ChallengePool";
 import DataProvidersModule from "../ignition/modules/DataProviders";
