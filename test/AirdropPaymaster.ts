@@ -1,34 +1,47 @@
 import { expect } from "chai";
-import { ethers } from "hardhat";
+import hre from "hardhat";
 
-describe("AirdropPaymaster", function () {
-  let AirdropPaymasterFactory: any;
-  let soccersmContract: any;
-  let deployer: any;
+describe("AirdropPaymaster Tests", function () {
   let soccersmAddress: string;
-
-  before(async function () {
-    // Get signers
-    [deployer] = await ethers.getSigners();
-
-    // Mock address for soccersm
-    soccersmAddress = ethers.Wallet.createRandom().address;
-
-    // Get the contract factory
-    AirdropPaymasterFactory = await ethers.getContractFactory("AirdropPaymaster");
-  });
-
-  it("should deploy and set the soccersm address correctly", async function () {
+  let airdropPaymasterContract: any;
+  let owner: string;
+  let user: any;
+  // init
+  before(async function() {
+     // Mock address for soccersm
+    soccersmAddress = hre.ethers.Wallet.createRandom().address;
     // Deploy the contract with the soccersm address
-    soccersmContract = await AirdropPaymasterFactory.deploy(soccersmAddress);
-    await soccersmContract.deployed();
+    const AirdropPaymasterContract = await hre.ethers.getContractFactory("AirdropPaymaster");
+    airdropPaymasterContract = await AirdropPaymasterContract.deploy(soccersmAddress); 
+    owner = await airdropPaymasterContract.owner();
+  }); 
 
+  // Test case to deploy the contract and set the soccersm address  
+  it("should deploy and set the soccersm address correctly", async function () {
     // Verify the soccersm address is set correctly
-    const storedSoccersm = await soccersmContract.soccersm();
-    expect(storedSoccersm).to.equal(soccersmAddress);
+    const storedSoccersmAddress = await airdropPaymasterContract.soccersm();
+    console.log("storedSoccersmAddress", storedSoccersmAddress);
+    console.log("soccersmAddress", soccersmAddress);
+    expect(storedSoccersmAddress).to.equal(soccersmAddress);
 
     // Verify the owner is the deployer
-    const owner = await soccersmContract.owner();
-    expect(owner).to.equal(deployer.address);
+    console.log("ownerAddress: ", owner);
+    expect(owner).to.equal((await hre.ethers.provider.getSigner()).address);
+    const signerAddress = (await hre.ethers.provider.getSigner()).address;
+    console.log("Signer Address: ", signerAddress); 
   });
+
+it("Test for setSoccersm function", async function () {
+    const newSoccersmAddress = hre.ethers.Wallet.createRandom().address;
+    const [owner, user] = await hre.ethers.getSigners(); //get signers
+    //Owner should be able to set the soccersm address
+    await expect(airdropPaymasterContract.connect(owner).setSoccersm(newSoccersmAddress)).to.not.be.reverted;
+    await expect(airdropPaymasterContract.connect(user).setSoccersm(newSoccersmAddress)).to.be.reverted;
+
+    // Verify the new address is set
+    const storedSoccersm = await airdropPaymasterContract.soccersm();
+    expect(storedSoccersm).to.equal(newSoccersmAddress);
+
+});
+
 });
