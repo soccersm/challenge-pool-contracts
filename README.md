@@ -1,7 +1,14 @@
 # challenge-pool-contracts
 
 Soccersm prediction markets are called challenge pools, since players are challenging each other in a peer-to-peer manner faciliated by smart contracts.
-This repo holds the code for soccersm challenge pool smart contracts. Contracts are implemented using the diamond pattern (https://eips.ethereum.org/EIPS/eip-2535, https://github.com/mudgen/awesome-diamonds) and good old hardhat for framework.
+This repo holds the code for soccersm challenge pool smart contracts. Contracts are implemented using the diamond pattern (<https://eips.ethereum.org/EIPS/eip-2535>, <https://github.com/mudgen/awesome-diamonds>) and good old hardhat for framework. Access control library from <https://github.com/solidstate-network/solidstate-solidity>.
+
+## Quickstart
+
+1. `bun install` to  install dependencies
+2. `bun run deploys` to see a list of deployment ids
+3. `bun run deploys:id <id>` to see all contract addresses for that id
+4. Example `bun run deploys:id chain-4202` will list contract addresses deployed to the lisk testnet.
 
 ## Concepts
 
@@ -100,3 +107,13 @@ This features a collection of contracts and offchain backend applications that w
 ### Process Flow
 
 ![Flow](./assets/flow.png)
+
+### Access Control
+
+Within the protocol there are the following access control roles
+
+1. `DEFAULT_ADMIN_ROLE:` Probably same as diamond contract owner. can manage other roles.
+2. `ORACLE_ROLE:` Oracle account that is allowed to provide data onchain.
+3. `SOCCERSM_COUNCIL:` Soccersm council account steps in to resolve dispute and incorrect oracle data provided.
+4. `CHALLENGE_POOL_MANAGER:` Manages challenge pool.
+5. `TOPIC_REGISTRAR`: Manages topic registrations.

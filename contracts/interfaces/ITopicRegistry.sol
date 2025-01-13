@@ -82,11 +82,22 @@ interface ITopicRegistry {
         bytes calldata _params
     ) external;
     /**
+     * @notice  can only be called by soccersm council
+     * @dev     in case of dispute and wrong data provided, this can be called to provide correct data.
+     * @param _topicId topic id helps determine which data provider to use
+     * @param   _params  decoded and applied based on the event topic type.
+     */
+    function updateProvision(
+        string calldata _topicId,
+        bytes calldata _params
+    ) external;
+    /**
      * @notice  .
      * @dev     sometimes events need to be registered onchain ahead of time before they can be requested this is the case of general statements.
      * @param _topicId topic id helps determine which data provider to use
      * @param   _params  decoded and applied based on the event topic type.
      */
+
     function registerEvent(
         string calldata _topicId,
         bytes calldata _params

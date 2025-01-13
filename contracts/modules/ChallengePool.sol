@@ -14,7 +14,9 @@ import "../utils/Errors.sol";
 
 import "./TopicRegistry.sol";
 
-contract ChallengePool is IChallengePool, Helpers {
+import "../diamond/facets/AccessControlFacet.sol";
+
+contract ChallengePool is IChallengePool, AccessControlFacet, Helpers {
     modifier validChallenge(uint256 _challengeId) {
         if (_challengeId >= CPStorage.load().challengeId) {
             revert InvalidChallenge();
@@ -561,7 +563,7 @@ contract ChallengePool is IChallengePool, Helpers {
 
     function cancel(
         uint256 _challengeId
-    ) external override validChallenge(_challengeId) {
+    ) external override onlySoccersmCouncil validChallenge(_challengeId) {
         CPStore storage s = CPStorage.load();
         Challenge storage c = s.challenges[_challengeId];
         c.state = ChallengeState.cancelled;
@@ -653,7 +655,7 @@ contract ChallengePool is IChallengePool, Helpers {
             revert PlayerNotInPool();
         }
         Dispute storage d = s.playerDisputes[_challengeId][msg.sender];
-        if(d.stake == 0) {
+        if (d.stake == 0) {
             revert PlayerDidNotDispute();
         }
         if (d.released) {
@@ -676,6 +678,7 @@ contract ChallengePool is IChallengePool, Helpers {
     )
         external
         override
+        onlySoccersmCouncil
         validChallenge(_challengeId)
         poolInState(_challengeId, ChallengeState.disputed)
     {

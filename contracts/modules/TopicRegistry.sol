@@ -10,8 +10,9 @@ import "../interfaces/IDataProvider.sol";
 import "../utils/Helpers.sol";
 
 import "../utils/Errors.sol";
+import "../diamond/facets/AccessControlFacet.sol";
 
-contract TopicRegistry is ITopicRegistry, Helpers {
+contract TopicRegistry is ITopicRegistry, AccessControlFacet, Helpers {
     modifier validTopic(string calldata _topicId) {
         TRStore storage t = TRStorage.load();
         if (bytes(t.registry[_topicId].name).length == 0) {
@@ -28,6 +29,7 @@ contract TopicRegistry is ITopicRegistry, Helpers {
     )
         external
         override
+        onlyTopicRegistrar
         nonEmptyString(_topicId)
         nonEmptyString(_name)
         positiveAddress(_poolResolver)
@@ -55,7 +57,7 @@ contract TopicRegistry is ITopicRegistry, Helpers {
 
     function disableTopic(
         string calldata _topicId
-    ) external override validTopic(_topicId) {
+    ) external override onlyTopicRegistrar validTopic(_topicId) {
         TRStore storage t = TRStorage.load();
         t.registry[_topicId].state = ITopicRegistry.TopicState.disabled;
         emit ITopicRegistry.TopicDisabled(
@@ -66,7 +68,7 @@ contract TopicRegistry is ITopicRegistry, Helpers {
 
     function enableTopic(
         string calldata _topicId
-    ) external override validTopic(_topicId) {
+    ) external override onlyTopicRegistrar validTopic(_topicId) {
         TRStore storage t = TRStorage.load();
         t.registry[_topicId].state = ITopicRegistry.TopicState.disabled;
         emit ITopicRegistry.TopicDisabled(
@@ -85,7 +87,7 @@ contract TopicRegistry is ITopicRegistry, Helpers {
     function provideData(
         string calldata _topicId,
         bytes calldata _params
-    ) external override {
+    ) external override onlyOracle {
         TRStore storage t = TRStorage.load();
         IDataProvider provider = t.registry[_topicId].dataProvider;
         (bool success, ) = address(provider).delegatecall(
@@ -96,10 +98,27 @@ contract TopicRegistry is ITopicRegistry, Helpers {
         }
     }
 
+    function updateProvision(
+        string calldata _topicId,
+        bytes calldata _params
+    ) external override onlySoccersmCouncil {
+        TRStore storage t = TRStorage.load();
+        IDataProvider provider = t.registry[_topicId].dataProvider;
+        (bool success, ) = address(provider).delegatecall(
+            abi.encodeWithSelector(
+                IDataProvider.updateProvision.selector,
+                _params
+            )
+        );
+        if (!success) {
+            revert DelegateCallFailed("TopicRegistry.updateProvision");
+        }
+    }
+
     function registerEvent(
         string calldata _topicId,
         bytes calldata _params
-    ) external override {
+    ) external override onlySoccersmCouncil {
         TRStore storage t = TRStorage.load();
         IDataProvider provider = t.registry[_topicId].dataProvider;
         (bool success, ) = address(provider).delegatecall(
