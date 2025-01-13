@@ -1,43 +1,37 @@
 // This setup uses Hardhat Ignition to manage smart contract deployments.
 // Learn more about it at https://hardhat.org/ignition
 import { buildModule } from "@nomicfoundation/hardhat-ignition/modules";
-import { functionSelectors, FacetCutAction } from "./lib";
+import {
+  functionSigsSelectors,
+  functionSelectors,
+  FacetCutAction,
+  INIT_SIG,
+} from "./lib";
 import Soccersm from "./Soccersm";
 
 const ChallengePoolModule = buildModule("ChallengePoolModule", (m) => {
   const soccersm = m.useModule(Soccersm);
 
-  const triS = functionSelectors("TopicRegistryInit");
-  const tri = m.contract("TopicRegistryInit");
-  const triInit = { contract: tri, selector: triS[0] };
-
   const trS = functionSelectors("TopicRegistry");
   const tr = m.contract("TopicRegistry");
   const trC = [tr, FacetCutAction.Add, trS];
 
-  m.call(
-    soccersm.cutProxy,
-    "diamondCut",
-    [[trC], triInit.contract, triInit.selector],
-    { id: "TopicRegistryDiamondCut" }
-  );
-
-  const cpiS = functionSelectors("ChallengePoolInit");
+  const cpiS = functionSigsSelectors("ChallengePoolInit");
   const cpi = m.contract("ChallengePoolInit");
-  const cpiInit = { contract: cpi, selector: cpiS[0] };
-
-  const cS = functionSelectors("ChallengePool");
-  const c = m.contract("ChallengePool");
-  const cC = [c, FacetCutAction.Add, cS];
+  const cpiInit = { contract: cpi, selector: cpiS[INIT_SIG] };
 
   const cpmS = functionSelectors("ChallengePoolManager");
   const cpm = m.contract("ChallengePoolManager");
   const cpmC = [cpm, FacetCutAction.Add, cpmS];
 
+  const cS = functionSelectors("ChallengePool");
+  const c = m.contract("ChallengePool");
+  const cC = [c, FacetCutAction.Add, cS];
+
   m.call(
     soccersm.cutProxy,
     "diamondCut",
-    [[cC, cpmC], cpiInit.contract, cpiInit.selector],
+    [[trC, cC, cpmC], cpiInit.contract, cpiInit.selector],
     { id: "ChallengePoolDiamondCut" }
   );
 

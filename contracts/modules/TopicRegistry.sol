@@ -15,7 +15,7 @@ import "../diamond/facets/AccessControlFacet.sol";
 contract TopicRegistry is ITopicRegistry, AccessControlFacet, Helpers {
     modifier validTopic(string calldata _topicId) {
         TRStore storage t = TRStorage.load();
-        if (bytes(t.registry[_topicId].name).length == 0) {
+        if (bytes(t.registry[_topicId].topicId).length == 0) {
             revert ITopicRegistry.InvalidTopic();
         }
         _;
@@ -23,7 +23,6 @@ contract TopicRegistry is ITopicRegistry, AccessControlFacet, Helpers {
 
     function createTopic(
         string memory _topicId,
-        string memory _name,
         address _poolResolver,
         address _dataProvider
     )
@@ -31,17 +30,15 @@ contract TopicRegistry is ITopicRegistry, AccessControlFacet, Helpers {
         override
         onlyTopicRegistrar
         nonEmptyString(_topicId)
-        nonEmptyString(_name)
         positiveAddress(_poolResolver)
         positiveAddress(_dataProvider)
     {
         TRStore storage t = TRStorage.load();
-        if (bytes(t.registry[_topicId].name).length > 0) {
+        if (bytes(t.registry[_topicId].topicId).length > 0) {
             revert ITopicRegistry.ExistingTopic();
         }
         t.registry[_topicId] = ITopicRegistry.Topic({
             topicId: _topicId,
-            name: _name,
             poolResolver: IPoolResolver(_poolResolver),
             dataProvider: IDataProvider(_dataProvider),
             state: ITopicRegistry.TopicState.active
@@ -50,7 +47,6 @@ contract TopicRegistry is ITopicRegistry, AccessControlFacet, Helpers {
             _topicId,
             _poolResolver,
             _dataProvider,
-            _name,
             ITopicRegistry.TopicState.active
         );
     }

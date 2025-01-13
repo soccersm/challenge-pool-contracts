@@ -18,7 +18,6 @@ interface ITopicRegistry {
     }
     struct Topic {
         string topicId;
-        string name;
         IPoolResolver poolResolver;
         IDataProvider dataProvider;
         TopicState state;
@@ -28,7 +27,6 @@ interface ITopicRegistry {
         string indexed topicId,
         address indexed poolResolver,
         address indexed dataProvider,
-        string name,
         TopicState state
     );
 
@@ -42,13 +40,11 @@ interface ITopicRegistry {
      * @notice  .
      * @dev     creates a new topic
      * @param   _id  example football-correct-score
-     * @param   _name  example Football Correct Score
      * @param   _poolResolver  address of the pool resolver for this topic
      * @param   _dataProvider  address of the data provider for this topic
      */
     function createTopic(
         string memory _id,
-        string memory _name,
         address _poolResolver,
         address _dataProvider
     ) external;
