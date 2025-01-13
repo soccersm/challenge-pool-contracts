@@ -14,9 +14,10 @@
   "scripts": {
     "compile": "hardhat compile",
     "test": "hardhat test",
-    "deploy:paymaster": "npx hardhat ignition deploy ignition/modules/AirdropPaymaster.ts --network",
-    "verify:paymaster": "npx hardhat ignition deploy ignition/modules/AirdropPaymaster.ts --verify --network",
-    "deploy:soccersm": "npx hardhat ignition deploy ignition/modules/Soccersm.ts --network",
-    "verify:soccersm": "npx hardhat ignition deploy ignition/modules/Soccersm.ts --verify --network"
+    "deploys": "hardhat ignition deployments",
+    "deploys:id": "hardhat ignition status",
+    "deploy:paymaster": "hardhat ignition deploy ignition/modules/AirdropPaymaster.ts --verify --network",
+    "deploy:soccersm": "hardhat ignition deploy ignition/modules/Soccersm.ts --verify --network",
+    "deploy:pool": "hardhat ignition deploy ignition/modules/ChallengePool.ts --verify --network"
   }
 }

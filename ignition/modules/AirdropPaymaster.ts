@@ -2,9 +2,11 @@
 // Learn more about it at https://hardhat.org/ignition
 
 import { buildModule } from "@nomicfoundation/hardhat-ignition/modules";
+import Soccersm from "./Soccersm";
 
 const AirdropPaymasterModule = buildModule("AirdropPaymasterModule", (m) => {
-  const ap = m.contract("AirdropPaymaster");
+  const soccersm = m.useModule(Soccersm);
+  const ap = m.contract("AirdropPaymaster", [soccersm.soccersm]);
 
   return { ap };
 });

@@ -1,0 +1,9 @@
+{
+  "SoccersmModule#DiamondCutFacet": "0xd9AC59B6e845d1adE6c3906bb3A70bc269Fbe46b",
+  "SoccersmModule#DiamondInit": "0xB431d429e9f5792d266D688E602Dc3A61dc1FaEE",
+  "SoccersmModule#DiamondLoupeFacet": "0x8C49Fd0b3E42DbAE0b13Fde81E3023c626E6f198",
+  "SoccersmModule#OwnershipFacet": "0xEa9Fee2c40Fc49139482a77626dAd0Dcf2b6c0C9",
+  "SoccersmModule#Soccersm": "0x7c4C2d7AC73237f36b663B0A8DFd0D51445CBb5B",
+  "SoccersmModule#SoccersmDiamondCut": "0x7c4C2d7AC73237f36b663B0A8DFd0D51445CBb5B",
+  "AirdropPaymasterModule#AirdropPaymaster": "0x787954691D24e59f5f12096e3552cc2A0f8f4edd"
+}
