@@ -2,7 +2,7 @@
 pragma solidity ^0.8.28;
 import "../libraries/LibData.sol";
 contract ChallengePoolInit {
-    function init(address _feeAddress) external {
+    function init() external {
         CPStore storage s = CPStorage.load();
         s.challengeId = 0;
         s.stakeFee = 30;
@@ -12,7 +12,7 @@ contract ChallengePoolInit {
         s.maxOptionsPerPool = 100;
         s.maxEventsPerPool = 100;
         s.minMaturityPeriod = 1 hours;
-        s.feeAddress = _feeAddress;
+        s.feeAddress = msg.sender;
         s.disputePeriod = 3 hours;
         s.disputeStake = 5e18;
     }

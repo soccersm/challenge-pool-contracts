@@ -24,14 +24,18 @@ const ChallengePoolModule = buildModule("ChallengePoolModule", (m) => {
   const cpm = m.contract("ChallengePoolManager");
   const cpmC = [cpm, FacetCutAction.Add, cpmS];
 
-  const cS = functionSelectors("ChallengePool");
-  const c = m.contract("ChallengePool");
-  const cC = [c, FacetCutAction.Add, cS];
+  const cphS = functionSelectors("ChallengePoolHandler");
+  const cph = m.contract("ChallengePoolHandler");
+  const cphC = [cph, FacetCutAction.Add, cphS];
+
+  const cpdS = functionSelectors("ChallengePoolDispute");
+  const cpd = m.contract("ChallengePoolDispute");
+  const cpdC = [cpd, FacetCutAction.Add, cpdS];
 
   m.call(
     soccersm.cutProxy,
     "diamondCut",
-    [[trC, cC, cpmC], cpiInit.contract, cpiInit.selector],
+    [[trC, cphC, cpdC, cpmC], cpiInit.contract, cpiInit.selector],
     { id: "ChallengePoolDiamondCut" }
   );
 
@@ -39,9 +43,21 @@ const ChallengePoolModule = buildModule("ChallengePoolModule", (m) => {
     id: "SoccersmTopicRegistry",
   });
 
-  const poolProxy = m.contractAt("ChallengePool", soccersm.soccersm, {
-    id: "SoccersmChallengePool",
-  });
+  const poolHandlerProxy = m.contractAt(
+    "ChallengePoolHandler",
+    soccersm.soccersm,
+    {
+      id: "SoccersmChallengePoolHandler",
+    }
+  );
+
+  const poolDisputeProxy = m.contractAt(
+    "ChallengePoolDispute",
+    soccersm.soccersm,
+    {
+      id: "SoccersmChallengePoolDispute",
+    }
+  );
 
   const poolManagerProxy = m.contractAt(
     "ChallengePoolManager",
@@ -51,7 +67,12 @@ const ChallengePoolModule = buildModule("ChallengePoolModule", (m) => {
     }
   );
 
-  return { registryProxy, poolProxy, poolManagerProxy };
+  return {
+    registryProxy,
+    poolHandlerProxy,
+    poolDisputeProxy,
+    poolManagerProxy,
+  };
 });
 
 export default ChallengePoolModule;

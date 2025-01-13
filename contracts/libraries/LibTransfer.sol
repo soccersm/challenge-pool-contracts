@@ -5,6 +5,8 @@ import "@openzeppelin/contracts/utils/math/Math.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "../interfaces/IChallengePool.sol";
+
+import "../interfaces/IPaymaster.sol";
 import "../utils/Errors.sol";
 
 library LibTransfer {
@@ -25,6 +27,19 @@ library LibTransfer {
             address(this),
             _amount
         );
+        uint256 balanceAfter = IERC20(_token).balanceOf(address(this));
+        if ((balanceAfter - balanceBefore) != _amount) {
+            revert ProtocolInvariantCheckFailed();
+        }
+    }
+
+    function _depositFromPaymaster(
+        address _paymaster,
+        address _token,
+        uint256 _amount
+    ) internal {
+        uint256 balanceBefore = IERC20(_token).balanceOf(address(this));
+        IPaymaster(_paymaster).payFor(_token, msg.sender, _amount);
         uint256 balanceAfter = IERC20(_token).balanceOf(address(this));
         if ((balanceAfter - balanceBefore) != _amount) {
             revert ProtocolInvariantCheckFailed();

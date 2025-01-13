@@ -13,6 +13,8 @@ async function main() {
     await ignition.deploy(PoolResolversModule);
     await ignition.deploy(AirdropPaymasterModule);
     await ignition.deploy(CreateTopicsModule);
+    console.log(`Deployments Successfull ...`);
+    
 }
 
 

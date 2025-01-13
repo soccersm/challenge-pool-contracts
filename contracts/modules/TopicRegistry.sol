@@ -10,9 +10,10 @@ import "../interfaces/IDataProvider.sol";
 import "../utils/Helpers.sol";
 
 import "../utils/Errors.sol";
-import "../diamond/facets/AccessControlFacet.sol";
 
-contract TopicRegistry is ITopicRegistry, AccessControlFacet, Helpers {
+import "../diamond/interfaces/SoccersmRoles.sol";
+
+contract TopicRegistry is ITopicRegistry, SoccersmRoles, Helpers {
     modifier validTopic(string calldata _topicId) {
         TRStore storage t = TRStorage.load();
         if (bytes(t.registry[_topicId].topicId).length == 0) {
@@ -28,7 +29,6 @@ contract TopicRegistry is ITopicRegistry, AccessControlFacet, Helpers {
     )
         external
         override
-        onlyTopicRegistrar
         nonEmptyString(_topicId)
         positiveAddress(_poolResolver)
         positiveAddress(_dataProvider)
@@ -53,7 +53,7 @@ contract TopicRegistry is ITopicRegistry, AccessControlFacet, Helpers {
 
     function disableTopic(
         string calldata _topicId
-    ) external override onlyTopicRegistrar validTopic(_topicId) {
+    ) external override validTopic(_topicId) {
         TRStore storage t = TRStorage.load();
         t.registry[_topicId].state = ITopicRegistry.TopicState.disabled;
         emit ITopicRegistry.TopicDisabled(
@@ -64,7 +64,7 @@ contract TopicRegistry is ITopicRegistry, AccessControlFacet, Helpers {
 
     function enableTopic(
         string calldata _topicId
-    ) external override onlyTopicRegistrar validTopic(_topicId) {
+    ) external override validTopic(_topicId) {
         TRStore storage t = TRStorage.load();
         t.registry[_topicId].state = ITopicRegistry.TopicState.disabled;
         emit ITopicRegistry.TopicDisabled(
@@ -83,7 +83,7 @@ contract TopicRegistry is ITopicRegistry, AccessControlFacet, Helpers {
     function provideData(
         string calldata _topicId,
         bytes calldata _params
-    ) external override onlyOracle {
+    ) external override {
         TRStore storage t = TRStorage.load();
         IDataProvider provider = t.registry[_topicId].dataProvider;
         (bool success, ) = address(provider).delegatecall(
@@ -97,7 +97,7 @@ contract TopicRegistry is ITopicRegistry, AccessControlFacet, Helpers {
     function updateProvision(
         string calldata _topicId,
         bytes calldata _params
-    ) external override onlySoccersmCouncil {
+    ) external override {
         TRStore storage t = TRStorage.load();
         IDataProvider provider = t.registry[_topicId].dataProvider;
         (bool success, ) = address(provider).delegatecall(
@@ -114,7 +114,7 @@ contract TopicRegistry is ITopicRegistry, AccessControlFacet, Helpers {
     function registerEvent(
         string calldata _topicId,
         bytes calldata _params
-    ) external override onlySoccersmCouncil {
+    ) external override {
         TRStore storage t = TRStorage.load();
         IDataProvider provider = t.registry[_topicId].dataProvider;
         (bool success, ) = address(provider).delegatecall(

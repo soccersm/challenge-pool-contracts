@@ -1,9 +1,15 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.28;
 
-import "./IChallengePool.sol";
+import "./IChallengePoolHandler.sol";
+
+import "./IChallengePoolDispute.sol";
 import "./ITopicRegistry.sol";
 import "./IDataProvider.sol";
 import "./IPoolResolver.sol";
 
-interface ISoccersm is IChallengePool, ITopicRegistry {}
+interface ISoccersm is
+    IChallengePoolHandler,
+    IChallengePoolDispute,
+    ITopicRegistry
+{}

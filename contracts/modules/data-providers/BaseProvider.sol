@@ -6,7 +6,6 @@ import "../../libraries/LibData.sol";
 import "../../utils/Helpers.sol";
 
 import "../../utils/Errors.sol";
-import "../../diamond/facets/AccessControlFacet.sol";
 
 abstract contract BaseProvider is IDataProvider, Helpers {
     function requestExists(
