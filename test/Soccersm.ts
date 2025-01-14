@@ -32,17 +32,18 @@ describe("Soccersm", function () {
       striker,
       keeper,
     ] = await ethers.getSigners();
-    const soccersm = await ignition.deploy(SoccersmModule);
-    const pool = await ignition.deploy(ChallengePoolModule);
-    const providers = await ignition.deploy(DataProvidersModule);
-    const resolvers = await ignition.deploy(PoolResolversModule);
-    const paymaster = await ignition.deploy(AirdropPaymasterModule);
+    const s = await ignition.deploy(SoccersmModule);
+    await ignition.deploy(ChallengePoolModule);
+    await ignition.deploy(DataProvidersModule);
+    await ignition.deploy(PoolResolversModule);
+    await ignition.deploy(AirdropPaymasterModule);
     await ignition.deploy(CreateTopicsModule);
     const BallsToken = await ethers.getContractFactory("BallsToken");
     const ballsToken = await BallsToken.deploy();
+    const soccersm = await ethers.getContractAt("ISoccersm", await s.soccersm.getAddress())
 
-    await pool.poolManagerProxy.addStakeToken(ballsToken);
-
+    await soccersm.addStakeToken(await ballsToken.getAddress());
+  
     const minStakeAmount = BigInt(1 * 1e18);
     const oneMil = BigInt(minStakeAmount * BigInt(1e6));
     const oneGrand = BigInt(minStakeAmount * BigInt(1e3));
@@ -52,10 +53,6 @@ describe("Soccersm", function () {
     await ballsToken.transfer(keeper, oneMil);
     return {
       soccersm,
-      pool,
-      providers,
-      resolvers,
-      paymaster,
       ballsToken,
       owner,
       oracle,
@@ -75,7 +72,7 @@ describe("Soccersm", function () {
 
   describe("ChallengePool", async function () {
     it("Should Create Chalenge", async function () {
-      const { owner, baller, ballsToken, pool, providers } = await loadFixture(
+      const { owner, baller, ballsToken, soccersm } = await loadFixture(
         deploySoccersm
       );
       const { challenge, ...others } = ghanaElectionEvent(
@@ -85,7 +82,7 @@ describe("Soccersm", function () {
         ethers.ZeroAddress
       );
       await expect(
-        pool.registryProxy.registerEvent(
+        soccersm.registerEvent(
           others.topicId,
           coder.encode(
             ["string", "string", "uint256", "bytes[]"],
@@ -99,9 +96,9 @@ describe("Soccersm", function () {
             ]
           )
         )
-      ).to.emit(providers.statementDataProvider, "DataRegistered");
+      ).to.emit(soccersm, "DataRegistered");
       const preparedChallenge = prepareCreateChallenge(challenge);
-      await pool.poolHandlerProxy.createChallenge(...preparedChallenge);
+      await soccersm.createChallenge(...preparedChallenge);
     });
     it("Should Stake Chalenge", async function () {});
     it("Should Early Withdraw", async function () {});
