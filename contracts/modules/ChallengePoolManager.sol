@@ -12,7 +12,7 @@ import "../diamond/interfaces/SoccersmRoles.sol";
 contract ChallengePoolManager is IChallengePoolManager, SoccersmRoles, Helpers {
     function setFeeAddress(
         address _feeAddress
-    ) external override positiveAddress(_feeAddress) {
+    ) external override onlyPoolManager positiveAddress(_feeAddress) {
         address oldFeeAddress = CPStorage.load().feeAddress;
         CPStorage.load().feeAddress = _feeAddress;
         emit SetFeeAddress(msg.sender, oldFeeAddress, _feeAddress);
@@ -20,7 +20,7 @@ contract ChallengePoolManager is IChallengePoolManager, SoccersmRoles, Helpers {
 
     function setMinMaturityPeriod(
         uint256 _minMaturityPeriod
-    ) external override nonZero(_minMaturityPeriod) {
+    ) external override onlyPoolManager nonZero(_minMaturityPeriod) {
         uint256 oldMinMaturityPeriod = CPStorage.load().minMaturityPeriod;
         CPStorage.load().minMaturityPeriod = _minMaturityPeriod;
         emit SetMinMaturityPeriod(
@@ -32,7 +32,7 @@ contract ChallengePoolManager is IChallengePoolManager, SoccersmRoles, Helpers {
 
     function setCreatePoolFee(
         uint256 _createPoolFee
-    ) external override nonZero(_createPoolFee) {
+    ) external override onlyPoolManager nonZero(_createPoolFee) {
         uint256 oldCreatePoolFee = CPStorage.load().createPoolFee;
         CPStorage.load().createPoolFee = _createPoolFee;
         emit SetCreatePoolFee(msg.sender, oldCreatePoolFee, _createPoolFee);
@@ -40,7 +40,7 @@ contract ChallengePoolManager is IChallengePoolManager, SoccersmRoles, Helpers {
 
     function setStakeFee(
         uint256 _stakeFee
-    ) external override nonZero(_stakeFee) {
+    ) external override onlyPoolManager nonZero(_stakeFee) {
         uint256 oldStakeFee = CPStorage.load().stakeFee;
         CPStorage.load().stakeFee = _stakeFee;
         emit SetStakeFee(msg.sender, oldStakeFee, _stakeFee);
@@ -48,7 +48,7 @@ contract ChallengePoolManager is IChallengePoolManager, SoccersmRoles, Helpers {
 
     function setEarlyWithdrawFee(
         uint256 _earlyWithdrawFee
-    ) external override nonZero(_earlyWithdrawFee) {
+    ) external override onlyPoolManager nonZero(_earlyWithdrawFee) {
         uint256 oldEarlyWithdrawFee = CPStorage.load().earlyWithdrawFee;
         CPStorage.load().earlyWithdrawFee = _earlyWithdrawFee;
         emit SetEarlyWithdrawFee(
@@ -60,7 +60,7 @@ contract ChallengePoolManager is IChallengePoolManager, SoccersmRoles, Helpers {
 
     function setMaxOptionsPerPool(
         uint256 _maxOptionsPerPool
-    ) external override nonZero(_maxOptionsPerPool) {
+    ) external override onlyPoolManager nonZero(_maxOptionsPerPool) {
         uint256 oldMaxOptionsPerPool = CPStorage.load().maxOptionsPerPool;
         CPStorage.load().maxOptionsPerPool = _maxOptionsPerPool;
         emit SetMaxOptionsPerPool(
@@ -72,7 +72,7 @@ contract ChallengePoolManager is IChallengePoolManager, SoccersmRoles, Helpers {
 
     function setMaxEventsPerPool(
         uint256 _maxEventsPerPool
-    ) external override nonZero(_maxEventsPerPool) {
+    ) external override onlyPoolManager nonZero(_maxEventsPerPool) {
         uint256 oldMaxEventsPerPool = CPStorage.load().maxEventsPerPool;
         CPStorage.load().maxEventsPerPool = _maxEventsPerPool;
         emit SetMaxEventsPerPool(
@@ -84,7 +84,7 @@ contract ChallengePoolManager is IChallengePoolManager, SoccersmRoles, Helpers {
 
     function setMinStakeAmount(
         uint256 _minStakeAmount
-    ) external override nonZero(_minStakeAmount) {
+    ) external override onlyPoolManager nonZero(_minStakeAmount) {
         uint256 oldMinStakeAmount = CPStorage.load().minStakeAmount;
         CPStorage.load().minStakeAmount = _minStakeAmount;
         emit SetMinStakeAmount(msg.sender, oldMinStakeAmount, _minStakeAmount);
@@ -92,7 +92,7 @@ contract ChallengePoolManager is IChallengePoolManager, SoccersmRoles, Helpers {
 
     function addStakeToken(
         address _stakeToken
-    ) external override positiveAddress(_stakeToken) {
+    ) external override onlyPoolManager positiveAddress(_stakeToken) {
         CPStore storage c = CPStorage.load();
         require(
             c.stakeTokens[_stakeToken].active == false,
@@ -104,7 +104,7 @@ contract ChallengePoolManager is IChallengePoolManager, SoccersmRoles, Helpers {
 
     function removeStakeToken(
         address _stakeToken
-    ) external override positiveAddress(_stakeToken) {
+    ) external override onlyPoolManager positiveAddress(_stakeToken) {
         CPStore storage c = CPStorage.load();
         StakeToken storage st = c.stakeTokens[_stakeToken];
         require(st.active == true, "stake token is not active");
@@ -112,7 +112,23 @@ contract ChallengePoolManager is IChallengePoolManager, SoccersmRoles, Helpers {
         emit StakeTokenRemoved(msg.sender, _stakeToken, false);
     }
 
-    function withdrawFee(address _stakeToken) external override {
+    function setDisputePeriod(
+        uint256 _disputePeriod
+    ) external override onlyPoolManager nonZero(_disputePeriod) {
+        uint256 oldDisputePeriod = CPStorage.load().disputePeriod;
+        CPStorage.load().disputePeriod = _disputePeriod;
+        emit SetDisputePeriod(msg.sender, oldDisputePeriod, _disputePeriod);
+    }
+
+    function setDisputeStake(
+        uint256 _disputeStake
+    ) external override onlyPoolManager nonZero(_disputeStake) {
+        uint256 oldDisputeStake = CPStorage.load().disputeStake;
+        CPStorage.load().disputeStake = _disputeStake;
+        emit SetDisputeStake(msg.sender, oldDisputeStake, _disputeStake);
+    }
+
+    function withdrawFee(address _stakeToken) external override onlyAdmin {
         CPStore storage c = CPStorage.load();
         StakeToken storage st = c.stakeTokens[_stakeToken];
         require(st.accumulatedFee > 0, "no fee to extra");
@@ -122,19 +138,49 @@ contract ChallengePoolManager is IChallengePoolManager, SoccersmRoles, Helpers {
         emit FeeWithdrawn(msg.sender, _stakeToken, msg.sender, accumulatedFee);
     }
 
-    function setDisputePeriod(
-        uint256 _disputePeriod
-    ) external override nonZero(_disputePeriod) {
-        uint256 oldDisputePeriod = CPStorage.load().disputePeriod;
-        CPStorage.load().disputePeriod = _disputePeriod;
-        emit SetDisputePeriod(msg.sender, oldDisputePeriod, _disputePeriod);
+    function feeAddress() external view override returns (address) {
+        return CPStorage.load().feeAddress;
     }
 
-    function setDisputeStake(
-        uint256 _disputeStake
-    ) external override nonZero(_disputeStake) {
-        uint256 oldDisputeStake = CPStorage.load().disputeStake;
-        CPStorage.load().disputeStake = _disputeStake;
-        emit SetDisputeStake(msg.sender, oldDisputeStake, _disputeStake);
+    function minMaturityPeriod() external view override returns (uint256) {
+        return CPStorage.load().minMaturityPeriod;
+    }
+
+    function createPoolFee() external view override returns (uint256) {
+        return CPStorage.load().createPoolFee;
+    }
+
+    function stakeFee() external view override returns (uint256) {
+        return CPStorage.load().stakeFee;
+    }
+
+    function earlyWithdrawFee() external view override returns (uint256) {
+        return CPStorage.load().earlyWithdrawFee;
+    }
+
+    function maxOptionsPerPool() external view override returns (uint256) {
+        return CPStorage.load().maxOptionsPerPool;
+    }
+
+    function maxEventsPerPool() external view override returns (uint256) {
+        return CPStorage.load().maxEventsPerPool;
+    }
+
+    function minStakeAmount() external view override returns (uint256) {
+        return CPStorage.load().minStakeAmount;
+    }
+
+    function disputePeriod() external view override returns (uint256) {
+        return CPStorage.load().disputePeriod;
+    }
+
+    function disputeStake() external view override returns (uint256) {
+        return CPStorage.load().disputeStake;
+    }
+
+    function stakeToken(
+        address _token
+    ) external view override returns (StakeToken memory) {
+        return CPStorage.load().stakeTokens[_token];
     }
 }

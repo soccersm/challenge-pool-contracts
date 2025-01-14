@@ -2,9 +2,14 @@
 pragma solidity ^0.8.28;
 import "../libraries/LibData.sol";
 import "../interfaces/IChallengePool.sol";
+
+import "../interfaces/IPoolResolver.sol";
+import "../interfaces/IDataProvider.sol";
 import "./LibTransfer.sol";
 import "./LibPrice.sol";
 import "../utils/Helpers.sol";
+
+import "hardhat/console.sol";
 
 library LibPool {
     function _recordFee(address _token, uint256 _fee) internal {
@@ -134,6 +139,7 @@ library LibPool {
         IChallengePool.ChallengeEvent memory _event,
         bytes[] memory _options
     ) internal {
+        console.log(_event.topicId);
         IPoolResolver resolver = t.registry[_event.topicId].poolResolver;
         IDataProvider provider = t.registry[_event.topicId].dataProvider;
         (bool success, bytes memory result) = address(resolver).delegatecall(
@@ -144,9 +150,12 @@ library LibPool {
                 _options
             )
         );
+        console.log(success);
         if (!success) {
             revert DelegateCallFailed("_validateOptions");
         }
+        console.log("success");
+        console.log(string(result));
         bool validParam = abi.decode(result, (bool));
         if (!validParam) {
             revert IChallengePool.InvalidEventParam();

@@ -8,7 +8,7 @@ import "./ITopicRegistry.sol";
 import "./IDataProvider.sol";
 import "./IPoolResolver.sol";
 
-interface ISoccersm is
+abstract contract ISoccersm is
     IChallengePoolHandler,
     IChallengePoolDispute,
     ITopicRegistry

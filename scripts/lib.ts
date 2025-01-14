@@ -1,0 +1,368 @@
+import { ethers } from "hardhat";
+
+export enum TopicId {
+  AssetPriceBounded = "AssetPriceBounded",
+  AssetPriceTarget = "AssetPriceTarget",
+  MultiAssetRange = "MultiAssetRange",
+  FootBallCorrectScore = "FootBallCorrectScore",
+  FootBallOutcome = "FootBallOutcome",
+  FootballOverUnder = "FootballOverUnder",
+  MultiFootBallCorrectScore = "MultiFootBallCorrectScore",
+  MultiFootBallOutcome = "MultiFootBallOutcome",
+  MultiFootBallTotalExact = "MultiFootBallTotalExact",
+  MultiFootBallTotalScoreRange = "MultiFootBallTotalScoreRange",
+  Statement = "Statement",
+}
+
+export type BaseEvent = {
+  maturity: number; // timestamp in seconds at which this event is supposed to be evaluated, maximum 3 months into the future
+  topicId: TopicId; // Id of event topic since every event has a topic
+};
+export type AssetPriceBoundedEvent = BaseEvent & {
+  assetSymbol: string;
+  priceLowerBound: number;
+  priceUpperBound: number;
+  outcome: "in" | "out";
+};
+export type AssetPriceTargetEvent = BaseEvent & {
+  assetSymbol: string;
+  price: number;
+  outcome: "above" | "below";
+};
+// For football events maturity is determined automatically by the smart contract
+export type FootballOutcomeEvent = BaseEvent & {
+  matchId: string;
+  outcome: "home" | "away" | "draw" | "home-away" | "home-draw" | "away-draw";
+};
+export type FootballCorrectScoreEvent = BaseEvent & {
+  matchId: string;
+  homeScore: number;
+  awayScore: number;
+};
+export type FootballOverUnderEvent = BaseEvent & {
+  matchId: string;
+  totalGoals: number;
+  outcome: "over" | "under";
+};
+export type StatementEvent = BaseEvent & {
+  statementId: string;
+  statement: string;
+};
+
+export type MultiAssetRangeEvent = BaseEvent & {
+  assetSymbol: string;
+};
+
+export type MultiFootBall = BaseEvent & {
+  matchId: string;
+};
+
+export type MultiFootBallTotalScoreRangeEvent = MultiFootBall;
+
+export type MultiFootBallTotalExactEvent = MultiFootBall;
+export type MultiFootBallOutcomeEvent = MultiFootBall;
+export type MultiFootBallCorrectScoreEvent = MultiFootBall;
+
+export type EventParam =
+  | AssetPriceTargetEvent
+  | AssetPriceBoundedEvent
+  | FootballOutcomeEvent
+  | FootballCorrectScoreEvent
+  | FootballOverUnderEvent
+  | StatementEvent
+  | MultiAssetRangeEvent
+  | MultiFootBallTotalScoreRangeEvent
+  | MultiFootBallTotalExactEvent
+  | MultiFootBallOutcomeEvent
+  | MultiFootBallCorrectScoreEvent;
+
+export type StringOption = string;
+export type IntOption = number;
+export type RangeOption = [number, number];
+
+export type EventOption = StringOption | IntOption | RangeOption;
+
+export type EventChallenge = EventParam;
+
+export type ParamEncodedEventChallenge = {
+  params: string;
+  topicId: TopicId;
+  maturity: BigInt;
+};
+
+export type YesNo = "yes" | "no";
+
+export type CreateChallenge = {
+  events: EventChallenge[];
+  options: EventOption[];
+  stakeToken: string;
+  prediction: string | YesNo;
+  quantity: number;
+  basePrice: BigInt;
+  paymaster: string;
+};
+
+export type PrepareCreateChallenge = [
+  ParamEncodedEventChallenge[],
+  string[],
+  string,
+  string,
+  BigInt,
+  BigInt,
+  string
+];
+export const coder = new ethers.AbiCoder();
+
+export const yesNo = {
+  yes: coder.encode(["string"], ["yes"]),
+  no: coder.encode(["string"], ["no"]),
+};
+
+export const ASSET_PRICES_MULTIPLIER = 100;
+
+export function prepareCreateChallenge(
+  create: CreateChallenge
+): PrepareCreateChallenge {
+  let isMulti = create.options.length > 0;
+  const events = [];
+  let options: string[] = [];
+  let prediction = "";
+  for (const e of create.events) {
+    events.push(encodeEventByTopic(e));
+  }
+  if (isMulti) {
+    const topicId = create.events[0].topicId;
+    prediction = encodeMultiOptionByTopic(topicId, create.prediction);
+    options = create.options.map((o) => encodeMultiOptionByTopic(topicId, o));
+  } else {
+    prediction = yesNo[create.prediction as YesNo];
+  }
+  return [
+    events,
+    options,
+    create.stakeToken,
+    prediction,
+    BigInt(create.quantity),
+    create.basePrice,
+    create.paymaster,
+  ];
+}
+
+export function encodeMultiOptionByTopic(
+  topicId: TopicId,
+  option: EventOption
+): string {
+  switch (topicId) {
+    case TopicId.MultiFootBallCorrectScore:
+      return coder.encode(["uint256", "uint256"], option as RangeOption);
+    case TopicId.MultiFootBallOutcome:
+      return coder.encode(["string"], [option as StringOption]);
+    case TopicId.MultiFootBallTotalExact:
+      return coder.encode(["uint256"], [option as IntOption]);
+    case TopicId.MultiFootBallTotalScoreRange:
+      return coder.encode(["uint256", "uint256"], option as RangeOption);
+    case TopicId.Statement:
+      return coder.encode(["string"], [option as StringOption]);
+    case TopicId.MultiAssetRange:
+      const priceRage = option as RangeOption;
+      return coder.encode(
+        ["uint256", "uint256"],
+        [
+          priceRage[0] * ASSET_PRICES_MULTIPLIER,
+          priceRage[1] * ASSET_PRICES_MULTIPLIER,
+        ]
+      );
+    case TopicId.AssetPriceBounded:
+    case TopicId.AssetPriceTarget:
+    case TopicId.FootBallCorrectScore:
+    case TopicId.FootBallOutcome:
+    case TopicId.FootballOverUnder:
+    default:
+      throw new Error("Invalid Event Topic, must be a multi event");
+  }
+}
+
+export function encodeEventByTopic(e: EventParam): ParamEncodedEventChallenge {
+  switch (e.topicId) {
+    case TopicId.AssetPriceBounded:
+      return prepareAssetPriceBoundedEventParam(e as AssetPriceBoundedEvent);
+    case TopicId.AssetPriceTarget:
+      return prepareAssetPriceTargetEventParam(e as AssetPriceTargetEvent);
+    case TopicId.FootBallCorrectScore:
+      return prepareFootballCorrectScoreEventParam(
+        e as FootballCorrectScoreEvent
+      );
+    case TopicId.FootBallOutcome:
+      return prepareFootballOutcomeEventParam(e as FootballOutcomeEvent);
+    case TopicId.FootballOverUnder:
+      return prepareFootballOverUnderEventParam(e as FootballOverUnderEvent);
+    case TopicId.Statement:
+      return prepareStatementEventParam(e as StatementEvent);
+    case TopicId.MultiFootBallCorrectScore:
+      return prepareMultiFootBallCorrectScoreEventParam(
+        e as MultiFootBallCorrectScoreEvent
+      );
+    case TopicId.MultiFootBallOutcome:
+      return prepareMultiFootBallOutcomeEventParam(
+        e as MultiFootBallOutcomeEvent
+      );
+    case TopicId.MultiFootBallTotalExact:
+      return prepareMultiFootBallTotalExactEventParam(
+        e as MultiFootBallTotalExactEvent
+      );
+    case TopicId.MultiFootBallTotalScoreRange:
+      return prepareMultiFootBallTotalScoreRangeEventParam(
+        e as MultiFootBallTotalScoreRangeEvent
+      );
+    case TopicId.MultiAssetRange:
+      return prepareMultiAssetRangeEventParam(e as MultiAssetRangeEvent);
+    default:
+      throw new Error("Invalid Event Topic", e.topicId);
+  }
+}
+
+export function encodeEventList(events: ParamEncodedEventChallenge[]): string {
+  return coder.encode(
+    ["tuple(bytes,string,uint256)[]"],
+    [
+      events.map((event) => [
+        event.params,
+        event.topicId.toString(),
+        event.maturity,
+      ]),
+    ]
+  );
+}
+
+export function prepareFootballOutcomeEventParam(
+  ev: FootballOutcomeEvent
+): ParamEncodedEventChallenge {
+  const params = coder.encode(["string", "string"], [ev.matchId, ev.outcome]);
+  return {
+    params,
+    topicId: ev.topicId,
+    maturity: BigInt(ev.maturity),
+  };
+}
+
+export function prepareFootballOverUnderEventParam(
+  ev: FootballOverUnderEvent
+): ParamEncodedEventChallenge {
+  const params = coder.encode(
+    ["string", "uint256", "string"],
+    [ev.matchId, ev.totalGoals, ev.outcome]
+  );
+  return {
+    params,
+    topicId: ev.topicId,
+    maturity: BigInt(ev.maturity),
+  };
+}
+
+export function prepareStatementEventParam(
+  ev: StatementEvent
+): ParamEncodedEventChallenge {
+  const params = coder.encode(["string"], [ev.statementId]);
+  return {
+    params,
+    topicId: ev.topicId,
+    maturity: BigInt(ev.maturity),
+  };
+}
+
+export function prepareMultiAssetRangeEventParam(
+  ev: MultiAssetRangeEvent
+): ParamEncodedEventChallenge {
+  const params = coder.encode(["string"], [ev.assetSymbol]);
+  return {
+    params,
+    topicId: ev.topicId,
+    maturity: BigInt(ev.maturity),
+  };
+}
+
+export function prepareMultiFootBallCorrectScoreEventParam(
+  ev: MultiFootBallCorrectScoreEvent
+): ParamEncodedEventChallenge {
+  const params = coder.encode(["string"], [ev.matchId]);
+  return {
+    params,
+    topicId: ev.topicId,
+    maturity: BigInt(ev.maturity),
+  };
+}
+
+export function prepareMultiFootBallOutcomeEventParam(
+  ev: MultiFootBallOutcomeEvent
+): ParamEncodedEventChallenge {
+  const params = coder.encode(["string"], [ev.matchId]);
+  return {
+    params,
+    topicId: ev.topicId,
+    maturity: BigInt(ev.maturity),
+  };
+}
+
+export function prepareMultiFootBallTotalExactEventParam(
+  ev: MultiFootBallTotalExactEvent
+): ParamEncodedEventChallenge {
+  const params = coder.encode(["string"], [ev.matchId]);
+  return {
+    params,
+    topicId: ev.topicId,
+    maturity: BigInt(ev.maturity),
+  };
+}
+
+export function prepareMultiFootBallTotalScoreRangeEventParam(
+  ev: MultiFootBallTotalScoreRangeEvent
+): ParamEncodedEventChallenge {
+  const params = coder.encode(["string"], [ev.matchId]);
+  return {
+    params,
+    topicId: ev.topicId,
+    maturity: BigInt(ev.maturity),
+  };
+}
+
+export function prepareAssetPriceBoundedEventParam(
+  ev: AssetPriceBoundedEvent
+): ParamEncodedEventChallenge {
+  const params = coder.encode(
+    ["string", "uint256", "uint256", "string"],
+    [ev.assetSymbol, ev.priceLowerBound, ev.priceUpperBound, ev.outcome]
+  );
+  return {
+    params,
+    topicId: ev.topicId,
+    maturity: BigInt(ev.maturity),
+  };
+}
+
+export function prepareAssetPriceTargetEventParam(
+  ev: AssetPriceTargetEvent
+): ParamEncodedEventChallenge {
+  const params = coder.encode(
+    ["string", "uint256", "string"],
+    [ev.assetSymbol, ev.price, ev.outcome]
+  );
+  return {
+    params,
+    topicId: ev.topicId,
+    maturity: BigInt(ev.maturity),
+  };
+}
+
+export function prepareFootballCorrectScoreEventParam(
+  ev: FootballCorrectScoreEvent
+): ParamEncodedEventChallenge {
+  const params = coder.encode(
+    ["string", "uint256", "uint256"],
+    [ev.matchId, ev.homeScore, ev.awayScore]
+  );
+  return {
+    params,
+    topicId: ev.topicId,
+    maturity: BigInt(ev.maturity),
+  };
+}

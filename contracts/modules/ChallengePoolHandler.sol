@@ -18,44 +18,6 @@ import "./TopicRegistry.sol";
 import "../diamond/interfaces/SoccersmRoles.sol";
 
 contract ChallengePoolHandler is IChallengePoolHandler, SoccersmRoles, Helpers {
-    modifier validChallenge(uint256 _challengeId) {
-        if (_challengeId >= CPStorage.load().challengeId) {
-            revert InvalidChallenge();
-        }
-        _;
-    }
-
-    modifier poolInState(uint256 _challengeId, ChallengeState _state) {
-        ChallengeState currentState = LibPool._poolState(
-            CPStorage.load().challenges[_challengeId]
-        );
-        if (currentState != _state) {
-            revert ActionNotAllowedForState(currentState);
-        }
-        _;
-    }
-
-    modifier validStake(uint256 _stake) {
-        if (_stake < CPStorage.load().minStakeAmount) {
-            revert StakeLowerThanMinimum();
-        }
-        _;
-    }
-
-    modifier validPrediction(bytes memory _prediction) {
-        if (compareBytes(_prediction, emptyBytes)) {
-            revert InvalidPrediction();
-        }
-        _;
-    }
-
-    modifier supportedToken(address _token) {
-        if (!CPStorage.load().stakeTokens[_token].active) {
-            revert UnsupportedToken(_token);
-        }
-        _;
-    }
-
     function createChallenge(
         ChallengeEvent[] calldata _events,
         bytes[] calldata _options,
@@ -352,7 +314,13 @@ contract ChallengePoolHandler is IChallengePoolHandler, SoccersmRoles, Helpers {
 
     function getChallenge(
         uint256 _challengeId
-    ) external view validChallenge(_challengeId) returns (Challenge memory) {
+    )
+        external
+        view
+        override
+        validChallenge(_challengeId)
+        returns (Challenge memory)
+    {
         return CPStorage.load().challenges[_challengeId];
     }
 }

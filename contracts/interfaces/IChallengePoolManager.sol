@@ -100,4 +100,28 @@ interface IChallengePoolManager {
     function removeStakeToken(address _stakeToken) external;
 
     function withdrawFee(address _stakeToken) external;
+
+    function feeAddress() external view returns (address);
+
+    function minMaturityPeriod() external view returns (uint256);
+
+    function createPoolFee() external view returns (uint256);
+
+    function stakeFee() external view returns (uint256);
+
+    function earlyWithdrawFee() external view returns (uint256);
+
+    function maxOptionsPerPool() external view returns (uint256);
+
+    function maxEventsPerPool() external view returns (uint256);
+
+    function minStakeAmount() external view returns (uint256);
+
+    function disputePeriod() external view returns (uint256);
+
+    function disputeStake() external view returns (uint256);
+
+    function stakeToken(
+        address _token
+    ) external view returns (StakeToken memory);
 }

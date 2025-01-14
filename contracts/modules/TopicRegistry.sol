@@ -29,6 +29,7 @@ contract TopicRegistry is ITopicRegistry, SoccersmRoles, Helpers {
     )
         external
         override
+        onlyTopicRegistrar
         nonEmptyString(_topicId)
         positiveAddress(_poolResolver)
         positiveAddress(_dataProvider)
@@ -53,7 +54,7 @@ contract TopicRegistry is ITopicRegistry, SoccersmRoles, Helpers {
 
     function disableTopic(
         string calldata _topicId
-    ) external override validTopic(_topicId) {
+    ) external override validTopic(_topicId) onlyTopicRegistrar {
         TRStore storage t = TRStorage.load();
         t.registry[_topicId].state = ITopicRegistry.TopicState.disabled;
         emit ITopicRegistry.TopicDisabled(
@@ -64,7 +65,7 @@ contract TopicRegistry is ITopicRegistry, SoccersmRoles, Helpers {
 
     function enableTopic(
         string calldata _topicId
-    ) external override validTopic(_topicId) {
+    ) external override validTopic(_topicId) onlyTopicRegistrar {
         TRStore storage t = TRStorage.load();
         t.registry[_topicId].state = ITopicRegistry.TopicState.disabled;
         emit ITopicRegistry.TopicDisabled(
@@ -83,7 +84,7 @@ contract TopicRegistry is ITopicRegistry, SoccersmRoles, Helpers {
     function provideData(
         string calldata _topicId,
         bytes calldata _params
-    ) external override {
+    ) external override onlyOracle {
         TRStore storage t = TRStorage.load();
         IDataProvider provider = t.registry[_topicId].dataProvider;
         (bool success, ) = address(provider).delegatecall(
@@ -97,7 +98,7 @@ contract TopicRegistry is ITopicRegistry, SoccersmRoles, Helpers {
     function updateProvision(
         string calldata _topicId,
         bytes calldata _params
-    ) external override {
+    ) external override onlySoccersmCouncil {
         TRStore storage t = TRStorage.load();
         IDataProvider provider = t.registry[_topicId].dataProvider;
         (bool success, ) = address(provider).delegatecall(
@@ -114,7 +115,7 @@ contract TopicRegistry is ITopicRegistry, SoccersmRoles, Helpers {
     function registerEvent(
         string calldata _topicId,
         bytes calldata _params
-    ) external override {
+    ) external override onlyAdmin {
         TRStore storage t = TRStorage.load();
         IDataProvider provider = t.registry[_topicId].dataProvider;
         (bool success, ) = address(provider).delegatecall(

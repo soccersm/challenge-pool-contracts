@@ -12,6 +12,13 @@ import DataProvidersModule from "../ignition/modules/DataProviders";
 import PoolResolversModule from "../ignition/modules/PoolResolvers";
 import AirdropPaymasterModule from "../ignition/modules/AirdropPaymaster";
 import CreateTopicsModule from "../ignition/modules/CreateTopics";
+import { ghanaElectionEvent } from "../scripts/mock";
+import {
+  coder,
+  encodeMultiOptionByTopic,
+  prepareCreateChallenge,
+  TopicId,
+} from "../scripts/lib";
 
 describe("Soccersm", function () {
   async function deploySoccersm() {
@@ -25,39 +32,16 @@ describe("Soccersm", function () {
       striker,
       keeper,
     ] = await ethers.getSigners();
-    const { soccersm, cutProxy, acProxy } = await ignition.deploy(
-      SoccersmModule
-    );
-    const {
-      registryProxy,
-      poolHandlerProxy,
-      poolDisputeProxy,
-      poolManagerProxy,
-    } = await ignition.deploy(ChallengePoolModule);
-    const {
-      assetPriceDataProvider,
-      footBallScoresProvider,
-      statementDataProvider,
-    } = await ignition.deploy(DataProvidersModule);
-    const {
-      assetPriceBoundedResolver,
-      assetPriceTargetResolver,
-      multiAssetRangeResolver,
-      footBallCorrectScoreResolver,
-      footBallOutcomeResolver,
-      footballOverUnderResolver,
-      multiFootBallCorrectScoreResolver,
-      multiFootBallOutcomeResolver,
-      multiFootBallTotalExactResolver,
-      multiFootBallTotalScoreRangeResolver,
-      statementResolver,
-    } = await ignition.deploy(PoolResolversModule);
-    const { paymaster } = await ignition.deploy(AirdropPaymasterModule);
+    const soccersm = await ignition.deploy(SoccersmModule);
+    const pool = await ignition.deploy(ChallengePoolModule);
+    const providers = await ignition.deploy(DataProvidersModule);
+    const resolvers = await ignition.deploy(PoolResolversModule);
+    const paymaster = await ignition.deploy(AirdropPaymasterModule);
     await ignition.deploy(CreateTopicsModule);
     const BallsToken = await ethers.getContractFactory("BallsToken");
     const ballsToken = await BallsToken.deploy();
 
-    await poolManagerProxy.addStakeToken(ballsToken);
+    await pool.poolManagerProxy.addStakeToken(ballsToken);
 
     const minStakeAmount = BigInt(1 * 1e18);
     const oneMil = BigInt(minStakeAmount * BigInt(1e6));
@@ -68,26 +52,9 @@ describe("Soccersm", function () {
     await ballsToken.transfer(keeper, oneMil);
     return {
       soccersm,
-      cutProxy,
-      acProxy,
-      registryProxy,
-      poolHandlerProxy,
-      poolDisputeProxy,
-      poolManagerProxy,
-      assetPriceDataProvider,
-      footBallScoresProvider,
-      statementDataProvider,
-      assetPriceBoundedResolver,
-      assetPriceTargetResolver,
-      multiAssetRangeResolver,
-      footBallCorrectScoreResolver,
-      footBallOutcomeResolver,
-      footballOverUnderResolver,
-      multiFootBallCorrectScoreResolver,
-      multiFootBallOutcomeResolver,
-      multiFootBallTotalExactResolver,
-      multiFootBallTotalScoreRangeResolver,
-      statementResolver,
+      pool,
+      providers,
+      resolvers,
       paymaster,
       ballsToken,
       owner,
@@ -108,7 +75,33 @@ describe("Soccersm", function () {
 
   describe("ChallengePool", async function () {
     it("Should Create Chalenge", async function () {
-      const { owner, baller, ballsToken, poolHandlerProxy } = await loadFixture(deploySoccersm);
+      const { owner, baller, ballsToken, pool, providers } = await loadFixture(
+        deploySoccersm
+      );
+      const { challenge, ...others } = ghanaElectionEvent(
+        await ballsToken.getAddress(),
+        1,
+        1000,
+        ethers.ZeroAddress
+      );
+      await expect(
+        pool.registryProxy.registerEvent(
+          others.topicId,
+          coder.encode(
+            ["string", "string", "uint256", "bytes[]"],
+            [
+              others.statementId,
+              others.statement,
+              others.maturity,
+              challenge.options.map((o) =>
+                encodeMultiOptionByTopic(others.topicId, o)
+              ),
+            ]
+          )
+        )
+      ).to.emit(providers.statementDataProvider, "DataRegistered");
+      const preparedChallenge = prepareCreateChallenge(challenge);
+      await pool.poolHandlerProxy.createChallenge(...preparedChallenge);
     });
     it("Should Stake Chalenge", async function () {});
     it("Should Early Withdraw", async function () {});

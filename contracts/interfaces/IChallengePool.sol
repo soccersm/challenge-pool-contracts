@@ -2,8 +2,48 @@
 pragma solidity ^0.8.28;
 
 import "./IPaymaster.sol";
+import "../libraries/LibData.sol";
+import "../libraries/LibPool.sol";
+import "../utils/Helpers.sol";
 
-interface IChallengePool {
+abstract contract IChallengePool {
+    modifier validChallenge(uint256 _challengeId) {
+        if (_challengeId >= CPStorage.load().challengeId) {
+            revert InvalidChallenge();
+        }
+        _;
+    }
+
+    modifier poolInState(uint256 _challengeId, ChallengeState _state) {
+        ChallengeState currentState = LibPool._poolState(
+            CPStorage.load().challenges[_challengeId]
+        );
+        if (currentState != _state) {
+            revert ActionNotAllowedForState(currentState);
+        }
+        _;
+    }
+
+    modifier validStake(uint256 _stake) {
+        if (_stake < CPStorage.load().minStakeAmount) {
+            revert StakeLowerThanMinimum();
+        }
+        _;
+    }
+
+    modifier validPrediction(bytes memory _prediction) {
+        if (HelpersLib.compareBytes(_prediction, HelpersLib.emptyBytes)) {
+            revert InvalidPrediction();
+        }
+        _;
+    }
+
+    modifier supportedToken(address _token) {
+        if (!CPStorage.load().stakeTokens[_token].active) {
+            revert UnsupportedToken(_token);
+        }
+        _;
+    }
     enum ChallengeState {
         open,
         closed,
@@ -157,5 +197,4 @@ interface IChallengePool {
     error PlayerAlreadyDisputed();
     error PlayerAlreadyReleased();
     error PlayerDidNotDispute();
-
 }

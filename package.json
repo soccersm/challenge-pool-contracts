@@ -20,10 +20,11 @@
     "test:gas": "REPORT_GAS=true hardhat test",
     "deploys": "hardhat ignition deployments",
     "deploys:id": "hardhat ignition status",
-    "deploy:all": "hardhat run scripts/deploy.ts --verify --network",
+    "deploy:all": "hardhat run scripts/deploy.ts --network",
     "deploy:paymaster": "hardhat ignition deploy ignition/modules/AirdropPaymaster.ts --verify --network",
     "deploy:soccersm": "hardhat ignition deploy ignition/modules/Soccersm.ts --verify --network",
     "deploy:pool": "hardhat ignition deploy ignition/modules/ChallengePool.ts --verify --network",
+    "update:pool": "hardhat ignition deploy ignition/modules/ChallengePoolUpdate.ts --verify --network",
     "deploy:providers": "hardhat ignition deploy ignition/modules/DataProviders.ts --verify --network",
     "deploy:resolvers": "hardhat ignition deploy ignition/modules/PoolResolvers.ts --verify --network",
     "deploy:topics": "hardhat ignition deploy ignition/modules/CreateTopics.ts --verify --network"

@@ -4,7 +4,7 @@ pragma solidity ^0.8.28;
 import "./IPaymaster.sol";
 import "./IChallengePool.sol";
 
-interface IChallengePoolHandler is IChallengePool {
+abstract contract  IChallengePoolHandler is IChallengePool {
 
     /**
      * @notice  .
@@ -25,7 +25,7 @@ interface IChallengePoolHandler is IChallengePool {
         uint256 _quantity,
         uint256 _basePrice,
         address _paymaster
-    ) external;
+    ) external virtual;
     /**
      * @notice  .
      * @dev     stake on a pool
@@ -43,19 +43,19 @@ interface IChallengePoolHandler is IChallengePool {
         uint256 _maxPrice,
         uint256 _deadline,
         address _paymaster
-    ) external;
+    ) external virtual;
     /**
      * @notice  .
      * @dev     withdraw winnings from pool, reverts if user lost
      * @param   _challengeId  .
      */
-    function withdraw(uint256 _challengeId) external;
+    function withdraw(uint256 _challengeId) external virtual;
     /**
      * @notice  .
      * @dev     bulk withdrawal
      * @param   _challengeIds  .
      */
-    function bulkWithdraw(uint256[] calldata _challengeIds) external;
+    function bulkWithdraw(uint256[] calldata _challengeIds) external virtual;
     /**
      * @notice  .
      * @dev     early withdrawal allows player to get out of their stake. price of option calculated accordingly and applied
@@ -71,7 +71,7 @@ interface IChallengePoolHandler is IChallengePool {
         uint256 _quantity,
         uint256 _minPrice,
         uint256 _deadline
-    ) external;
+    ) external virtual;
     /**
      * @notice  .
      * @dev     price calculation for a pool option
@@ -85,7 +85,7 @@ interface IChallengePoolHandler is IChallengePool {
         bytes calldata _option,
         uint256 _quantity,
         PoolAction _action
-    ) external view returns (uint256);
+    ) external virtual view returns (uint256);
     /**
      * @notice  .
      * @dev     returns the Challenge struct.
@@ -94,5 +94,5 @@ interface IChallengePoolHandler is IChallengePool {
      */
     function getChallenge(
         uint256 _challengeId
-    ) external view returns (Challenge memory);
+    ) external virtual view returns (Challenge memory);
 }
