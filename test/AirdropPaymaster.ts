@@ -167,6 +167,48 @@ describe("AirdropPaymaster Tests", function () {
   console.log("PayFor Test Passed!✅");
 });
 
+it("should test the drain function", async function () {
+  const [deployer, soccersm, depositor] = await hre.ethers.getSigners();
+  const depositAmount = hre.ethers.parseEther("100");
+
+  // Approve and deposit tokens into the contract
+  await ballsToken
+    .connect(depositor)
+    .approve(airdropPaymasterContractAddress, depositAmount);
+
+  await expect(
+    airdropPaymasterContract
+      .connect(depositor)
+      .depositFor(ballsToken.target, depositor.address, depositAmount)
+  ).to.not.be.reverted;
+
+  // Verify contract's balance after deposit
+  const contractBalanceBefore = await ballsToken.balanceOf(airdropPaymasterContractAddress);
+  expect(contractBalanceBefore).to.be.equal(TOKEN_AMOUNT + depositAmount);
+  console.log("Contract balance before drain: ", contractBalanceBefore);
+
+  // Owner calls drain function
+  await expect(
+    airdropPaymasterContract.connect(deployer).drain(ballsToken.target)
+  ).to.not.be.reverted;
+
+  // Verify contract's balance after drain
+  const contractBalanceAfter = await ballsToken.balanceOf(airdropPaymasterContractAddress);
+  expect(contractBalanceAfter).to.be.equal(0);
+  console.log("Contract balance after drain: ", contractBalanceAfter);
+
+  // Verify owner's balance after drain
+  const ownerBalance = await ballsToken.balanceOf(deployer.address);
+  console.log("Owner balance after drain: ", ownerBalance);
+  
+  const contractBalanceBeforeDrain = await ballsToken.balanceOf(airdropPaymasterContractAddress);
+  const ownerBalanceBeforeDrain = await ballsToken.balanceOf(owner.address);
+
+  // Owner's final balance should be their initial balance plus the contract's balance.
+  expect(ownerBalance).to.be.equal(ownerBalanceBeforeDrain + contractBalanceBeforeDrain);
  
+  console.log("Drain Test Passed!✅");
+});
+
 
 });
