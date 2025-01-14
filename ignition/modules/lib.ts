@@ -18,7 +18,7 @@ export function functionSigs(contractName: string): Array<string> {
   const funcs: string[] = [];
   for (const frag of face.fragments) {
     if (frag.type == "function") {
-      funcs.push(frag.format("sighash"));
+      funcs.push(frag.format("minimal"));
     }
   }
   return funcs;

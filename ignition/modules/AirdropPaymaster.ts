@@ -6,9 +6,9 @@ import Soccersm from "./Soccersm";
 
 const AirdropPaymasterModule = buildModule("AirdropPaymasterModule", (m) => {
   const soccersm = m.useModule(Soccersm);
-  const ap = m.contract("AirdropPaymaster", [soccersm.soccersm]);
+  const paymaster = m.contract("AirdropPaymaster", [soccersm.soccersm]);
 
-  return { ap };
+  return { paymaster };
 });
 
 export default AirdropPaymasterModule;
