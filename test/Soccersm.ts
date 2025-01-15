@@ -88,9 +88,7 @@ describe("Soccersm", function () {
         oneGrand,
         baller,
         ballsToken,
-        striker,
         pool,
-        providers,
         keeper,
         air,
       } = await loadFixture(deploySoccersm);
@@ -290,7 +288,7 @@ describe("Soccersm", function () {
             sc.statementId,
             sc.statement,
             sc.maturity,
-            sc.options.map((o) => encodeMultiOptionByTopic(gh.topicId, o)),
+            sc.options.map((o) => encodeMultiOptionByTopic(sc.topicId, o)),
           ]
         )
       );

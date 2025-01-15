@@ -33,6 +33,6 @@
     "fork:test": "hardhat node --fork https://rpc.sepolia-api.lisk.com",
     "fork:main": "hardhat node --fork https://rpc.api.lisk.com",
     "test:local": "rm -rf ignition/deployments/chain-31337 && bun run test --network localhost",
-    "test:deploy": "bun run test --network liskTestnet"
+    "test:deploy": "hardhat ignition deploy ignition/modules/TestDeploy.ts --verify --network"
   }
 }
