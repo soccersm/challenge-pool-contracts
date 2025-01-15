@@ -98,8 +98,8 @@ abstract contract IChallengePool {
     }
 
     event NewChallenge(
-        uint256 indexed challengeId,
-        address indexed creator,
+        uint256  challengeId,
+        address  creator,
         uint256 createdAt,
         uint256 maturity,
         ChallengeState state,
@@ -114,60 +114,60 @@ abstract contract IChallengePool {
         address paymaster
     );
     event CloseChallenge(
-        uint256 indexed challengeId,
-        address indexed closer,
+        uint256  challengeId,
+        address  closer,
         ChallengeState state,
         bytes result
     );
     event EvaluateChallenge(
-        uint256 indexed challengeId,
-        address indexed evaluator,
+        uint256  challengeId,
+        address  evaluator,
         ChallengeState state,
         bytes result
     );
     event DisputeOutcome(
-        uint256 indexed challengeId,
-        address indexed disputor,
+        uint256  challengeId,
+        address  disputor,
         ChallengeState state,
         bytes result,
         uint256 amount
     );
     event DisputeReleased(
-        uint256 indexed challengeId,
-        address indexed disputor,
+        uint256  challengeId,
+        address  disputor,
         ChallengeState state,
         bytes result,
         uint256 amount
     );
     event SettleDispute(
-        uint256 indexed challengeId,
-        address indexed disputor,
+        uint256  challengeId,
+        address  disputor,
         ChallengeState state,
         bytes result,
         uint256 amount
     );
     event CancelChallenge(
-        uint256 indexed challengeId,
-        address indexed canceller,
+        uint256  challengeId,
+        address  canceller,
         ChallengeState state
     );
     event Stake(
-        uint256 indexed challengeId,
-        address indexed participant,
+        uint256  challengeId,
+        address  participant,
         bytes option,
         uint256 stakes,
         uint256 amount,
         uint256 fee
     );
     event WinningsWithdrawn(
-        uint256 indexed challengeId,
-        address indexed participant,
+        uint256  challengeId,
+        address  participant,
         uint256 amountWon,
         uint256 amountWithdrawn
     );
     event Withdraw(
-        uint256 indexed challengeId,
-        address indexed participant,
+        uint256  challengeId,
+        address  participant,
         bytes option,
         uint256 stakes,
         uint256 amount,

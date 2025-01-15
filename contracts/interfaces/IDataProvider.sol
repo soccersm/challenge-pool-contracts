@@ -8,20 +8,20 @@ interface IDataProvider {
         bool register;
     }
     event DataRequested(
-        address indexed caller,
-        string indexed namespace,
+        address  caller,
+        string  namespace,
         bytes requestId,
         bytes params
     );
     event DataProvided(
-        address indexed caller,
-        string indexed namespace,
+        address  caller,
+        string  namespace,
         bytes requestId,
         bytes params
     );
     event DataRegistered(
-        address indexed caller,
-        string indexed namespace,
+        address  caller,
+        string  namespace,
         bytes requestId,
         bytes params
     );
@@ -91,5 +91,5 @@ interface IDataProvider {
      * @dev     every data provider should have a namespace.
      * @return  string  .
      */
-    function namspace() external pure returns (string memory);
+    function namespace() external pure returns (string memory);
 }

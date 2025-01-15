@@ -9,68 +9,68 @@ interface IChallengePoolManager {
     }
 
     event StakeTokenAdded(
-        address indexed caller,
-        address indexed token,
+        address  caller,
+        address  token,
         bool active
     );
     event StakeTokenRemoved(
-        address indexed caller,
-        address indexed token,
+        address  caller,
+        address  token,
         bool active
     );
     event FeeWithdrawn(
-        address indexed caller,
-        address indexed token,
+        address  caller,
+        address  token,
         address to,
         uint256 amount
     );
     event SetFeeAddress(
-        address indexed caller,
+        address  caller,
         address oldFeeAddress,
         address newFeeAddress
     );
     event SetMinMaturityPeriod(
-        address indexed caller,
+        address  caller,
         uint256 oldMinMaturityPeriod,
         uint256 newMinMaturityPeriod
     );
     event SetCreatePoolFee(
-        address indexed caller,
+        address  caller,
         uint256 oldCreatePoolFee,
         uint256 newCreatePoolFee
     );
     event SetStakeFee(
-        address indexed caller,
+        address  caller,
         uint256 oldStakeFee,
         uint256 newStakeFee
     );
     event SetEarlyWithdrawFee(
-        address indexed caller,
+        address  caller,
         uint256 oldEarlyWithdrawFee,
         uint256 newEarlyWithdrawFee
     );
     event SetMaxOptionsPerPool(
-        address indexed caller,
+        address  caller,
         uint256 oldMaxOptionsPerPool,
         uint256 newMaxOptionsPerPool
     );
     event SetMaxEventsPerPool(
-        address indexed caller,
+        address  caller,
         uint256 oldMaxEventsPerPool,
         uint256 newMaxEventsPerPool
     );
     event SetMinStakeAmount(
-        address indexed caller,
+        address  caller,
         uint256 oldMinStakeAmount,
         uint256 newMinStakeAmount
     );
     event SetDisputePeriod(
-        address indexed caller,
+        address  caller,
         uint256 oldDisputePeriod,
         uint256 newDisputePeriod
     );
     event SetDisputeStake(
-        address indexed caller,
+        address  caller,
         uint256 oldDisputeStake,
         uint256 newDisputeStake
     );

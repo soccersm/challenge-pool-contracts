@@ -12,13 +12,13 @@ import DataProvidersModule from "../ignition/modules/DataProviders";
 import PoolResolversModule from "../ignition/modules/PoolResolvers";
 import AirdropPaymasterModule from "../ignition/modules/AirdropPaymaster";
 import CreateTopicsModule from "../ignition/modules/CreateTopics";
-import { btcEvent, ghanaElectionEvent } from "../scripts/mock";
+import { btcEvent, ghanaElectionEvent } from "./mock";
 import {
   coder,
   encodeMultiOptionByTopic,
   prepareCreateChallenge,
   TopicId,
-} from "../scripts/lib";
+} from "./lib";
 
 describe("Soccersm", function () {
   async function deploySoccersm() {
@@ -72,25 +72,37 @@ describe("Soccersm", function () {
   });
 
   describe("ChallengePool", async function () {
-    it("Should Create Chalenge", async function () {
+    it("Should Create Challenge", async function () {
       const { owner, baller, ballsToken, soccersm, pool } = await loadFixture(
         deploySoccersm
       );
-      const { challenge, ...others } = btcEvent(
+      const { challenge } = btcEvent(
         await ballsToken.getAddress(),
         1,
         1000,
         ethers.ZeroAddress
       );
       const preparedChallenge = prepareCreateChallenge(challenge);
-      await ballsToken.approve(
-        await pool.poolHandlerProxy.getAddress(),
-        BigInt(2000 * 1e18)
+      await ballsToken
+        .connect(baller)
+        .approve(await pool.poolHandlerProxy.getAddress(), BigInt(2000 * 1e18));
+      await (pool.poolHandlerProxy.connect(baller) as any).createChallenge(
+        ...(preparedChallenge as any)
       );
-      await pool.poolHandlerProxy.createChallenge(...preparedChallenge as any);
     });
-    it("Should Stake Chalenge", async function () {});
+    it("Should Stake Challenge", async function () {});
     it("Should Early Withdraw", async function () {});
-    it("Should Create Chalenge", async function () {});
+    it("Should Close Challenge", async function () {});
+    it("Should Withdraw Challenge", async function () {});
+    it("Should Cancel Challenge", async function () {});
+    it("Should Dispute Challenge", async function () {});
+    it("Should Settle Challenge", async function () {});
+    it("Should Evaluate Challenge", async function () {});
+    it("Should Release Challenge", async function () {});
+  });
+
+  describe("TopicRegistry", async function() {
+    it("Should Enable Topic", async function () {});
+    it("Should Disable Topic", async function () {});
   });
 });

@@ -49,7 +49,6 @@ export function btcEvent(
 ): {
   challenge: CreateChallenge;
   maturity: number;
-  topicId: TopicId.Statement;
 } {
   const maturity = Math.floor(Date.now() / 1000) + 60 * 60 * 24;
 
@@ -82,7 +81,6 @@ export function btcEvent(
 
   return {
     challenge: btcChallenge,
-    maturity,
-    topicId: TopicId.Statement,
+    maturity
   };
 }

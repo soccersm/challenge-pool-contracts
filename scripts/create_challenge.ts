@@ -1,6 +1,6 @@
 import { ignition, ethers } from "hardhat";
-import { prepareCreateChallenge } from "./lib";
-import { btcEvent, ghanaElectionEvent } from "./mock";
+import { prepareCreateChallenge } from "../test/lib";
+import { btcEvent, ghanaElectionEvent } from "../test/mock";
 import ChallengePoolModule from "../ignition/modules/ChallengePool";
 
 async function main() {

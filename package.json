@@ -18,6 +18,7 @@
     "test": "hardhat test",
     "coverage": "hardhat coverage",
     "test:gas": "REPORT_GAS=true hardhat test",
+    "test:local:gas": "REPORT_GAS=true bun run test:local",
     "deploys": "hardhat ignition deployments",
     "deploys:id": "hardhat ignition status",
     "deploy:all": "hardhat run scripts/deploy.ts --network",
@@ -30,6 +31,7 @@
     "deploy:topics": "hardhat ignition deploy ignition/modules/CreateTopics.ts --verify --network",
     "verify:all": "hardhat ignition verify",
     "fork:test": "hardhat node --fork https://rpc.sepolia-api.lisk.com",
-    "fork:main": "hardhat node --fork https://rpc.api.lisk.com"
+    "fork:main": "hardhat node --fork https://rpc.api.lisk.com",
+    "test:local": "rm -rf ignition/deployments/chain-31337 && bun run test --network localhost"
   }
 }

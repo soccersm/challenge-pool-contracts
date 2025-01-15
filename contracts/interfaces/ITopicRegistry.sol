@@ -24,14 +24,14 @@ interface ITopicRegistry {
     }
 
     event NewTopic(
-        string indexed topicId,
-        address indexed poolResolver,
-        address indexed dataProvider,
+        string  topicId,
+        address  poolResolver,
+        address  dataProvider,
         TopicState state
     );
 
-    event TopicDisabled(string indexed topicId, TopicState state);
-    event TopicEnabled(string indexed topicId, TopicState state);
+    event TopicDisabled(string  topicId, TopicState state);
+    event TopicEnabled(string  topicId, TopicState state);
 
     error InvalidTopic();
     error ExistingTopic();
