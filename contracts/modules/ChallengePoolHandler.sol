@@ -16,6 +16,7 @@ import "../utils/Errors.sol";
 import "./TopicRegistry.sol";
 
 import "../diamond/interfaces/SoccersmRoles.sol";
+import "hardhat/console.sol";
 
 contract ChallengePoolHandler is IChallengePoolHandler, SoccersmRoles, Helpers {
     function createChallenge(
@@ -59,7 +60,7 @@ contract ChallengePoolHandler is IChallengePoolHandler, SoccersmRoles, Helpers {
             }
             poolOptions = Helpers.yesNoOptions();
             if (
-                !compareBytes(_prediction, yes) ||
+                !compareBytes(_prediction, yes) &&
                 !compareBytes(_prediction, no)
             ) {
                 revert InvalidPrediction();
@@ -90,6 +91,7 @@ contract ChallengePoolHandler is IChallengePoolHandler, SoccersmRoles, Helpers {
         }
         uint256 maturity;
         for (uint i = 0; i < _events.length; i++) {
+            console.log(_events[i].topicId);
             if (
                 t.registry[_events[i].topicId].state ==
                 ITopicRegistry.TopicState.disabled
@@ -128,7 +130,6 @@ contract ChallengePoolHandler is IChallengePoolHandler, SoccersmRoles, Helpers {
             false,
             0
         );
-        s.challengeId += 1;
         emit NewChallenge(
             s.challengeId,
             msg.sender,
@@ -145,6 +146,7 @@ contract ChallengePoolHandler is IChallengePoolHandler, SoccersmRoles, Helpers {
             _stakeToken,
             _paymaster
         );
+        s.challengeId += 1;
     }
 
     function stake(
@@ -322,5 +324,44 @@ contract ChallengePoolHandler is IChallengePoolHandler, SoccersmRoles, Helpers {
         returns (Challenge memory)
     {
         return CPStorage.load().challenges[_challengeId];
+    }
+
+    function earlyWithdrawFee(
+        uint256 _price
+    )
+        external
+        view
+        virtual
+        override
+        returns (uint256 fee, uint256 feePlusPrice)
+    {
+        fee = LibPool._computeEarlyWithdrawFee(_price);
+        feePlusPrice = _price + fee;
+    }
+
+    function createFee(
+        uint256 _price
+    )
+        external
+        view
+        virtual
+        override
+        returns (uint256 fee, uint256 feePlusPrice)
+    {
+        fee = LibPool._computeCreateFee(_price);
+        feePlusPrice = _price + fee;
+    }
+
+    function stakeFee(
+        uint256 _price
+    )
+        external
+        view
+        virtual
+        override
+        returns (uint256 fee, uint256 feePlusPrice)
+    {
+        fee = LibPool._computeStakeFee(_price);
+        feePlusPrice = _price + fee;
     }
 }

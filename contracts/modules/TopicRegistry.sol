@@ -13,9 +13,12 @@ import "../utils/Errors.sol";
 
 import "../diamond/interfaces/SoccersmRoles.sol";
 
+import "hardhat/console.sol";
+
 contract TopicRegistry is ITopicRegistry, SoccersmRoles, Helpers {
     modifier validTopic(string calldata _topicId) {
         TRStore storage t = TRStorage.load();
+        console.log(bytes(t.registry[_topicId].topicId).length );
         if (bytes(t.registry[_topicId].topicId).length == 0) {
             revert ITopicRegistry.InvalidTopic();
         }
@@ -23,7 +26,7 @@ contract TopicRegistry is ITopicRegistry, SoccersmRoles, Helpers {
     }
 
     function createTopic(
-        string memory _topicId,
+        string calldata _topicId,
         address _poolResolver,
         address _dataProvider
     )

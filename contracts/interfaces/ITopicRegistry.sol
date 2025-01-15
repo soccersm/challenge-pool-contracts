@@ -44,7 +44,7 @@ interface ITopicRegistry {
      * @param   _dataProvider  address of the data provider for this topic
      */
     function createTopic(
-        string memory _id,
+        string calldata _id,
         address _poolResolver,
         address _dataProvider
     ) external;

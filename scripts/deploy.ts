@@ -7,16 +7,14 @@ import AirdropPaymasterModule from "../ignition/modules/AirdropPaymaster";
 import CreateTopicsModule from "../ignition/modules/CreateTopics";
 
 async function main() {
-    await ignition.deploy(SoccersmModule);
-    await ignition.deploy(ChallengePoolModule);
-    await ignition.deploy(DataProvidersModule);
-    await ignition.deploy(PoolResolversModule);
-    await ignition.deploy(AirdropPaymasterModule);
-    await ignition.deploy(CreateTopicsModule);
-    console.log(`Deployments Successfull ...`);
-    
+  await ignition.deploy(SoccersmModule, { displayUi: true });
+  await ignition.deploy(ChallengePoolModule, { displayUi: true });
+  await ignition.deploy(DataProvidersModule, { displayUi: true });
+  await ignition.deploy(PoolResolversModule, { displayUi: true });
+  await ignition.deploy(AirdropPaymasterModule, { displayUi: true });
+  await ignition.deploy(CreateTopicsModule, { displayUi: true });
+  console.log(`Deployments Successfull ...`);
 }
-
 
 // We recommend this pattern to be able to use async/await everywhere
 // and properly handle errors.

@@ -27,6 +27,9 @@
     "update:pool": "hardhat ignition deploy ignition/modules/ChallengePoolUpdate.ts --verify --network",
     "deploy:providers": "hardhat ignition deploy ignition/modules/DataProviders.ts --verify --network",
     "deploy:resolvers": "hardhat ignition deploy ignition/modules/PoolResolvers.ts --verify --network",
-    "deploy:topics": "hardhat ignition deploy ignition/modules/CreateTopics.ts --verify --network"
+    "deploy:topics": "hardhat ignition deploy ignition/modules/CreateTopics.ts --verify --network",
+    "verify:all": "hardhat ignition verify",
+    "fork:test": "hardhat node --fork https://rpc.sepolia-api.lisk.com",
+    "fork:main": "hardhat node --fork https://rpc.api.lisk.com"
   }
 }

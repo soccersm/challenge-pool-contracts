@@ -2,18 +2,20 @@
 pragma solidity ^0.8.28;
 
 import "./BaseResolver.sol";
-
+import "hardhat/console.sol";
 contract AssetPriceBoundedResolver is BaseResolver {
     function validateEvent(
         IDataProvider dataProvider,
-        IChallengePool.ChallengeEvent memory _event
+        IChallengePool.ChallengeEvent calldata _event
     ) external override returns (bool) {
+        console.log("AssetPriceBoundedResolver");
         (
             string memory assetSymbol,
             uint256 priceLowerBound,
             uint256 priceUpperBound,
             string memory outcome
         ) = abi.decode(_event.params, (string, uint256, uint256, string));
+        console.log("assetSymbol", assetSymbol);
         if (!compareStrings(outcome, IN) && !compareStrings(outcome, OUT)) {
             return false;
         }
@@ -29,7 +31,7 @@ contract AssetPriceBoundedResolver is BaseResolver {
 
     function resolveEvent(
         IDataProvider dataProvider,
-        IChallengePool.ChallengeEvent memory _event,
+        IChallengePool.ChallengeEvent calldata _event,
         bytes[] calldata /*_options*/
     ) external override returns (bytes memory) {
         (
@@ -60,7 +62,7 @@ contract AssetPriceBoundedResolver is BaseResolver {
 
     function validateOptions(
         IDataProvider /*dataProvider*/,
-        IChallengePool.ChallengeEvent memory /*_event*/,
+        IChallengePool.ChallengeEvent calldata /*_event*/,
         bytes[] calldata /*_options*/
     ) external pure override returns (bool) {
         revert NotImplemented();

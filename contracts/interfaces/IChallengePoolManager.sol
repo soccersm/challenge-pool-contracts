@@ -121,6 +121,8 @@ interface IChallengePoolManager {
 
     function disputeStake() external view returns (uint256);
 
+    function challengeId() external view returns(uint256);
+
     function stakeToken(
         address _token
     ) external view returns (StakeToken memory);

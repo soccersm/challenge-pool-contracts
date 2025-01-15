@@ -4,8 +4,7 @@ pragma solidity ^0.8.28;
 import "./IPaymaster.sol";
 import "./IChallengePool.sol";
 
-abstract contract  IChallengePoolHandler is IChallengePool {
-
+abstract contract IChallengePoolHandler is IChallengePool {
     /**
      * @notice  .
      * @dev     create a new challenge
@@ -85,7 +84,7 @@ abstract contract  IChallengePoolHandler is IChallengePool {
         bytes calldata _option,
         uint256 _quantity,
         PoolAction _action
-    ) external virtual view returns (uint256);
+    ) external view virtual returns (uint256);
     /**
      * @notice  .
      * @dev     returns the Challenge struct.
@@ -94,5 +93,17 @@ abstract contract  IChallengePoolHandler is IChallengePool {
      */
     function getChallenge(
         uint256 _challengeId
-    ) external virtual view returns (Challenge memory);
+    ) external view virtual returns (Challenge memory);
+
+    function earlyWithdrawFee(
+        uint256 _price
+    ) external view virtual returns (uint256 fee, uint256 feePlusPrice);
+
+    function createFee(
+        uint256 _price
+    ) external view virtual returns (uint256 fee, uint256 feePlusPrice);
+
+    function stakeFee(
+        uint256 _price
+    ) external view virtual returns (uint256 fee, uint256 feePlusPrice);
 }

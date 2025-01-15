@@ -105,14 +105,19 @@ library LibPool {
 
     function _validateEvent(
         TRStore storage t,
-        IChallengePool.ChallengeEvent memory _event
+        IChallengePool.ChallengeEvent calldata _event
     ) internal {
         IPoolResolver resolver = t.registry[_event.topicId].poolResolver;
+        IDataProvider provider = t.registry[_event.topicId].dataProvider;
         (bool success, bytes memory result) = address(resolver).delegatecall(
-            abi.encodeWithSelector(IPoolResolver.validateEvent.selector, _event)
+            abi.encodeWithSelector(
+                IPoolResolver.validateEvent.selector,
+                provider,
+                _event
+            )
         );
         if (!success) {
-            revert DelegateCallFailed("_validateEvent");
+            revert DelegateCallFailed("LibPool._validateEvent");
         }
         bool validParam = abi.decode(result, (bool));
         if (!validParam) {
@@ -125,18 +130,23 @@ library LibPool {
         IChallengePool.ChallengeEvent memory _event
     ) internal returns (bytes memory) {
         IPoolResolver resolver = t.registry[_event.topicId].poolResolver;
+        IDataProvider provider = t.registry[_event.topicId].dataProvider;
         (bool success, bytes memory result) = address(resolver).delegatecall(
-            abi.encodeWithSelector(IPoolResolver.resolveEvent.selector, _event)
+            abi.encodeWithSelector(
+                IPoolResolver.resolveEvent.selector,
+                provider,
+                _event
+            )
         );
         if (!success) {
-            revert DelegateCallFailed("_resolveEvent");
+            revert DelegateCallFailed("LibPool._resolveEvent");
         }
         return result;
     }
 
     function _validateOptions(
         TRStore storage t,
-        IChallengePool.ChallengeEvent memory _event,
+        IChallengePool.ChallengeEvent calldata _event,
         bytes[] memory _options
     ) internal {
         console.log(_event.topicId);
@@ -150,9 +160,8 @@ library LibPool {
                 _options
             )
         );
-        console.log(success);
         if (!success) {
-            revert DelegateCallFailed("_validateOptions");
+            revert DelegateCallFailed("LibPool._validateOptions");
         }
         console.log("success");
         console.log(string(result));

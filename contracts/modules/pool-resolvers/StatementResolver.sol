@@ -4,17 +4,12 @@ pragma solidity ^0.8.28;
 import "./BaseResolver.sol";
 
 contract StatementResolver is BaseResolver {
-    function _decodeParams(
-        bytes memory _params
-    ) internal pure returns (string memory, string memory, uint256) {
-        return abi.decode(_params, (string, string, uint256));
-    }
 
     function validateEvent(
         IDataProvider dataProvider,
-        IChallengePool.ChallengeEvent memory _event
+        IChallengePool.ChallengeEvent calldata _event
     ) external returns (bool) {
-        (, , uint256 maturity) = _decodeParams(_event.params);
+        (, , uint256 maturity) = abi.decode(_event.params, (string, string, uint256));
         if (_event.maturity < maturity) {
             return false;
         }
@@ -23,7 +18,7 @@ contract StatementResolver is BaseResolver {
 
     function resolveEvent(
         IDataProvider dataProvider,
-        IChallengePool.ChallengeEvent memory _event,
+        IChallengePool.ChallengeEvent calldata _event,
         bytes[] calldata /*_options*/
     ) external override returns (bytes memory) {
         return _getData(dataProvider, _event.params);
@@ -31,8 +26,8 @@ contract StatementResolver is BaseResolver {
 
     function validateOptions(
         IDataProvider dataProvider,
-        IChallengePool.ChallengeEvent memory _event,
-        bytes[] memory _options
+        IChallengePool.ChallengeEvent calldata _event,
+        bytes[] calldata _options
     ) external override returns (bool) {
         return _validateOptions(dataProvider, _event.params, _options);
     }

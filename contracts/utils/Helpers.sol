@@ -131,8 +131,10 @@ abstract contract Helpers {
         return keccak256(_bytes1) == keccak256(_bytes2);
     }
 
-    function yesNoOptions() internal pure returns (bytes[] memory yesNo) {
+    function yesNoOptions() internal pure returns (bytes[] memory) {
+        bytes[] memory yesNo = new bytes[](2);
         yesNo[0] = yes;
         yesNo[1] = no;
+        return yesNo;
     }
 }

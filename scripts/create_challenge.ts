@@ -1,12 +1,15 @@
 import { ignition, ethers } from "hardhat";
 import { prepareCreateChallenge } from "./lib";
-import { ghanaElectionEvent } from "./mock";
+import { btcEvent, ghanaElectionEvent } from "./mock";
+import ChallengePoolModule from "../ignition/modules/ChallengePool";
 
 async function main() {
-  const balls = "0x935E49458145B917a0EaEE279652F724EA78d8F0";
-  const soccersm = "0xf6A2C93fDC1d1eA25E1aEc278c13AAca884394D5";
-  const poolHandlerProxy = await ethers.getContractAt("ChallengePoolHandler", soccersm);;
-  const ballsToken = await ethers.getContractAt("BallsToken", balls);
+  const pool = await ignition.deploy(ChallengePoolModule);
+  const ballsToken = await ethers.deployContract("BallsToken");
+
+  await ballsToken.waitForDeployment();
+
+  const balls = await ballsToken.getAddress();
   const challenge = ghanaElectionEvent(
     await ballsToken.getAddress(),
     1,
@@ -14,15 +17,20 @@ async function main() {
     ethers.ZeroAddress
   );
   const preparedChallenge = prepareCreateChallenge(challenge.challenge);
-  console.log(preparedChallenge);
+  // console.log(preparedChallenge);
 
-  console.log(await poolHandlerProxy.getAddress());
-  
+  console.log(await pool.poolHandlerProxy.getAddress());
+  console.log(await pool.registryProxy.getTopic("Statement"));
+  await pool.poolManagerProxy.addStakeToken(balls);
 
-//   await ballsToken.approve(await poolHandlerProxy.getAddress(), BigInt(2000 * 1e18));
+  await ballsToken.approve(
+    await pool.poolHandlerProxy.getAddress(),
+    BigInt(2000 * 1e18)
+  );
 
-  await poolHandlerProxy.createChallenge(...(preparedChallenge as any));
-  console.log(`Deployments Successfull ...`);
+  await pool.poolHandlerProxy.createChallenge(...(preparedChallenge as any));
+  const ch = await pool.poolManagerProxy.stakeToken(balls);
+  console.log(`Create Successfull ... ${ch}`);
 }
 
 // We recommend this pattern to be able to use async/await everywhere

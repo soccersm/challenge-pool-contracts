@@ -178,6 +178,10 @@ contract ChallengePoolManager is IChallengePoolManager, SoccersmRoles, Helpers {
         return CPStorage.load().disputeStake;
     }
 
+    function challengeId() external view override returns (uint256) {
+        return CPStorage.load().challengeId;
+    }
+
     function stakeToken(
         address _token
     ) external view override returns (StakeToken memory) {

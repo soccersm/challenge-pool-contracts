@@ -64,13 +64,13 @@ export function btcEvent(
 
   const assetPriceTarget: AssetPriceTargetEvent = {
     maturity,
-    topicId: TopicId.AssetPriceBounded,
+    topicId: TopicId.AssetPriceTarget,
     price: 100000,
     outcome: "above",
     assetSymbol: "BTC"
   };
 
-  const ghanaElectionsChallenge: CreateChallenge = {
+  const btcChallenge: CreateChallenge = {
     events: [assetPriceBound, assetPriceTarget],
     options: [],
     stakeToken,
@@ -81,7 +81,7 @@ export function btcEvent(
   };
 
   return {
-    challenge: ghanaElectionsChallenge,
+    challenge: btcChallenge,
     maturity,
     topicId: TopicId.Statement,
   };

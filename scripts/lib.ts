@@ -118,7 +118,7 @@ export const yesNo = {
   no: coder.encode(["string"], ["no"]),
 };
 
-export const ASSET_PRICES_MULTIPLIER = 100;
+export const ASSET_PRICES_MULTIPLIER = 100; // multiply all prices by 100
 
 export function prepareCreateChallenge(
   create: CreateChallenge
@@ -127,7 +127,7 @@ export function prepareCreateChallenge(
   const events = [];
   let options: string[] = [];
   let prediction = "";
-  for (const e of create.events) {
+  for (let e of create.events) {
     events.push(encodeEventByTopic(e));
   }
   if (isMulti) {
@@ -154,13 +154,21 @@ export function encodeMultiOptionByTopic(
 ): string {
   switch (topicId) {
     case TopicId.MultiFootBallCorrectScore:
-      return coder.encode(["uint256", "uint256"], option as RangeOption);
+      const correctScore = option as RangeOption;
+      return coder.encode(
+        ["uint256", "uint256"],
+        [BigInt(correctScore[0]), BigInt(correctScore[1])]
+      );
     case TopicId.MultiFootBallOutcome:
       return coder.encode(["string"], [option as StringOption]);
     case TopicId.MultiFootBallTotalExact:
-      return coder.encode(["uint256"], [option as IntOption]);
+      return coder.encode(["uint256"], [BigInt(option as IntOption)]);
     case TopicId.MultiFootBallTotalScoreRange:
-      return coder.encode(["uint256", "uint256"], option as RangeOption);
+      const scoreRange = option as RangeOption;
+      return coder.encode(
+        ["uint256", "uint256"],
+        [BigInt(scoreRange[0]), BigInt(scoreRange[1])]
+      );
     case TopicId.Statement:
       return coder.encode(["string"], [option as StringOption]);
     case TopicId.MultiAssetRange:
@@ -168,8 +176,8 @@ export function encodeMultiOptionByTopic(
       return coder.encode(
         ["uint256", "uint256"],
         [
-          priceRage[0] * ASSET_PRICES_MULTIPLIER,
-          priceRage[1] * ASSET_PRICES_MULTIPLIER,
+          BigInt(priceRage[0] * ASSET_PRICES_MULTIPLIER),
+          BigInt(priceRage[1] * ASSET_PRICES_MULTIPLIER),
         ]
       );
     case TopicId.AssetPriceBounded:
@@ -250,7 +258,7 @@ export function prepareFootballOverUnderEventParam(
 ): ParamEncodedEventChallenge {
   const params = coder.encode(
     ["string", "uint256", "string"],
-    [ev.matchId, ev.totalGoals, ev.outcome]
+    [ev.matchId, BigInt(ev.totalGoals), ev.outcome]
   );
   return {
     params,
@@ -330,7 +338,12 @@ export function prepareAssetPriceBoundedEventParam(
 ): ParamEncodedEventChallenge {
   const params = coder.encode(
     ["string", "uint256", "uint256", "string"],
-    [ev.assetSymbol, ev.priceLowerBound, ev.priceUpperBound, ev.outcome]
+    [
+      ev.assetSymbol,
+      BigInt(ev.priceLowerBound * ASSET_PRICES_MULTIPLIER),
+      BigInt(ev.priceUpperBound * ASSET_PRICES_MULTIPLIER),
+      ev.outcome,
+    ]
   );
   return {
     params,
@@ -344,7 +357,7 @@ export function prepareAssetPriceTargetEventParam(
 ): ParamEncodedEventChallenge {
   const params = coder.encode(
     ["string", "uint256", "string"],
-    [ev.assetSymbol, ev.price, ev.outcome]
+    [ev.assetSymbol, BigInt(ev.price * ASSET_PRICES_MULTIPLIER), ev.outcome]
   );
   return {
     params,
@@ -358,7 +371,7 @@ export function prepareFootballCorrectScoreEventParam(
 ): ParamEncodedEventChallenge {
   const params = coder.encode(
     ["string", "uint256", "uint256"],
-    [ev.matchId, ev.homeScore, ev.awayScore]
+    [ev.matchId, BigInt(ev.homeScore), BigInt(ev.awayScore)]
   );
   return {
     params,
