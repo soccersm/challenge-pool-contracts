@@ -2,20 +2,17 @@
 pragma solidity ^0.8.28;
 
 import "./BaseResolver.sol";
-import "hardhat/console.sol";
 contract AssetPriceBoundedResolver is BaseResolver {
     function validateEvent(
         IDataProvider dataProvider,
         IChallengePool.ChallengeEvent calldata _event
     ) external override returns (bool) {
-        console.log("AssetPriceBoundedResolver");
         (
             string memory assetSymbol,
             uint256 priceLowerBound,
             uint256 priceUpperBound,
             string memory outcome
         ) = abi.decode(_event.params, (string, uint256, uint256, string));
-        console.log("assetSymbol", assetSymbol);
         if (!compareStrings(outcome, IN) && !compareStrings(outcome, OUT)) {
             return false;
         }

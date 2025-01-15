@@ -16,7 +16,6 @@ import "../utils/Errors.sol";
 import "./TopicRegistry.sol";
 
 import "../diamond/interfaces/SoccersmRoles.sol";
-import "hardhat/console.sol";
 
 contract ChallengePoolHandler is IChallengePoolHandler, SoccersmRoles, Helpers {
     function createChallenge(
@@ -91,7 +90,6 @@ contract ChallengePoolHandler is IChallengePoolHandler, SoccersmRoles, Helpers {
         }
         uint256 maturity;
         for (uint i = 0; i < _events.length; i++) {
-            console.log(_events[i].topicId);
             if (
                 t.registry[_events[i].topicId].state ==
                 ITopicRegistry.TopicState.disabled
@@ -100,6 +98,9 @@ contract ChallengePoolHandler is IChallengePoolHandler, SoccersmRoles, Helpers {
             }
             if (_events[i].maturity < (block.timestamp + s.minMaturityPeriod)) {
                 revert InvalidEventMaturity();
+            }
+            if(maturity < _events[i].maturity) {
+                maturity = _events[i].maturity;
             }
             LibPool._validateEvent(t, _events[i]);
         }

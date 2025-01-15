@@ -106,7 +106,7 @@ contract StatementDataProvider is BaseProvider {
             string memory statementId,
             string memory statement,
             uint256 maturity,
-            
+            bytes[] memory options
         ) = abi.decode(_params, (string, string, uint256, bytes[]));
         if (block.timestamp >= maturity) {
             revert InvalidSubmissionDate(maturity);
@@ -118,9 +118,17 @@ contract StatementDataProvider is BaseProvider {
             revert DataAlreadyRegistered();
         }
 
+        if (options.length < 2) {
+            revert InvalidOptionsLength();
+        }
+
         DPStore storage d = DPStorage.load();
 
         d.dataRequest[requestId] = DataRequest(_params, emptyBytes, true);
+
+        for (uint256 i = 0; i < options.length; i++) {
+            d.requestOptions[requestId][options[i]] = true;
+        }
 
         emit DataRegistered(msg.sender, namespace(), requestId, _params);
     }

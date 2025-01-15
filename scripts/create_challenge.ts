@@ -13,7 +13,7 @@ async function main() {
   const challenge = ghanaElectionEvent(
     await ballsToken.getAddress(),
     1,
-    1000,
+    BigInt(1000 * 1e18),
     ethers.ZeroAddress
   );
   const preparedChallenge = prepareCreateChallenge(challenge.challenge);

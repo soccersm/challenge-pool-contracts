@@ -4,15 +4,10 @@ pragma solidity ^0.8.28;
 import "./BaseResolver.sol";
 
 contract StatementResolver is BaseResolver {
-
     function validateEvent(
         IDataProvider dataProvider,
         IChallengePool.ChallengeEvent calldata _event
     ) external returns (bool) {
-        (, , uint256 maturity) = abi.decode(_event.params, (string, string, uint256));
-        if (_event.maturity < maturity) {
-            return false;
-        }
         return _requestData(dataProvider, _event.params);
     }
 
@@ -31,5 +26,4 @@ contract StatementResolver is BaseResolver {
     ) external override returns (bool) {
         return _validateOptions(dataProvider, _event.params, _options);
     }
-
 }

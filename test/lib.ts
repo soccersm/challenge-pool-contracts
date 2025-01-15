@@ -96,7 +96,7 @@ export type CreateChallenge = {
   events: EventChallenge[];
   options: EventOption[];
   stakeToken: string;
-  prediction: string | YesNo;
+  prediction: EventOption | YesNo;
   quantity: number;
   basePrice: BigInt;
   paymaster: string;
@@ -270,7 +270,10 @@ export function prepareFootballOverUnderEventParam(
 export function prepareStatementEventParam(
   ev: StatementEvent
 ): ParamEncodedEventChallenge {
-  const params = coder.encode(["string"], [ev.statementId]);
+  const params = coder.encode(
+    ["string", "string", "uint256"],
+    [ev.statementId, ev.statement, BigInt(ev.maturity)]
+  );
   return {
     params,
     topicId: ev.topicId,

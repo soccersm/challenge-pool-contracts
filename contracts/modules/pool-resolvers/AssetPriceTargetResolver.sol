@@ -9,13 +9,11 @@ contract AssetPriceTargetResolver is BaseResolver {
         IDataProvider dataProvider,
         IChallengePool.ChallengeEvent calldata _event
     ) external override returns (bool) {
-        console.log("AssetPriceTargetResolver");
         (
             string memory assetSymbol,
             uint256 predictedPrice,
             string memory outcome
         ) = abi.decode(_event.params, (string, uint256, string));
-        console.log("assetSymbol", assetSymbol);
         if (
             !compareStrings(outcome, ABOVE) && !compareStrings(outcome, BELOW)
         ) {

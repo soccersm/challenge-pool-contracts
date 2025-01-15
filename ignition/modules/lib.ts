@@ -41,5 +41,3 @@ export function functionSigsSelectors(contractName: string): {
 export const FacetCutAction = { Add: 0, Replace: 1, Remove: 2 };
 
 export const INIT_SIG: string = "init()";
-
-// console.log(functionSigsSelectors("ChallengePoolHandler"));

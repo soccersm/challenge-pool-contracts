@@ -9,8 +9,6 @@ import "./LibTransfer.sol";
 import "./LibPrice.sol";
 import "../utils/Helpers.sol";
 
-import "hardhat/console.sol";
-
 library LibPool {
     function _recordFee(address _token, uint256 _fee) internal {
         CPStorage.load().stakeTokens[_token].accumulatedFee += _fee;
@@ -149,7 +147,6 @@ library LibPool {
         IChallengePool.ChallengeEvent calldata _event,
         bytes[] memory _options
     ) internal {
-        console.log(_event.topicId);
         IPoolResolver resolver = t.registry[_event.topicId].poolResolver;
         IDataProvider provider = t.registry[_event.topicId].dataProvider;
         (bool success, bytes memory result) = address(resolver).delegatecall(
@@ -163,8 +160,7 @@ library LibPool {
         if (!success) {
             revert DelegateCallFailed("LibPool._validateOptions");
         }
-        console.log("success");
-        console.log(string(result));
+
         bool validParam = abi.decode(result, (bool));
         if (!validParam) {
             revert IChallengePool.InvalidEventParam();
