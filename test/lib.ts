@@ -3,10 +3,10 @@ import { ethers } from "hardhat";
 export enum TopicId {
   AssetPriceBounded = "AssetPriceBounded",
   AssetPriceTarget = "AssetPriceTarget",
-  MultiAssetRange = "MultiAssetRange",
   FootBallCorrectScore = "FootBallCorrectScore",
   FootBallOutcome = "FootBallOutcome",
   FootballOverUnder = "FootballOverUnder",
+  MultiAssetRange = "MultiAssetRange",
   MultiFootBallCorrectScore = "MultiFootBallCorrectScore",
   MultiFootBallOutcome = "MultiFootBallOutcome",
   MultiFootBallTotalExact = "MultiFootBallTotalExact",

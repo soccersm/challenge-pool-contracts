@@ -12,7 +12,7 @@ import DataProvidersModule from "../ignition/modules/DataProviders";
 import PoolResolversModule from "../ignition/modules/PoolResolvers";
 import AirdropPaymasterModule from "../ignition/modules/AirdropPaymaster";
 import CreateTopicsModule from "../ignition/modules/CreateTopics";
-import { btcEvent, ghanaElectionEvent } from "./mock";
+import { btcEvent, ghanaElectionEvent, matchEvent } from "./mock";
 import {
   coder,
   encodeMultiOptionByTopic,
@@ -76,18 +76,35 @@ describe("Soccersm", function () {
       const { owner, baller, ballsToken, soccersm, pool } = await loadFixture(
         deploySoccersm
       );
-      const { challenge } = btcEvent(
+      const btcChallenge = btcEvent(
         await ballsToken.getAddress(),
         1,
         1000,
         ethers.ZeroAddress
       );
-      const preparedChallenge = prepareCreateChallenge(challenge);
+      const preparedBTCChallenge = prepareCreateChallenge(
+        btcChallenge.challenge
+      );
       await ballsToken
         .connect(baller)
         .approve(await pool.poolHandlerProxy.getAddress(), BigInt(2000 * 1e18));
       await (pool.poolHandlerProxy.connect(baller) as any).createChallenge(
-        ...(preparedChallenge as any)
+        ...(preparedBTCChallenge as any)
+      );
+      const matchChallenge = matchEvent(
+        await ballsToken.getAddress(),
+        1,
+        1000,
+        ethers.ZeroAddress
+      );
+      const preparedMatchChallenge = prepareCreateChallenge(
+        matchChallenge.challenge
+      );
+      await ballsToken
+        .connect(baller)
+        .approve(await pool.poolHandlerProxy.getAddress(), BigInt(2000 * 1e18));
+      await (pool.poolHandlerProxy.connect(baller) as any).createChallenge(
+        ...(preparedMatchChallenge as any)
       );
     });
     it("Should Stake Challenge", async function () {});
@@ -101,7 +118,7 @@ describe("Soccersm", function () {
     it("Should Release Challenge", async function () {});
   });
 
-  describe("TopicRegistry", async function() {
+  describe("TopicRegistry", async function () {
     it("Should Enable Topic", async function () {});
     it("Should Disable Topic", async function () {});
   });
