@@ -33,7 +33,6 @@ interface IDataProvider {
     error DataNotRegistered();
     error DataAlreadyRegistered();
     error InvalidResult();
-    error InvalidOptionsLength();
 
     /**
      * @notice  .

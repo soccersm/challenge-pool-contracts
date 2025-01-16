@@ -18,8 +18,6 @@ import "./TopicRegistry.sol";
 import "../diamond/interfaces/SoccersmRoles.sol";
 
 contract ChallengePoolDispute is IChallengePoolDispute, SoccersmRoles, Helpers {
-
-
     function evaluate(
         uint256 _challengeId
     )

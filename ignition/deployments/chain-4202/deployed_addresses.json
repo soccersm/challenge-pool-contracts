@@ -32,5 +32,14 @@
   "ChallengePoolModule#SoccersmChallengePoolHandler": "0x5e367FF2BEBB8559cF3A3117c62b41a2BA3463B8",
   "ChallengePoolModule#SoccersmChallengePoolManager": "0x5e367FF2BEBB8559cF3A3117c62b41a2BA3463B8",
   "ChallengePoolModule#SoccersmTopicRegistry": "0x5e367FF2BEBB8559cF3A3117c62b41a2BA3463B8",
-  "AirdropPaymasterModule#AirdropPaymaster": "0x40018261a6100a2549BBabAcf7331d7dADCDa2f3"
+  "AirdropPaymasterModule#AirdropPaymaster": "0x40018261a6100a2549BBabAcf7331d7dADCDa2f3",
+  "ChallengePoolUpdateModule#SoccersmChallengePoolDispute": "0x5e367FF2BEBB8559cF3A3117c62b41a2BA3463B8",
+  "ChallengePoolUpdateModule#SoccersmChallengePoolHandler": "0x5e367FF2BEBB8559cF3A3117c62b41a2BA3463B8",
+  "ChallengePoolUpdateModule#SoccersmChallengePoolManager": "0x5e367FF2BEBB8559cF3A3117c62b41a2BA3463B8",
+  "ChallengePoolUpdateModule#SoccersmTopicRegistry": "0x5e367FF2BEBB8559cF3A3117c62b41a2BA3463B8",
+  "ChallengePoolUpdateModule#ChallengePoolDispute": "0xEB96674f2ce841eF473c6047e12F4Ae381B09EC1",
+  "ChallengePoolUpdateModule#ChallengePoolHandler": "0xa3285943BD4e0E2c68806E6736b34E8a83D0c306",
+  "ChallengePoolUpdateModule#ChallengePoolManager": "0x0fd24147aB2C4eF9ff38b50B6Cf17fdef75565df",
+  "ChallengePoolUpdateModule#ChallengePoolUpdateInit": "0x559A416afd5C848485C6b49057e25c9947142e47",
+  "ChallengePoolUpdateModule#TopicRegistry": "0x91Ecf7D9699894411f815A85db3841310CE4CC88"
 }

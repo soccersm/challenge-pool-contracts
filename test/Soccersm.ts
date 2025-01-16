@@ -28,6 +28,7 @@ import {
   encodeMultiOptionByTopic,
   prepareCreateChallenge,
   TopicId,
+  yesNo,
 } from "./lib";
 
 describe("Soccersm", function () {
@@ -83,15 +84,9 @@ describe("Soccersm", function () {
   });
 
   describe("ChallengePool", async function () {
-    it("Should [Create, Stake, EarlyWithdraw]", async function () {
-      const {
-        oneGrand,
-        baller,
-        ballsToken,
-        pool,
-        keeper,
-        air,
-      } = await loadFixture(deploySoccersm);
+    it("Should [Create]", async function () {
+      const { oneGrand, baller, ballsToken, pool, keeper, air, striker } =
+        await loadFixture(deploySoccersm);
       const btcChallenge = btcEvent(
         await ballsToken.getAddress(),
         1,
@@ -101,14 +96,10 @@ describe("Soccersm", function () {
       const preparedBTCChallenge = prepareCreateChallenge(
         btcChallenge.challenge
       );
+
       await ballsToken
         .connect(baller)
-        .approve(
-          await pool.poolHandlerProxy.getAddress(),
-          (
-            await pool.poolHandlerProxy.createFee(oneGrand)
-          )[1]
-        );
+        .approve(await pool.poolHandlerProxy.getAddress(), (await pool.poolHandlerProxy.createFee(oneGrand))[1]);
       await (pool.poolHandlerProxy.connect(baller) as any).createChallenge(
         ...(preparedBTCChallenge as any)
       );
@@ -293,15 +284,50 @@ describe("Soccersm", function () {
         )
       );
 
-      const preparedStementChallenge = prepareCreateChallenge(
-        sc.challenge
-      );
+      const preparedStementChallenge = prepareCreateChallenge(sc.challenge);
 
       await (pool.poolHandlerProxy.connect(keeper) as any).createChallenge(
         ...(preparedStementChallenge as any)
       );
-
       expect(await pool.poolManagerProxy.challengeId()).to.equals(9);
+    });
+    it("Should [Stake]", async function () {
+      const { oneGrand, baller, ballsToken, pool, keeper, air, striker } =
+        await loadFixture(deploySoccersm);
+      const btcChallenge = btcEvent(
+        await ballsToken.getAddress(),
+        1,
+        oneGrand,
+        ethers.ZeroAddress
+      );
+      const preparedBTCChallenge = prepareCreateChallenge(
+        btcChallenge.challenge
+      );
+      const feeP = (await pool.poolHandlerProxy.createFee(oneGrand))[1];
+      console.log(feeP);
+
+      await ballsToken
+        .connect(baller)
+        .approve(await pool.poolHandlerProxy.getAddress(), feeP);
+      await (pool.poolHandlerProxy.connect(baller) as any).createChallenge(
+        ...(preparedBTCChallenge as any)
+      );
+      await ballsToken
+        .connect(striker)
+        .approve(
+          await pool.poolHandlerProxy.getAddress(),
+          (
+            await pool.poolHandlerProxy.createFee(BigInt(oneGrand * BigInt(2)))
+          )[1]
+        );
+      await (pool.poolHandlerProxy.connect(striker) as any).stake(
+        BigInt(0),
+        yesNo.yes,
+        BigInt(2),
+        oneGrand,
+        btcChallenge.maturity,
+        ethers.ZeroAddress
+      );
     });
     it("Should [Evaluate, Close, Withdraw, Cancel]", async function () {});
 

@@ -52,6 +52,33 @@ contract TopicRegistry is ITopicRegistry, SoccersmRoles, Helpers {
         );
     }
 
+    function updateTopic(
+        string calldata _topicId,
+        address _poolResolver,
+        address _dataProvider
+    )
+        external
+        override
+        onlyTopicRegistrar
+        validTopic(_topicId)
+        positiveAddress(_poolResolver)
+        positiveAddress(_dataProvider)
+    {
+        TRStore storage t = TRStorage.load();
+        t.registry[_topicId] = ITopicRegistry.Topic({
+            topicId: _topicId,
+            poolResolver: IPoolResolver(_poolResolver),
+            dataProvider: IDataProvider(_dataProvider),
+            state: ITopicRegistry.TopicState.active
+        });
+        emit ITopicRegistry.UpdateTopic(
+            _topicId,
+            _poolResolver,
+            _dataProvider,
+            ITopicRegistry.TopicState.active
+        );
+    }
+
     function disableTopic(
         string calldata _topicId
     ) external override validTopic(_topicId) onlyTopicRegistrar {

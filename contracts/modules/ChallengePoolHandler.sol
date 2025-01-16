@@ -99,7 +99,7 @@ contract ChallengePoolHandler is IChallengePoolHandler, SoccersmRoles, Helpers {
             if (_events[i].maturity < (block.timestamp + s.minMaturityPeriod)) {
                 revert InvalidEventMaturity();
             }
-            if(maturity < _events[i].maturity) {
+            if (maturity < _events[i].maturity) {
                 maturity = _events[i].maturity;
             }
             LibPool._validateEvent(t, _events[i]);
@@ -168,7 +168,7 @@ contract ChallengePoolHandler is IChallengePoolHandler, SoccersmRoles, Helpers {
         poolInState(_challengeId, ChallengeState.open)
     {
         CPStore storage s = CPStorage.load();
-        if (_deadline > block.timestamp) {
+        if (_deadline < block.timestamp) {
             revert DeadlineExceeded();
         }
         uint256 currentPrice = LibPool._price(
@@ -182,18 +182,9 @@ contract ChallengePoolHandler is IChallengePoolHandler, SoccersmRoles, Helpers {
         }
         uint256 totalAmount = currentPrice * _quantity;
         uint256 fee = LibPool._computeStakeFee(currentPrice);
-        LibPool._recordFee(s.challenges[_challengeId].stakeToken, fee);
-        LibPool._depositOrPaymaster(
-            _paymaster,
-            s.challenges[_challengeId].stakeToken,
-            fee + totalAmount
-        );
         PlayerSupply storage playerOptionSupply = s.playerOptionSupply[
             msg.sender
         ][_challengeId][_prediction];
-        if (playerOptionSupply.stakes < _quantity) {
-            revert InsufficientStakes(_quantity, playerOptionSupply.stakes);
-        }
         playerOptionSupply.stakes += _quantity;
         playerOptionSupply.tokens += totalAmount;
         s.playerSupply[msg.sender][_challengeId].stakes += _quantity;
@@ -202,10 +193,11 @@ contract ChallengePoolHandler is IChallengePoolHandler, SoccersmRoles, Helpers {
         s.optionSupply[_challengeId][_prediction].tokens += totalAmount;
         s.poolSupply[_challengeId].stakes += _quantity;
         s.poolSupply[_challengeId].tokens += totalAmount;
-        LibTransfer._send(
+        LibPool._recordFee(s.challenges[_challengeId].stakeToken, fee);
+        LibPool._depositOrPaymaster(
+            _paymaster,
             s.challenges[_challengeId].stakeToken,
-            totalAmount,
-            msg.sender
+            fee + totalAmount
         );
         emit Stake(
             _challengeId,
@@ -248,8 +240,6 @@ contract ChallengePoolHandler is IChallengePoolHandler, SoccersmRoles, Helpers {
         }
         uint256 totalAmount = currentPrice * _quantity;
         uint256 fee = LibPool._computeEarlyWithdrawFee(currentPrice);
-        LibPool._recordFee(s.challenges[_challengeId].stakeToken, fee);
-        LibTransfer._receive(s.challenges[_challengeId].stakeToken, fee);
         PlayerSupply storage playerOptionSupply = s.playerOptionSupply[
             msg.sender
         ][_challengeId][_prediction];
@@ -264,6 +254,9 @@ contract ChallengePoolHandler is IChallengePoolHandler, SoccersmRoles, Helpers {
         s.optionSupply[_challengeId][_prediction].tokens -= totalAmount;
         s.poolSupply[_challengeId].stakes -= _quantity;
         s.poolSupply[_challengeId].tokens -= totalAmount;
+        LibPool._recordFee(s.challenges[_challengeId].stakeToken, fee);
+        LibTransfer._receive(s.challenges[_challengeId].stakeToken, fee);
+
         LibTransfer._send(
             s.challenges[_challengeId].stakeToken,
             totalAmount,

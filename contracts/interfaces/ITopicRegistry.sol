@@ -30,6 +30,13 @@ interface ITopicRegistry {
         TopicState state
     );
 
+    event UpdateTopic(
+        string  topicId,
+        address  poolResolver,
+        address  dataProvider,
+        TopicState state
+    );
+
     event TopicDisabled(string  topicId, TopicState state);
     event TopicEnabled(string  topicId, TopicState state);
 
@@ -39,12 +46,25 @@ interface ITopicRegistry {
     /**
      * @notice  .
      * @dev     creates a new topic
-     * @param   _id  example football-correct-score
+     * @param   _topicId  example football-correct-score
      * @param   _poolResolver  address of the pool resolver for this topic
      * @param   _dataProvider  address of the data provider for this topic
      */
     function createTopic(
-        string calldata _id,
+        string calldata _topicId,
+        address _poolResolver,
+        address _dataProvider
+    ) external;
+
+     /**
+     * @notice  .
+     * @dev     upates existing topic
+     * @param   _topicId  example football-correct-score
+     * @param   _poolResolver  address of the pool resolver for this topic
+     * @param   _dataProvider  address of the data provider for this topic
+     */
+    function updateTopic(
+        string calldata _topicId,
         address _poolResolver,
         address _dataProvider
     ) external;

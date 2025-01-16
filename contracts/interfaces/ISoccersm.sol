@@ -13,5 +13,7 @@ abstract contract ISoccersm is
     IChallengePoolHandler,
     IChallengePoolDispute,
     IChallengePoolManager,
-    ITopicRegistry
+    ITopicRegistry,
+    IDataProvider,
+    IPoolResolver
 {}
