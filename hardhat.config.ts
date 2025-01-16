@@ -2,7 +2,7 @@ import { HardhatUserConfig, vars } from "hardhat/config";
 import "@nomicfoundation/hardhat-toolbox";
 
 const DEPLOY_KEY = vars.get("DEPLOY_KEY");
-
+const DEPLOY_KEY_MAIN = vars.get("DEPLOY_KEY_MAIN");
 const config: HardhatUserConfig = {
   solidity: {
     version: "0.8.28",
@@ -24,7 +24,7 @@ const config: HardhatUserConfig = {
     lisk: {
       url: "https://rpc.api.lisk.com",
       chainId: 1135,
-      accounts: [DEPLOY_KEY],
+      accounts: [DEPLOY_KEY_MAIN],
     },
   },
   etherscan: {
