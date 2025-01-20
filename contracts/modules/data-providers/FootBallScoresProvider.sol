@@ -7,7 +7,7 @@ contract FootBallScoresProvider is BaseProvider {
     function _requestId(
         string memory matchId
     ) internal pure returns (bytes memory) {
-        return abi.encode(namspace(), matchId);
+        return abi.encode(namespace(), matchId);
     }
     function _decodeParams(
         bytes calldata _params
@@ -29,7 +29,7 @@ contract FootBallScoresProvider is BaseProvider {
 
         d.dataRequest[requestId] = DataRequest(_params, emptyBytes, false);
 
-        emit DataRequested(msg.sender, namspace(), requestId, _params);
+        emit DataRequested(msg.sender, namespace(), requestId, _params);
         return true;
     }
 
@@ -50,7 +50,7 @@ contract FootBallScoresProvider is BaseProvider {
 
         d.dataRequest[requestId].provided = _params;
 
-        emit DataProvided(msg.sender, namspace(), requestId, _params);
+        emit DataProvided(msg.sender, namespace(), requestId, _params);
     }
 
     function updateProvision(bytes calldata _params) external override {
@@ -70,7 +70,7 @@ contract FootBallScoresProvider is BaseProvider {
 
         d.dataRequest[requestId].provided = _params;
 
-        emit DataProvided(msg.sender, namspace(), requestId, _params);
+        emit DataProvided(msg.sender, namespace(), requestId, _params);
     }
 
     function getData(
@@ -96,7 +96,7 @@ contract FootBallScoresProvider is BaseProvider {
         return dataExists(requestId);
     }
 
-    function namspace() public pure override returns (string memory) {
+    function namespace() public pure override returns (string memory) {
         return "football-scores";
     }
 }

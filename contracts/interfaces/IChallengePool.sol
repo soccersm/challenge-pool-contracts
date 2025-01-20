@@ -2,8 +2,48 @@
 pragma solidity ^0.8.28;
 
 import "./IPaymaster.sol";
+import "../libraries/LibData.sol";
+import "../libraries/LibPool.sol";
+import "../utils/Helpers.sol";
 
-interface IChallengePool {
+abstract contract IChallengePool {
+    modifier validChallenge(uint256 _challengeId) {
+        if (_challengeId >= CPStorage.load().challengeId) {
+            revert InvalidChallenge();
+        }
+        _;
+    }
+
+    modifier poolInState(uint256 _challengeId, ChallengeState _state) {
+        ChallengeState currentState = LibPool._poolState(
+            CPStorage.load().challenges[_challengeId]
+        );
+        if (currentState != _state) {
+            revert ActionNotAllowedForState(currentState);
+        }
+        _;
+    }
+
+    modifier validStake(uint256 _stake) {
+        if (_stake < CPStorage.load().minStakeAmount) {
+            revert StakeLowerThanMinimum();
+        }
+        _;
+    }
+
+    modifier validPrediction(bytes memory _prediction) {
+        if (HelpersLib.compareBytes(_prediction, HelpersLib.emptyBytes)) {
+            revert InvalidPrediction();
+        }
+        _;
+    }
+
+    modifier supportedToken(address _token) {
+        if (!CPStorage.load().stakeTokens[_token].active) {
+            revert UnsupportedToken(_token);
+        }
+        _;
+    }
     enum ChallengeState {
         open,
         closed,
@@ -58,8 +98,8 @@ interface IChallengePool {
     }
 
     event NewChallenge(
-        uint256 indexed challengeId,
-        address indexed creator,
+        uint256 challengeId,
+        address creator,
         uint256 createdAt,
         uint256 maturity,
         ChallengeState state,
@@ -74,60 +114,60 @@ interface IChallengePool {
         address paymaster
     );
     event CloseChallenge(
-        uint256 indexed challengeId,
-        address indexed closer,
+        uint256 challengeId,
+        address closer,
         ChallengeState state,
         bytes result
     );
     event EvaluateChallenge(
-        uint256 indexed challengeId,
-        address indexed evaluator,
+        uint256 challengeId,
+        address evaluator,
         ChallengeState state,
         bytes result
     );
     event DisputeOutcome(
-        uint256 indexed challengeId,
-        address indexed disputor,
+        uint256 challengeId,
+        address disputor,
         ChallengeState state,
         bytes result,
         uint256 amount
     );
     event DisputeReleased(
-        uint256 indexed challengeId,
-        address indexed disputor,
+        uint256 challengeId,
+        address disputor,
         ChallengeState state,
         bytes result,
         uint256 amount
     );
     event SettleDispute(
-        uint256 indexed challengeId,
-        address indexed disputor,
+        uint256 challengeId,
+        address disputor,
         ChallengeState state,
         bytes result,
         uint256 amount
     );
     event CancelChallenge(
-        uint256 indexed challengeId,
-        address indexed canceller,
+        uint256 challengeId,
+        address canceller,
         ChallengeState state
     );
     event Stake(
-        uint256 indexed challengeId,
-        address indexed participant,
+        uint256 challengeId,
+        address participant,
         bytes option,
         uint256 stakes,
         uint256 amount,
         uint256 fee
     );
     event WinningsWithdrawn(
-        uint256 indexed challengeId,
-        address indexed participant,
+        uint256 challengeId,
+        address participant,
         uint256 amountWon,
         uint256 amountWithdrawn
     );
     event Withdraw(
-        uint256 indexed challengeId,
-        address indexed participant,
+        uint256 challengeId,
+        address participant,
         bytes option,
         uint256 stakes,
         uint256 amount,
@@ -145,7 +185,6 @@ interface IChallengePool {
     error InvalidEventParam();
     error InvalidEventMaturity();
     error InvalidEventLength();
-    error InvalidOptionsLength();
     error InvalidPoolOption();
     error InvalidOutcome();
     error UnsupportedToken(address _token);
@@ -157,127 +196,4 @@ interface IChallengePool {
     error PlayerAlreadyDisputed();
     error PlayerAlreadyReleased();
     error PlayerDidNotDispute();
-
-    /**
-     * @notice  .
-     * @dev     create a new challenge
-     * @param   _events  events in the challenge, maximum of one event if _options is not empty
-     * @param   _options  challenge options, if empty then it is a yes or no pool
-     * @param   _stakeToken  token used for staking on this challenge
-     * @param   _prediction  prediction of user creating the challenge
-     * @param   _quantity  how many stakes user is purchasing for this prediction
-     * @param   _basePrice  the base price of a stake. total amount to be transferred is _basePrice * _quantity
-     * @param   _paymaster  a contract the pays the total amount on behalf of the user set to 0x if none
-     */
-    function createChallenge(
-        ChallengeEvent[] calldata _events,
-        bytes[] calldata _options,
-        address _stakeToken,
-        bytes calldata _prediction,
-        uint256 _quantity,
-        uint256 _basePrice,
-        address _paymaster
-    ) external;
-    /**
-     * @notice  .
-     * @dev     stake on a pool
-     * @param   _challengeId  .
-     * @param   _prediction  .
-     * @param   _quantity  how many stakes user is purchasing for this prediction
-     * @param   _maxPrice  the maximum price user is willing to pay.
-     * @param   _deadline  time after which this stake transaction will revert
-     * @param   _paymaster  a contract the pays the total amount on behalf of the user set to 0x if none
-     */
-    function stake(
-        uint256 _challengeId,
-        bytes calldata _prediction,
-        uint256 _quantity,
-        uint256 _maxPrice,
-        uint256 _deadline,
-        address _paymaster
-    ) external;
-    /**
-     * @notice  .
-     * @dev     withdraw winnings from pool, reverts if user lost
-     * @param   _challengeId  .
-     */
-    function withdraw(uint256 _challengeId) external;
-    /**
-     * @notice  .
-     * @dev     bulk withdrawal
-     * @param   _challengeIds  .
-     */
-    function bulkWithdraw(uint256[] calldata _challengeIds) external;
-    /**
-     * @notice  .
-     * @dev     early withdrawal allows player to get out of their stake. price of option calculated accordingly and applied
-     * @param   _challengeId  .
-     * @param   _option  option to withdraw from
-     * @param   _quantity  of stakes to withdraw.
-     * @param   _minPrice  minumum price user is willing to accept for selling their position.
-     * @param   _deadline  ime after which this early withdraw transaction will revert
-     */
-    function earlyWithdraw(
-        uint256 _challengeId,
-        bytes calldata _option,
-        uint256 _quantity,
-        uint256 _minPrice,
-        uint256 _deadline
-    ) external;
-    /**
-     * @notice  .
-     * @dev     evaluate pool once it's matured
-     * @param   _challengeId  .
-     */
-    function evaluate(uint256 _challengeId) external;
-    /**
-     * @notice  .
-     * @dev     anyone can call this to dispute the outcome.
-     * @param   _challengeId  .
-     * @param   _outcome  their suggested outcome.
-     */
-    function dispute(uint256 _challengeId, bytes calldata _outcome) external;
-    function releaseDispute(uint256 _challengeId) external;
-    /**
-     * @notice  .
-     * @dev      dispute admin can call this to settle dispute.
-     * @param   _challengeId  .
-     * @param   _outcome  decoded and applied based on the event topic type.
-     */
-    function settle(uint256 _challengeId, bytes calldata _outcome) external;
-    /**
-     * @notice  .
-     * @dev     cancel pool for some reason
-     * @param   _challengeId  .
-     */
-    function cancel(uint256 _challengeId) external;
-    /**
-     * @notice  .
-     * @dev     close pool once it's evaluated or settled
-     * @param   _challengeId  .
-     */
-    function close(uint256 _challengeId) external;
-    /**
-     * @notice  .
-     * @dev     price calculation for a pool option
-     * @param   _challengeId  .
-     * @param   _option  .
-     * @param   _quantity  .
-     * @return  uint256  .
-     */
-    function price(
-        uint256 _challengeId,
-        bytes calldata _option,
-        uint256 _quantity,
-        PoolAction _action
-    ) external view returns (uint256);
-    /**
-     * @notice  .
-     * @dev     returns the Challenge struct.
-     * @param   _challengeId  id of the challenge to return.
-     * @return  Challenge  .
-     */
-    function getChallenge(
-        uint256 _challengeId
-    ) external view returns (Challenge memory);
 }

@@ -11,15 +11,30 @@
   },
   "dependencies": {
     "@openzeppelin/contracts": "^5.1.0",
-    "hardhat": "^2.22.17"
+    "@solidstate/contracts": "^0.0.61",
+    "hardhat": "^2.22.17",
+    "hardhat-storage-layout": "^0.1.7"
   },
   "scripts": {
     "compile": "hardhat compile",
     "test": "hardhat test",
+    "coverage": "hardhat coverage",
+    "test:gas": "REPORT_GAS=true hardhat test",
+    "test:local:gas": "REPORT_GAS=true bun run test:local",
     "deploys": "hardhat ignition deployments",
     "deploys:id": "hardhat ignition status",
+    "deploy:all": "hardhat run scripts/deploy.ts --network",
     "deploy:paymaster": "hardhat ignition deploy ignition/modules/AirdropPaymaster.ts --verify --network",
     "deploy:soccersm": "hardhat ignition deploy ignition/modules/Soccersm.ts --verify --network",
-    "deploy:pool": "hardhat ignition deploy ignition/modules/ChallengePool.ts --verify --network"
+    "deploy:pool": "hardhat ignition deploy ignition/modules/ChallengePool.ts --verify --network",
+    "update:pool": "hardhat ignition deploy ignition/modules/ChallengePoolUpdate.ts --verify --network",
+    "deploy:providers": "hardhat ignition deploy ignition/modules/DataProviders.ts --verify --network",
+    "deploy:resolvers": "hardhat ignition deploy ignition/modules/PoolResolvers.ts --verify --network",
+    "deploy:topics": "hardhat ignition deploy ignition/modules/CreateTopics.ts --verify --network",
+    "verify:all": "hardhat ignition verify",
+    "fork:test": "hardhat node --fork https://rpc.sepolia-api.lisk.com",
+    "fork:main": "hardhat node --fork https://rpc.api.lisk.com",
+    "test:local": "rm -rf ignition/deployments/chain-31337 && bun run test --network localhost",
+    "test:deploy": "hardhat ignition deploy ignition/modules/TestDeploy.ts --verify --network"
   }
 }

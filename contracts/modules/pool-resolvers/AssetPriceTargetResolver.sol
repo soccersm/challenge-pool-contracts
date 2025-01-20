@@ -2,12 +2,12 @@
 pragma solidity ^0.8.28;
 
 import "./BaseResolver.sol";
-
+import "hardhat/console.sol";
 contract AssetPriceTargetResolver is BaseResolver {
 
     function validateEvent(
         IDataProvider dataProvider,
-        IChallengePool.ChallengeEvent memory _event
+        IChallengePool.ChallengeEvent calldata _event
     ) external override returns (bool) {
         (
             string memory assetSymbol,
@@ -31,7 +31,7 @@ contract AssetPriceTargetResolver is BaseResolver {
 
     function resolveEvent(
         IDataProvider dataProvider,
-        IChallengePool.ChallengeEvent memory _event,
+        IChallengePool.ChallengeEvent calldata _event,
         bytes[] calldata /*_options*/
     ) external override returns (bytes memory) {
         (
@@ -59,7 +59,7 @@ contract AssetPriceTargetResolver is BaseResolver {
 
     function validateOptions(
         IDataProvider /*dataProvider*/,
-        IChallengePool.ChallengeEvent memory /*_event*/,
+        IChallengePool.ChallengeEvent calldata /*_event*/,
         bytes[] calldata /*_options*/
     ) external pure override returns (bool) {
         revert NotImplemented();

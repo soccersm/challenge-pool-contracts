@@ -52,8 +52,8 @@ abstract contract BaseResolver is IPoolResolver, Helpers {
 
     function _validateOptions(
         IDataProvider dataProvider,
-        bytes memory _params,
-        bytes[] memory _options
+        bytes calldata _params,
+        bytes[] calldata _options
     ) internal returns (bool) {
         (bool success, bytes memory result) = address(dataProvider)
             .delegatecall(

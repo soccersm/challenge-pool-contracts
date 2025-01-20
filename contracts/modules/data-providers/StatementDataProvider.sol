@@ -9,7 +9,7 @@ contract StatementDataProvider is BaseProvider {
         string memory statement,
         uint256 maturity
     ) internal pure returns (bytes memory) {
-        return abi.encode(namspace(), statementId, statement, maturity);
+        return abi.encode(namespace(), statementId, statement, maturity);
     }
     function _decodeParams(
         bytes calldata _params
@@ -43,7 +43,7 @@ contract StatementDataProvider is BaseProvider {
 
         d.dataRequest[requestId] = DataRequest(_params, emptyBytes, false);
 
-        emit DataRequested(msg.sender, namspace(), requestId, _params);
+        emit DataRequested(msg.sender, namespace(), requestId, _params);
         return true;
     }
 
@@ -72,7 +72,7 @@ contract StatementDataProvider is BaseProvider {
 
         d.dataRequest[requestId].provided = _params;
 
-        emit DataProvided(msg.sender, namspace(), requestId, _params);
+        emit DataProvided(msg.sender, namespace(), requestId, _params);
     }
 
     function updateProvision(bytes calldata _params) external override {
@@ -98,7 +98,7 @@ contract StatementDataProvider is BaseProvider {
 
         d.dataRequest[requestId].provided = _params;
 
-        emit DataProvided(msg.sender, namspace(), requestId, _params);
+        emit DataProvided(msg.sender, namespace(), requestId, _params);
     }
 
     function registerEvent(bytes calldata _params) external override {
@@ -106,7 +106,7 @@ contract StatementDataProvider is BaseProvider {
             string memory statementId,
             string memory statement,
             uint256 maturity,
-            
+            bytes[] memory options
         ) = abi.decode(_params, (string, string, uint256, bytes[]));
         if (block.timestamp >= maturity) {
             revert InvalidSubmissionDate(maturity);
@@ -118,11 +118,19 @@ contract StatementDataProvider is BaseProvider {
             revert DataAlreadyRegistered();
         }
 
+        if (options.length < 2) {
+            revert InvalidOptionsLength();
+        }
+
         DPStore storage d = DPStorage.load();
 
         d.dataRequest[requestId] = DataRequest(_params, emptyBytes, true);
 
-        emit DataRegistered(msg.sender, namspace(), requestId, _params);
+        for (uint256 i = 0; i < options.length; i++) {
+            d.requestOptions[requestId][options[i]] = true;
+        }
+
+        emit DataRegistered(msg.sender, namespace(), requestId, _params);
     }
 
     function getData(
@@ -179,7 +187,7 @@ contract StatementDataProvider is BaseProvider {
         return true;
     }
 
-    function namspace() public pure override returns (string memory) {
+    function namespace() public pure override returns (string memory) {
         return "statement";
     }
 }

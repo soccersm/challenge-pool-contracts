@@ -8,13 +8,8 @@ import "../libraries/LibTransfer.sol";
 import "../interfaces/IChallengePoolManager.sol";
 import "../utils/Helpers.sol";
 import "../utils/Errors.sol";
-import "../diamond/facets/AccessControlFacet.sol";
-
-contract ChallengePoolManager is
-    IChallengePoolManager,
-    AccessControlFacet,
-    Helpers
-{
+import "../diamond/interfaces/SoccersmRoles.sol";
+contract ChallengePoolManager is IChallengePoolManager, SoccersmRoles, Helpers {
     function setFeeAddress(
         address _feeAddress
     ) external override onlyPoolManager positiveAddress(_feeAddress) {
@@ -117,18 +112,6 @@ contract ChallengePoolManager is
         emit StakeTokenRemoved(msg.sender, _stakeToken, false);
     }
 
-    function withdrawFee(
-        address _stakeToken
-    ) external override onlyPoolManager {
-        CPStore storage c = CPStorage.load();
-        StakeToken storage st = c.stakeTokens[_stakeToken];
-        require(st.accumulatedFee > 0, "no fee to extra");
-        uint256 accumulatedFee = st.accumulatedFee;
-        st.accumulatedFee = 0;
-        LibTransfer._send(_stakeToken, accumulatedFee, msg.sender);
-        emit FeeWithdrawn(msg.sender, _stakeToken, msg.sender, accumulatedFee);
-    }
-
     function setDisputePeriod(
         uint256 _disputePeriod
     ) external override onlyPoolManager nonZero(_disputePeriod) {
@@ -143,5 +126,65 @@ contract ChallengePoolManager is
         uint256 oldDisputeStake = CPStorage.load().disputeStake;
         CPStorage.load().disputeStake = _disputeStake;
         emit SetDisputeStake(msg.sender, oldDisputeStake, _disputeStake);
+    }
+
+    function withdrawFee(address _stakeToken) external override onlyAdmin {
+        CPStore storage c = CPStorage.load();
+        StakeToken storage st = c.stakeTokens[_stakeToken];
+        require(st.accumulatedFee > 0, "no fee to extra");
+        uint256 accumulatedFee = st.accumulatedFee;
+        st.accumulatedFee = 0;
+        LibTransfer._send(_stakeToken, accumulatedFee, msg.sender);
+        emit FeeWithdrawn(msg.sender, _stakeToken, msg.sender, accumulatedFee);
+    }
+
+    function feeAddress() external view override returns (address) {
+        return CPStorage.load().feeAddress;
+    }
+
+    function minMaturityPeriod() external view override returns (uint256) {
+        return CPStorage.load().minMaturityPeriod;
+    }
+
+    function createPoolFee() external view override returns (uint256) {
+        return CPStorage.load().createPoolFee;
+    }
+
+    function stakeFee() external view override returns (uint256) {
+        return CPStorage.load().stakeFee;
+    }
+
+    function earlyWithdrawFee() external view override returns (uint256) {
+        return CPStorage.load().earlyWithdrawFee;
+    }
+
+    function maxOptionsPerPool() external view override returns (uint256) {
+        return CPStorage.load().maxOptionsPerPool;
+    }
+
+    function maxEventsPerPool() external view override returns (uint256) {
+        return CPStorage.load().maxEventsPerPool;
+    }
+
+    function minStakeAmount() external view override returns (uint256) {
+        return CPStorage.load().minStakeAmount;
+    }
+
+    function disputePeriod() external view override returns (uint256) {
+        return CPStorage.load().disputePeriod;
+    }
+
+    function disputeStake() external view override returns (uint256) {
+        return CPStorage.load().disputeStake;
+    }
+
+    function challengeId() external view override returns (uint256) {
+        return CPStorage.load().challengeId;
+    }
+
+    function stakeToken(
+        address _token
+    ) external view override returns (StakeToken memory) {
+        return CPStorage.load().stakeTokens[_token];
     }
 }

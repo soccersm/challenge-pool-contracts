@@ -8,7 +8,7 @@ contract AssetPriceDataProvider is BaseProvider {
         string memory assetSymbol,
         uint256 date
     ) internal pure returns (bytes memory) {
-        return abi.encode(namspace(), assetSymbol, date);
+        return abi.encode(namespace(), assetSymbol, date);
     }
     function _decodeParams(
         bytes calldata _params
@@ -30,7 +30,7 @@ contract AssetPriceDataProvider is BaseProvider {
 
         d.dataRequest[requestId] = DataRequest(_params, emptyBytes, false);
 
-        emit DataRequested(msg.sender, namspace(), requestId, _params);
+        emit DataRequested(msg.sender, namespace(), requestId, _params);
         return true;
     }
 
@@ -54,7 +54,7 @@ contract AssetPriceDataProvider is BaseProvider {
 
         d.dataRequest[requestId].provided = _params;
 
-        emit DataProvided(msg.sender, namspace(), requestId, _params);
+        emit DataProvided(msg.sender, namespace(), requestId, _params);
     }
 
     function updateProvision(bytes calldata _params) external override {
@@ -77,7 +77,7 @@ contract AssetPriceDataProvider is BaseProvider {
 
         d.dataRequest[requestId].provided = _params;
 
-        emit DataProvided(msg.sender, namspace(), requestId, _params);
+        emit DataProvided(msg.sender, namespace(), requestId, _params);
     }
 
     function getData(
@@ -101,7 +101,7 @@ contract AssetPriceDataProvider is BaseProvider {
         return dataExists(requestId);
     }
 
-    function namspace() public pure override returns (string memory) {
+    function namespace() public pure override returns (string memory) {
         return "asset-price";
     }
 }
