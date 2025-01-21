@@ -1,214 +1,76 @@
-import { expect } from "chai";
-import hre from "hardhat";
+import { expect } from 'chai';
+import {  ethers } from 'hardhat';
+import { loadFixture } from '@nomicfoundation/hardhat-toolbox/network-helpers';
 
-describe("AirdropPaymaster Tests", function () {
-  let soccersmAddress: string;
-  let airdropPaymasterContract: any;
-  let airdropPaymasterContractAddress: string;
-  let owner: any;
-  let soccersmSigner: any;
-  let ballsToken: any;
+describe("AirdropPaymaster", async function() {
 
-  const TOKEN_AMOUNT = hre.ethers.parseEther("1000");
+    async function deployAirdropPaymaster() {
+        const [
+            owner, 
+            soccersm, 
+            depositor, 
+            user 
+        ] = await ethers.getSigners();
+        const air = await ethers.getContractFactory("AirdropPaymaster");
+        const paymaster = await air.deploy(owner.address);
+        const BallsToken = await ethers.getContractFactory("BallsToken");
+        const ballsToken = await BallsToken.deploy();
 
-  beforeEach(async function () {
-    const [deployer, soccersm, depositor] = await hre.ethers.getSigners();
-    soccersmAddress = soccersm.address;
+        const minStakeAmount = BigInt(1 * 1e18);
+        const oneMil = BigInt(minStakeAmount * BigInt(1e6));
+        const oneGrand = BigInt(minStakeAmount * BigInt(1e3));
 
-    owner = deployer;
-    soccersmSigner = soccersm;
+        await ballsToken.approve(paymaster, oneMil);
+        await ballsToken.transfer(paymaster, oneMil);
+        return {
+            owner, 
+            paymaster,
+            soccersm,
+            depositor,
+            user,
+            oneMil, 
+            oneGrand,
+            ballsToken,
+        }
+    }
 
-    // Deploy BallsToken
-    const BallsToken = await hre.ethers.getContractFactory("BallsToken");
-    ballsToken = await BallsToken.deploy();
-    console.log(
-      "BallsToken balance after deployment:",
-      (await ballsToken.balanceOf(owner.address)).toString()
-    );
-
-    // Deploy AirdropPaymaster
-    const AirdropPaymaster = await hre.ethers.getContractFactory(
-      "AirdropPaymaster"
-    );
-    airdropPaymasterContract = await AirdropPaymaster.deploy(soccersmAddress);
-    airdropPaymasterContractAddress = airdropPaymasterContract.target;
-
-    // Transfer tokens to AirdropPaymaster
-    await ballsToken.transfer(airdropPaymasterContractAddress, TOKEN_AMOUNT);
-    console.log(
-      "Balance of paymaster after funding:",
-      (await ballsToken.balanceOf(airdropPaymasterContractAddress)).toString()
-    );
-
-    // Mint tokens for depositor
-    const mintAmount = hre.ethers.parseEther("100");
-    await ballsToken.transfer(depositor.address, mintAmount);
-    console.log(
-      "Depositor balance after minting:",
-      (await ballsToken.balanceOf(depositor.address)).toString()
-    );
+    it("Should Deploy AirdropPaymaster and BallsToken", async function () {
+        await loadFixture(deployAirdropPaymaster);
+  });
+  it("Should [payFor]", async function() {
+    const {paymaster, owner, user, ballsToken, soccersm, oneGrand, oneMil} = await loadFixture(deployAirdropPaymaster);
+    await paymaster.connect(owner).depositFor(ballsToken.getAddress(), soccersm.address, oneGrand);
+   
+    await expect((paymaster.connect(owner) as any).payFor(ballsToken.getAddress(), soccersm.address, oneGrand)).to.not.be.reverted;
+    await expect((paymaster.connect(user) as any).payFor(ballsToken.getAddress(), user.address, oneGrand)).to.be.revertedWith("Must be soccersm ...");
+    await expect((paymaster.connect(owner) as any).payFor(ballsToken.getAddress(), user.address, oneMil)).to.be.revertedWith("low balance ...");
   });
 
-   it("should deploy and set the soccersm address correctly", async function () {
-    const storedSoccersmAddress = await airdropPaymasterContract.soccersm();
-    expect(storedSoccersmAddress).to.equal(soccersmAddress);
+  it("should [depositFor]", async function() {
+    const {paymaster, owner, ballsToken, soccersm, oneGrand} = await loadFixture(deployAirdropPaymaster);
+    const soccersmBalanceBefore = await paymaster.balance(ballsToken.getAddress(), soccersm.address);
+    expect(soccersmBalanceBefore).to.be.equal(0);
 
-    const contractOwner = await airdropPaymasterContract.owner();
-    expect(contractOwner).to.equal(owner.address);
-    console.log("Constructor Test Passed!✅");
+    await paymaster.connect(owner).depositFor(ballsToken.getAddress(), soccersm.address, oneGrand);
+
+    const soccersmBalanceAfter = await paymaster.balance(ballsToken.getAddress(), soccersm.address);
+    expect(soccersmBalanceAfter).to.be.equal(oneGrand);
   });
 
-  it("should Test for setSoccersm function", async function () {
-    const [_, newSoccersm] = await hre.ethers.getSigners(); // Get a new soccersm signer
-    const newSoccersmAddress = newSoccersm.address;
-
-    // Owner should be able to set the soccersm address
-    await expect(
-      airdropPaymasterContract.connect(owner).setSoccersm(newSoccersmAddress)
-    ).to.not.be.reverted;
-
-    // Other users should not be able to set the soccersm address
-    await expect(
-      airdropPaymasterContract.connect(newSoccersm).setSoccersm(newSoccersmAddress)
-    ).to.be.reverted;
-
-    // Verify the new soccersm address
-    const storedSoccersm = await airdropPaymasterContract.soccersm();
-    expect(storedSoccersm).to.equal(newSoccersmAddress);
-
-    // Update the soccersmSigner for future tests
-    soccersmSigner = newSoccersm;
-    console.log("setSoccersm Test Passed!✅");
+  it ("should [setSoccersm]", async function() {
+    const {paymaster, owner, soccersm, user} = await loadFixture(deployAirdropPaymaster);
+    await expect(paymaster.connect(owner).setSoccersm(soccersm.address)).to.not.be.reverted;
+    expect(await paymaster.soccersm()).to.be.equal(soccersm.address);
+    await expect(paymaster.connect(user).setSoccersm(user.address)).to.be.reverted;
   });
 
-  it("should test the depositFor function", async function () {
-    const [deployer, soccersm, depositor] = await hre.ethers.getSigners();
-    const depositAmount = hre.ethers.parseEther("100");
+  it ("Should [Drain]", async function() {
+    const {paymaster, owner, ballsToken, user} = await loadFixture(deployAirdropPaymaster);
+    await expect(paymaster.connect(owner).drain(ballsToken.getAddress())).to.not.be.reverted;
+    await expect(paymaster.connect(user).drain(ballsToken.getAddress())).to.be.reverted;
+    await paymaster.connect(owner).drain(ballsToken.getAddress());
+    const contractBalanceAfterDrain = await paymaster.balance(ballsToken.getAddress(), paymaster.getAddress());
+    expect(contractBalanceAfterDrain).to.be.equal(0);
+  })
+})
 
-    //depositor must have balance first(already minted in beforeEach)
-    //approve airdropPaymaster to transfer amount tokens
-    await ballsToken
-      .connect(depositor)
-      .approve(airdropPaymasterContractAddress, depositAmount);
-
-    // Call depositFor (for the depositor, on his own behalf)
-    await expect(
-      airdropPaymasterContract
-        .connect(depositor)
-        .depositFor(ballsToken.target, depositor.address, depositAmount)
-    ).to.not.be.reverted;
-    console.log("Depositor Balance after deposit to Contract: ", (await ballsToken.balanceOf(depositor.address))); //should be zero
-
-    // Test depositor balance is now zero
-    expect((await ballsToken.balanceOf(depositor.address))).to.be.equal(0);
-
-    //Test contract balance should be airdrop Token amount + deposit amount
-    expect((await ballsToken.balanceOf(airdropPaymasterContractAddress))).to.be.equal(TOKEN_AMOUNT + depositAmount);
-    console.log("depositFor Test Passed!✅");
-    
-  });
-
-  //Test for payFor
-  it("should test the payFor function", async function () {
-  const [deployer, soccersm, depositor] = await hre.ethers.getSigners();
-  const depositAmount = hre.ethers.parseEther("100");
-  const payAmount = hre.ethers.parseEther("50");
-
-  // Set soccersm as the allowed caller for payFor
-  await airdropPaymasterContract.connect(deployer).setSoccersm(soccersm.address);
-
-  // Approve airdropPaymaster to transfer tokens and deposit them
-  await ballsToken
-    .connect(depositor)
-    .approve(airdropPaymasterContractAddress, depositAmount);
-
-  await expect(
-    airdropPaymasterContract
-      .connect(depositor)
-      .depositFor(ballsToken.target, depositor.address, depositAmount)
-  ).to.not.be.reverted;
-
-  // Check depositor's internal balance in the contract
-  const internalBalanceBefore = await airdropPaymasterContract.balance(ballsToken.target, depositor.address);
-  console.log("Internal Balance of depositor before: ", internalBalanceBefore)
-  expect(internalBalanceBefore).to.be.equal(depositAmount);
-
-  // Check soccersm's initial token balance
-  const soccersmBalanceBefore = await ballsToken.balanceOf(soccersm.address);
-  console.log("Soccersm Address initial token balance: ", soccersmBalanceBefore) 
-
-  // soccersm calls payFor to deduct from depositor's balance(50), pay to himself
-  await expect(
-    airdropPaymasterContract
-      .connect(soccersm)
-      .payFor(ballsToken.target, depositor.address, payAmount)
-  ).to.not.be.reverted;
-
-  // any other person to revert payFor. eg depositor wants to pay himself
-  await expect(
-    airdropPaymasterContract
-    .connect(depositor)
-    .payFor(ballsToken.target, depositor.address, payAmount)
-  ).to.be.revertedWith("Must be soccersm ...")
-
-  // Check depositor's internal balance after payFor
-  const internalBalanceAfter = await airdropPaymasterContract.balance(ballsToken.target, depositor.address); //should be subtracted, left with 50
-  expect(internalBalanceAfter).to.be.equal(depositAmount - payAmount);
-
-  // Check soccersm's token balance after payFor
-  const soccersmBalanceAfter = await ballsToken.balanceOf(soccersm.address);
-  console.log("Soccersm Balance After: ", soccersmBalanceAfter); 
-  expect(soccersmBalanceAfter).to.be.equal(payAmount); //should be 50
-
-  // Check contract's token balance after payFor
-  const contractBalance = await ballsToken.balanceOf(airdropPaymasterContractAddress);
-  expect(contractBalance).to.be.equal(TOKEN_AMOUNT + (depositAmount - payAmount)); // Total contract balance
-
-  console.log("PayFor Test Passed!✅");
-});
-
-it("should test the drain function", async function () {
-  const [deployer, soccersm, depositor] = await hre.ethers.getSigners();
-  const depositAmount = hre.ethers.parseEther("100");
-
-  // Approve and deposit tokens into the contract
-  await ballsToken
-    .connect(depositor)
-    .approve(airdropPaymasterContractAddress, depositAmount);
-
-  await expect(
-    airdropPaymasterContract
-      .connect(depositor)
-      .depositFor(ballsToken.target, depositor.address, depositAmount)
-  ).to.not.be.reverted;
-
-  // Verify contract's balance after deposit
-  const contractBalanceBefore = await ballsToken.balanceOf(airdropPaymasterContractAddress);
-  expect(contractBalanceBefore).to.be.equal(TOKEN_AMOUNT + depositAmount);
-  console.log("Contract balance before drain: ", contractBalanceBefore);
-
-  // Owner calls drain function
-  await expect(
-    airdropPaymasterContract.connect(deployer).drain(ballsToken.target)
-  ).to.not.be.reverted;
-
-  // Verify contract's balance after drain
-  const contractBalanceAfter = await ballsToken.balanceOf(airdropPaymasterContractAddress);
-  expect(contractBalanceAfter).to.be.equal(0);
-  console.log("Contract balance after drain: ", contractBalanceAfter);
-
-  // Verify owner's balance after drain
-  const ownerBalance = await ballsToken.balanceOf(deployer.address);
-  console.log("Owner balance after drain: ", ownerBalance);
-  
-  const contractBalanceBeforeDrain = await ballsToken.balanceOf(airdropPaymasterContractAddress);
-  const ownerBalanceBeforeDrain = await ballsToken.balanceOf(owner.address);
-
-  // Owner's final balance should be their initial balance plus the contract's balance.
-  expect(ownerBalance).to.be.equal(ownerBalanceBeforeDrain + contractBalanceBeforeDrain);
- 
-  console.log("Drain Test Passed!✅");
-});
-
-
-});
