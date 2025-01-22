@@ -14,8 +14,6 @@ describe("AirdropPaymaster", async function () {
     const oneMil = BigInt(minStakeAmount * BigInt(1e6));
     const oneGrand = BigInt(minStakeAmount * BigInt(1e3));
 
-    await ballsToken.approve(paymaster, oneMil);
-    await ballsToken.transfer(paymaster, oneMil);
     return {
       owner,
       paymaster,
@@ -34,6 +32,7 @@ describe("AirdropPaymaster", async function () {
   it("Should [payFor]", async function () {
     const { paymaster, owner, user, ballsToken, soccersm, oneGrand, oneMil } =
       await loadFixture(deployAirdropPaymaster);
+    await ballsToken.approve(paymaster, oneMil);
     await paymaster
       .connect(owner)
       .depositFor(ballsToken.getAddress(), soccersm.address, oneGrand);
@@ -62,8 +61,9 @@ describe("AirdropPaymaster", async function () {
   });
 
   it("should [depositFor]", async function () {
-    const { paymaster, owner, ballsToken, soccersm, oneGrand } =
+    const { paymaster, owner,user, ballsToken, soccersm, oneGrand, oneMil } =
       await loadFixture(deployAirdropPaymaster);
+    await ballsToken.approve(paymaster, oneMil);
     const soccersmBalanceBefore = await paymaster.balance(
       ballsToken.getAddress(),
       soccersm.address
@@ -73,6 +73,10 @@ describe("AirdropPaymaster", async function () {
     await paymaster
       .connect(owner)
       .depositFor(ballsToken.getAddress(), soccersm.address, oneGrand);
+    
+      await expect(paymaster
+      .connect(user)
+      .depositFor(ballsToken.getAddress(), soccersm.address, oneGrand)).to.reverted;
 
     const soccersmBalanceAfter = await paymaster.balance(
       ballsToken.getAddress(),

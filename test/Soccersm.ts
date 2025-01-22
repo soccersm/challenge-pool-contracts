@@ -47,7 +47,7 @@ async function deploySoccersm() {
     poolDisputeProxy,
     poolManagerProxy,
     paymaster,
-  } = await ignition.deploy(IgniteTestModule, { displayUi: true });
+  } = await ignition.deploy(IgniteTestModule, { displayUi: false });
   const BallsToken = await ethers.getContractFactory("BallsToken");
   const ballsToken = await BallsToken.deploy();
   await poolManagerProxy.addStakeToken(await ballsToken.getAddress());
@@ -84,8 +84,7 @@ async function deploySoccersm() {
 
 describe("Soccersm", function () {
   it("Should Deploy", async function () {
-    const { registryProxy } = await loadFixture(deploySoccersm);
-    console.log(await registryProxy.getTopic("Statement"));
+    await loadFixture(deploySoccersm);
   });
 
   describe("ChallengePool", async function () {
