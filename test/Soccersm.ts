@@ -6,12 +6,6 @@ import { anyValue } from "@nomicfoundation/hardhat-chai-matchers/withArgs";
 import { expect } from "chai";
 import { ethers, ignition } from "hardhat";
 
-import SoccersmModule from "../ignition/modules/Soccersm";
-import ChallengePoolModule from "../ignition/modules/ChallengePool";
-import DataProvidersModule from "../ignition/modules/DataProviders";
-import PoolResolversModule from "../ignition/modules/PoolResolvers";
-import AirdropPaymasterModule from "../ignition/modules/AirdropPaymaster";
-import CreateTopicsModule from "../ignition/modules/CreateTopics";
 import {
   btcEvent,
   ethPriceRange,
@@ -30,63 +24,82 @@ import {
   TopicId,
   yesNo,
 } from "./lib";
+import IgniteTestModule from "../ignition/modules/IgniteTest";
+
+async function deploySoccersm() {
+  const [
+    owner,
+    oracle,
+    council,
+    poolManager,
+    topicRegistrar,
+    baller,
+    striker,
+    keeper,
+  ] = await ethers.getSigners();
+
+  const {
+    soccersm,
+    cutProxy,
+    acProxy,
+    registryProxy,
+    poolHandlerProxy,
+    poolDisputeProxy,
+    poolManagerProxy,
+    paymaster,
+  } = await ignition.deploy(IgniteTestModule, { displayUi: true });
+  const BallsToken = await ethers.getContractFactory("BallsToken");
+  const ballsToken = await BallsToken.deploy();
+  await poolManagerProxy.addStakeToken(await ballsToken.getAddress());
+  const minStakeAmount = BigInt(1 * 1e18);
+  const oneMil = BigInt(minStakeAmount * BigInt(1e6));
+  const oneGrand = BigInt(minStakeAmount * BigInt(1e3));
+
+  await ballsToken.transfer(baller, oneMil);
+  await ballsToken.transfer(striker, oneMil);
+  await ballsToken.approve(paymaster, oneMil);
+  await paymaster.depositFor(ballsToken, keeper, oneMil);
+  return {
+    soccersm,
+    ballsToken,
+    cutProxy,
+    acProxy,
+    registryProxy,
+    poolHandlerProxy,
+    poolDisputeProxy,
+    poolManagerProxy,
+    paymaster,
+    owner,
+    oracle,
+    council,
+    poolManager,
+    topicRegistrar,
+    baller,
+    striker,
+    keeper,
+    oneMil,
+    oneGrand,
+  };
+}
 
 describe("Soccersm", function () {
-  async function deploySoccersm() {
-    const [
-      owner,
-      oracle,
-      council,
-      poolManager,
-      topicRegistrar,
-      baller,
-      striker,
-      keeper,
-    ] = await ethers.getSigners();
-    const soccersm = await ignition.deploy(SoccersmModule);
-    const pool = await ignition.deploy(ChallengePoolModule);
-    const providers = await ignition.deploy(DataProvidersModule);
-    const resolvers = await ignition.deploy(PoolResolversModule);
-    const air = await ignition.deploy(AirdropPaymasterModule);
-    await ignition.deploy(CreateTopicsModule);
-    const BallsToken = await ethers.getContractFactory("BallsToken");
-    const ballsToken = await BallsToken.deploy();
-    await pool.poolManagerProxy.addStakeToken(await ballsToken.getAddress());
-    const minStakeAmount = BigInt(1 * 1e18);
-    const oneMil = BigInt(minStakeAmount * BigInt(1e6));
-    const oneGrand = BigInt(minStakeAmount * BigInt(1e3));
-
-    await ballsToken.transfer(baller, oneMil);
-    await ballsToken.transfer(striker, oneMil);
-    await ballsToken.approve(air.paymaster, oneMil);
-    await air.paymaster.depositFor(ballsToken, keeper, oneMil);
-    return {
-      soccersm,
-      air,
-      ballsToken,
-      providers,
-      resolvers,
-      pool,
-      owner,
-      oracle,
-      council,
-      poolManager,
-      topicRegistrar,
-      baller,
-      striker,
-      keeper,
-      oneMil,
-      oneGrand,
-    };
-  }
   it("Should Deploy", async function () {
-    await loadFixture(deploySoccersm);
+    const { registryProxy } = await loadFixture(deploySoccersm);
+    console.log(await registryProxy.getTopic("Statement"));
   });
 
   describe("ChallengePool", async function () {
     it("Should [Create]", async function () {
-      const { oneGrand, baller, ballsToken, pool, keeper, air, striker } =
-        await loadFixture(deploySoccersm);
+      const {
+        oneGrand,
+        baller,
+        ballsToken,
+        poolHandlerProxy,
+        registryProxy,
+        poolManagerProxy,
+        keeper,
+        paymaster,
+      } = await loadFixture(deploySoccersm);
       const btcChallenge = btcEvent(
         await ballsToken.getAddress(),
         1,
@@ -99,8 +112,13 @@ describe("Soccersm", function () {
 
       await ballsToken
         .connect(baller)
-        .approve(await pool.poolHandlerProxy.getAddress(), (await pool.poolHandlerProxy.createFee(oneGrand))[1]);
-      await (pool.poolHandlerProxy.connect(baller) as any).createChallenge(
+        .approve(
+          await poolHandlerProxy.getAddress(),
+          (
+            await poolHandlerProxy.createFee(oneGrand)
+          )[1]
+        );
+      await (poolHandlerProxy.connect(baller) as any).createChallenge(
         ...(preparedBTCChallenge as any)
       );
       const matchChallenge = matchEvent(
@@ -115,12 +133,12 @@ describe("Soccersm", function () {
       await ballsToken
         .connect(baller)
         .approve(
-          await pool.poolHandlerProxy.getAddress(),
+          await poolHandlerProxy.getAddress(),
           (
-            await pool.poolHandlerProxy.createFee(oneGrand)
+            await poolHandlerProxy.createFee(oneGrand)
           )[1]
         );
-      await (pool.poolHandlerProxy.connect(baller) as any).createChallenge(
+      await (poolHandlerProxy.connect(baller) as any).createChallenge(
         ...(preparedMatchChallenge as any)
       );
       const ethPriceRangeChallenge = ethPriceRange(
@@ -135,12 +153,12 @@ describe("Soccersm", function () {
       await ballsToken
         .connect(baller)
         .approve(
-          await pool.poolHandlerProxy.getAddress(),
+          await poolHandlerProxy.getAddress(),
           (
-            await pool.poolHandlerProxy.createFee(oneGrand)
+            await poolHandlerProxy.createFee(oneGrand)
           )[1]
         );
-      await (pool.poolHandlerProxy.connect(baller) as any).createChallenge(
+      await (poolHandlerProxy.connect(baller) as any).createChallenge(
         ...(preparedETHChallenge as any)
       );
 
@@ -156,12 +174,12 @@ describe("Soccersm", function () {
       await ballsToken
         .connect(baller)
         .approve(
-          await pool.poolHandlerProxy.getAddress(),
+          await poolHandlerProxy.getAddress(),
           (
-            await pool.poolHandlerProxy.createFee(oneGrand)
+            await poolHandlerProxy.createFee(oneGrand)
           )[1]
         );
-      await (pool.poolHandlerProxy.connect(baller) as any).createChallenge(
+      await (poolHandlerProxy.connect(baller) as any).createChallenge(
         ...(preparedMultiCorrectScoreChallenge as any)
       );
 
@@ -177,12 +195,12 @@ describe("Soccersm", function () {
       await ballsToken
         .connect(baller)
         .approve(
-          await pool.poolHandlerProxy.getAddress(),
+          await poolHandlerProxy.getAddress(),
           (
-            await pool.poolHandlerProxy.createFee(oneGrand)
+            await poolHandlerProxy.createFee(oneGrand)
           )[1]
         );
-      await (pool.poolHandlerProxy.connect(baller) as any).createChallenge(
+      await (poolHandlerProxy.connect(baller) as any).createChallenge(
         ...(preparedMultiOutcomeChallenge as any)
       );
 
@@ -198,12 +216,12 @@ describe("Soccersm", function () {
       await ballsToken
         .connect(baller)
         .approve(
-          await pool.poolHandlerProxy.getAddress(),
+          await poolHandlerProxy.getAddress(),
           (
-            await pool.poolHandlerProxy.createFee(oneGrand)
+            await poolHandlerProxy.createFee(oneGrand)
           )[1]
         );
-      await (pool.poolHandlerProxy.connect(baller) as any).createChallenge(
+      await (poolHandlerProxy.connect(baller) as any).createChallenge(
         ...(preparedMultiTotalExactChallenge as any)
       );
 
@@ -219,12 +237,12 @@ describe("Soccersm", function () {
       await ballsToken
         .connect(baller)
         .approve(
-          await pool.poolHandlerProxy.getAddress(),
+          await poolHandlerProxy.getAddress(),
           (
-            await pool.poolHandlerProxy.createFee(oneGrand)
+            await poolHandlerProxy.createFee(oneGrand)
           )[1]
         );
-      await (pool.poolHandlerProxy.connect(baller) as any).createChallenge(
+      await (poolHandlerProxy.connect(baller) as any).createChallenge(
         ...(preparedMultiTotalScoreRangeChallenge as any)
       );
 
@@ -235,7 +253,7 @@ describe("Soccersm", function () {
         ethers.ZeroAddress
       );
 
-      await pool.registryProxy.registerEvent(
+      await registryProxy.registerEvent(
         gh.topicId,
         coder.encode(
           ["string", "string", "uint256", "bytes[]"],
@@ -255,12 +273,12 @@ describe("Soccersm", function () {
       await ballsToken
         .connect(baller)
         .approve(
-          await pool.poolHandlerProxy.getAddress(),
+          await poolHandlerProxy.getAddress(),
           (
-            await pool.poolHandlerProxy.createFee(oneGrand)
+            await poolHandlerProxy.createFee(oneGrand)
           )[1]
         );
-      await (pool.poolHandlerProxy.connect(baller) as any).createChallenge(
+      await (poolHandlerProxy.connect(baller) as any).createChallenge(
         ...(preparedMultiStementChallenge as any)
       );
 
@@ -268,10 +286,10 @@ describe("Soccersm", function () {
         await ballsToken.getAddress(),
         1,
         oneGrand,
-        await air.paymaster.getAddress()
+        await paymaster.getAddress()
       );
 
-      await pool.registryProxy.registerEvent(
+      await registryProxy.registerEvent(
         sc.topicId,
         coder.encode(
           ["string", "string", "uint256", "bytes[]"],
@@ -286,14 +304,21 @@ describe("Soccersm", function () {
 
       const preparedStementChallenge = prepareCreateChallenge(sc.challenge);
 
-      await (pool.poolHandlerProxy.connect(keeper) as any).createChallenge(
+      await (poolHandlerProxy.connect(keeper) as any).createChallenge(
         ...(preparedStementChallenge as any)
       );
-      expect(await pool.poolManagerProxy.challengeId()).to.equals(9);
+      expect(await poolManagerProxy.challengeId()).to.equals(9);
     });
     it("Should [Stake]", async function () {
-      const { oneGrand, baller, ballsToken, pool, keeper, air, striker } =
-        await loadFixture(deploySoccersm);
+      const {
+        oneGrand,
+        baller,
+        ballsToken,
+        poolHandlerProxy,
+        keeper,
+        paymaster,
+        striker,
+      } = await loadFixture(deploySoccersm);
       const btcChallenge = btcEvent(
         await ballsToken.getAddress(),
         1,
@@ -303,24 +328,23 @@ describe("Soccersm", function () {
       const preparedBTCChallenge = prepareCreateChallenge(
         btcChallenge.challenge
       );
-      const feeP = (await pool.poolHandlerProxy.createFee(oneGrand))[1];
-      console.log(feeP);
+      const feeP = (await poolHandlerProxy.createFee(oneGrand))[1];
 
       await ballsToken
         .connect(baller)
-        .approve(await pool.poolHandlerProxy.getAddress(), feeP);
-      await (pool.poolHandlerProxy.connect(baller) as any).createChallenge(
+        .approve(await poolHandlerProxy.getAddress(), feeP);
+      await (poolHandlerProxy.connect(baller) as any).createChallenge(
         ...(preparedBTCChallenge as any)
       );
       await ballsToken
         .connect(striker)
         .approve(
-          await pool.poolHandlerProxy.getAddress(),
+          await poolHandlerProxy.getAddress(),
           (
-            await pool.poolHandlerProxy.createFee(BigInt(oneGrand * BigInt(2)))
+            await poolHandlerProxy.createFee(BigInt(oneGrand * BigInt(2)))
           )[1]
         );
-      await (pool.poolHandlerProxy.connect(striker) as any).stake(
+      await (poolHandlerProxy.connect(striker) as any).stake(
         BigInt(0),
         yesNo.yes,
         BigInt(2),

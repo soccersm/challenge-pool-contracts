@@ -11,7 +11,6 @@ async function main() {
   await ignition.deploy(ChallengePoolModule, { displayUi: true });
   await ignition.deploy(DataProvidersModule, { displayUi: true });
   await ignition.deploy(PoolResolversModule, { displayUi: true });
-  await ignition.deploy(AirdropPaymasterModule, { displayUi: true });
   await ignition.deploy(CreateTopicsModule, { displayUi: true });
   console.log(`Deployments Successfull ...`);
 }
