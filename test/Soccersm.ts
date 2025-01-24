@@ -30,6 +30,7 @@ import {
   TopicId,
   yesNo,
 } from "./lib";
+import IgniteTestModule from "../ignition/modules/IgniteTest";
 
 describe("Soccersm", function () {
   async function deploySoccersm() {
