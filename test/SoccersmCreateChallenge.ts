@@ -430,5 +430,34 @@ describe("ChallengePool - Create Challenge", function () {
             ...(preparedETHChallenge__invalidMaturity as any)
           )).to.be.reverted;
 
+          // Revert on invalid topicId: TYPE ERROR
+        //   const ethPriceRangeChallenge__invalidTopicId = ethPriceRange(
+        //     await ballsToken.getAddress(),
+        //     1,
+        //     oneGrand,
+        //     ethers.ZeroAddress
+        //   );
+        //     ethPriceRangeChallenge__invalidTopicId.challenge.events[0].topicId = "InvalidTopicId" as any;
+
+        //     console.log("ETH Challenge - TopicID: ", ethPriceRangeChallenge__invalidTopicId.challenge.events[0]);
+
+        //     //!throws error on prepareCreateChallenge
+        //     const preparedETHChallenge__invalidTopicId = prepareCreateChallenge(
+        //     ethPriceRangeChallenge__invalidTopicId.challenge
+        //   );
+
+        //   await ballsToken
+        //     .connect(baller)
+        //     .approve(
+        //       await poolHandlerProxy.getAddress(),
+        //       (
+        //         await poolHandlerProxy.createFee(oneGrand)
+        //       )[1]
+        //     );
+        //     //revert on invalid topic id
+        //   await expect((poolHandlerProxy.connect(baller) as any).createChallenge(
+        //     ...(preparedETHChallenge__invalidTopicId as any)
+        //   )).to.be.reverted;
+
         }); 
 })
