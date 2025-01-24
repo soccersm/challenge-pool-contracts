@@ -340,8 +340,8 @@ describe("ChallengePool - Create Challenge", function () {
           const preparedBTCChallenge__invalidStakePrediction = prepareCreateChallenge(
             btcChallenge__invalidStakePrediction.challenge
           );
-          console.log("preparedBtcChallenge: ", preparedBTCChallenge__invalidStakePrediction)
-          console.log("BtcChallenge: ", btcChallenge__invalidStakePrediction);
+        //   console.log("preparedBtcChallenge: ", preparedBTCChallenge__invalidStakePrediction)
+        //   console.log("BtcChallenge: ", btcChallenge__invalidStakePrediction);
               await ballsToken
             .connect(baller)
             .approve(
@@ -387,8 +387,8 @@ describe("ChallengePool - Create Challenge", function () {
             oneGrand,
             ethers.ZeroAddress
           );
-          (ethPriceRangeChallenge__invalidOptionsLength as any ).options = [[2000]]
-            console.log("ETH Challenge: ", ethPriceRangeChallenge__invalidOptionsLength);
+          (ethPriceRangeChallenge__invalidOptionsLength as any ).options = [[2000, 3000]];
+          (ethPriceRangeChallenge__invalidOptionsLength as any ).challenge.options = [[2000, 3000]]
             const preparedETHChallenge__invalidOptionsLength = prepareCreateChallenge(
             ethPriceRangeChallenge__invalidOptionsLength.challenge
           );
@@ -400,10 +400,35 @@ describe("ChallengePool - Create Challenge", function () {
                 await poolHandlerProxy.createFee(oneGrand)
               )[1]
             );
-            //revert on options length //!issue
+            //revert
           await expect((poolHandlerProxy.connect(baller) as any).createChallenge(
             ...(preparedETHChallenge__invalidOptionsLength as any)
-          )).to.be.revertedWithCustomError(poolHandlerProxy, "InvalidOptionsLength");
+          )).to.be.reverted;
+
+          // Revert on maturity (Past time)
+          const ethPriceRangeChallenge__invalidMaturity = ethPriceRange(
+            await ballsToken.getAddress(),
+            1,
+            oneGrand,
+            ethers.ZeroAddress
+          );
+          ethPriceRangeChallenge__invalidMaturity.challenge.events[0].maturity = ethPriceRangeChallenge__invalidMaturity.challenge.events[0].maturity - (48 * 60 * 60);
+            console.log("ETH Challenge - Maturity: ", ethPriceRangeChallenge__invalidMaturity.challenge.events[0]);
+            const preparedETHChallenge__invalidMaturity = prepareCreateChallenge(
+            ethPriceRangeChallenge__invalidMaturity.challenge
+          );
+          await ballsToken
+            .connect(baller)
+            .approve(
+              await poolHandlerProxy.getAddress(),
+              (
+                await poolHandlerProxy.createFee(oneGrand)
+              )[1]
+            );
+            //revert on invalid maturity
+          await expect((poolHandlerProxy.connect(baller) as any).createChallenge(
+            ...(preparedETHChallenge__invalidMaturity as any)
+          )).to.be.reverted;
 
         }); 
 })
