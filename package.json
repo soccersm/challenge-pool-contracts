@@ -2,7 +2,6 @@
   "name": "challenge-pool-contracts",
   "devDependencies": {
     "@nomicfoundation/hardhat-toolbox": "^5.0.0",
-    "@solidstate/contracts": "^0.0.61",
     "@types/bun": "latest",
     "mocha": "^11.0.1"
   },
