@@ -340,8 +340,6 @@ describe("ChallengePool - Create Challenge", function () {
           const preparedBTCChallenge__invalidStakePrediction = prepareCreateChallenge(
             btcChallenge__invalidStakePrediction.challenge
           );
-        //   console.log("preparedBtcChallenge: ", preparedBTCChallenge__invalidStakePrediction)
-        //   console.log("BtcChallenge: ", btcChallenge__invalidStakePrediction);
               await ballsToken
             .connect(baller)
             .approve(
@@ -413,7 +411,7 @@ describe("ChallengePool - Create Challenge", function () {
             ethers.ZeroAddress
           );
           ethPriceRangeChallenge__invalidMaturity.challenge.events[0].maturity = ethPriceRangeChallenge__invalidMaturity.challenge.events[0].maturity - (48 * 60 * 60);
-            console.log("ETH Challenge - Maturity: ", ethPriceRangeChallenge__invalidMaturity.challenge.events[0]);
+          
             const preparedETHChallenge__invalidMaturity = prepareCreateChallenge(
             ethPriceRangeChallenge__invalidMaturity.challenge
           );
