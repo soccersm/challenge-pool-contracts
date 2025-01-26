@@ -66,7 +66,7 @@ describe("ChallengePool - Stake Challenge", function () {
 
           expect (await poolManagerProxy.challengeId()).to.equals(1);
           //Challenge ID
-          const challengeId = await poolManagerProxy.challengeId() - BigInt(1);
+          const challengeId = await poolManagerProxy.challengeId() - 1n;
           console.log("ChallengeId: ", challengeId)
 
           const maxPrice = oneGrand * 2n;
@@ -165,6 +165,23 @@ describe("ChallengePool - Stake Challenge", function () {
          invalidMaxPrice,
          invalidMaxPriceParams._deadline,
          invalidMaxPriceParams._paymaster 
+        ))
+        .to.be.reverted;
+
+        //Reverts for invalid deadline
+         const invalidDeadline = {
+          ...stakeParams
+        }
+        //revert
+        invalidDeadline._deadline = await time.latest() - 1000;
+
+        await expect((poolHandlerProxy.connect(baller) as any).stake(
+         invalidDeadline._challengeId,
+         invalidDeadline._prediction,
+         invalidDeadline._quantity,
+         invalidDeadline._maxPrice,
+         invalidDeadline._deadline,
+         invalidDeadline._paymaster 
         ))
         .to.be.reverted;
     });
