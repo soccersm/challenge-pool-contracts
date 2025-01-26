@@ -69,7 +69,7 @@ describe("ChallengePool - Stake Challenge", function () {
           const challengeId = await poolManagerProxy.challengeId() - BigInt(1);
           console.log("ChallengeId: ", challengeId)
 
-          const maxPrice = oneGrand + oneGrand;
+          const maxPrice = oneGrand * 2n;
           let predictionValue: string = "yes";
           const prediction = ethers.AbiCoder.defaultAbiCoder().encode(["string"], [predictionValue]);
 
@@ -99,7 +99,7 @@ describe("ChallengePool - Stake Challenge", function () {
          stakeParams._paymaster 
         )).to.not.be.reverted;
 
-        //Reverts for invalid Challenge Id
+        //Reverts for invalid challengeId
         const invalidChallengeIdParams = {
           ...stakeParams
         }
@@ -151,5 +151,21 @@ describe("ChallengePool - Stake Challenge", function () {
         ))
         .to.be.reverted;
 
+        //Reverts for invalid maxPrice
+         const invalidMaxPriceParams = {
+          ...stakeParams
+        }
+        //revert
+        const invalidMaxPrice = 0;
+
+        await expect((poolHandlerProxy.connect(baller) as any).stake(
+         invalidMaxPriceParams._challengeId,
+         invalidMaxPriceParams._prediction,
+         invalidMaxPriceParams._quantity,
+         invalidMaxPrice,
+         invalidMaxPriceParams._deadline,
+         invalidMaxPriceParams._paymaster 
+        ))
+        .to.be.reverted;
     });
 })
