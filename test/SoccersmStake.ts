@@ -115,7 +115,41 @@ describe("ChallengePool - Stake Challenge", function () {
          invalidChallengeIdParams._paymaster 
         ))
         .to.be.reverted;
-        console.log("invalid params: ", invalidChallengeIdParams)
+
+        //Reverts for invalid prediction
+        const invalidPredictionParams = {
+          ...stakeParams
+        }
+        //revert
+        const invalidPrediction = ethers.AbiCoder.defaultAbiCoder().encode(["string"],["invalidPrediction"])
+        invalidChallengeIdParams._prediction = invalidPrediction;
+
+        await expect((poolHandlerProxy.connect(baller) as any).stake(
+         invalidPredictionParams._challengeId,
+         invalidPredictionParams._prediction,
+         invalidPredictionParams._quantity,
+         invalidPredictionParams._maxPrice,
+         invalidPredictionParams._deadline,
+         invalidPredictionParams._paymaster 
+        ))
+        .to.be.reverted;
+
+        //Reverts for invalid quantity 
+        const invalidQuantityParams = {
+          ...stakeParams
+        }
+        //revert
+        invalidQuantityParams._quantity = 0;
+
+        await expect((poolHandlerProxy.connect(baller) as any).stake(
+         invalidQuantityParams._challengeId,
+         invalidQuantityParams._prediction,
+         invalidQuantityParams._quantity,
+         invalidQuantityParams._maxPrice,
+         invalidQuantityParams._deadline,
+         invalidQuantityParams._paymaster 
+        ))
+        .to.be.reverted;
 
     });
 })
