@@ -112,6 +112,7 @@ abstract contract IChallengePool {
         bytes[] options,
         address stakeToken,
         address paymaster
+        // bool multi
     );
     event CloseChallenge(
         uint256 challengeId,

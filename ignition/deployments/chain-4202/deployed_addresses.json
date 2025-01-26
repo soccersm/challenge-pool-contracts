@@ -41,5 +41,9 @@
   "ChallengePoolUpdateModule#ChallengePoolHandler": "0xa3285943BD4e0E2c68806E6736b34E8a83D0c306",
   "ChallengePoolUpdateModule#ChallengePoolManager": "0x0fd24147aB2C4eF9ff38b50B6Cf17fdef75565df",
   "ChallengePoolUpdateModule#ChallengePoolUpdateInit": "0x559A416afd5C848485C6b49057e25c9947142e47",
-  "ChallengePoolUpdateModule#TopicRegistry": "0x91Ecf7D9699894411f815A85db3841310CE4CC88"
+  "ChallengePoolUpdateModule#TopicRegistry": "0x91Ecf7D9699894411f815A85db3841310CE4CC88",
+  "UpdateTopicsModule#SoccersmTopicRegistry": "0x5e367FF2BEBB8559cF3A3117c62b41a2BA3463B8",
+  "UpdateTopicsModule#AssetPriceDataProvider": "0xF999a4f92D204EBEd3d390115857403C1DCBbe17",
+  "UpdateTopicsModule#FootBallScoresProvider": "0x22f44f1ffdf861053c9d13A4790bbD1f89c94cb8",
+  "UpdateTopicsModule#StatementDataProvider": "0x8279072c1Be1D5E5a289642592c414FE4E324e3C"
 }

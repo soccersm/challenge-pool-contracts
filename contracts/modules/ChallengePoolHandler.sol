@@ -146,6 +146,7 @@ contract ChallengePoolHandler is IChallengePoolHandler, SoccersmRoles, Helpers {
             poolOptions,
             _stakeToken,
             _paymaster
+            // multi,
         );
         s.challengeId += 1;
     }
@@ -179,6 +180,9 @@ contract ChallengePoolHandler is IChallengePoolHandler, SoccersmRoles, Helpers {
         );
         if (currentPrice > _maxPrice) {
             revert MaxPriceExceeded();
+        }
+        if (!s.optionSupply[_challengeId][_prediction].exists) {
+            revert InvalidPrediction();
         }
         uint256 totalAmount = currentPrice * _quantity;
         uint256 fee = LibPool._computeStakeFee(currentPrice);
@@ -237,6 +241,9 @@ contract ChallengePoolHandler is IChallengePoolHandler, SoccersmRoles, Helpers {
         );
         if (currentPrice < _minPrice) {
             revert BelowMinPrie();
+        }
+        if (!s.optionSupply[_challengeId][_prediction].exists) {
+            revert InvalidPrediction();
         }
         uint256 totalAmount = currentPrice * _quantity;
         uint256 fee = LibPool._computeEarlyWithdrawFee(currentPrice);

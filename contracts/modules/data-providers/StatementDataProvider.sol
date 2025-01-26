@@ -4,18 +4,6 @@ pragma solidity ^0.8.28;
 import "./BaseProvider.sol";
 
 contract StatementDataProvider is BaseProvider {
-    function _requestId(
-        string memory statementId,
-        string memory statement,
-        uint256 maturity
-    ) internal pure returns (bytes memory) {
-        return abi.encode(namespace(), statementId, statement, maturity);
-    }
-    function _decodeParams(
-        bytes calldata _params
-    ) internal pure returns (string memory, string memory, uint256) {
-        return abi.decode(_params, (string, string, uint256));
-    }
     function requestData(
         bytes calldata _params
     ) external override returns (bool) {
@@ -23,7 +11,7 @@ contract StatementDataProvider is BaseProvider {
             string memory statementId,
             string memory statement,
             uint256 maturity
-        ) = _decodeParams(_params);
+        ) = _decodeRequestedParams(_params);
 
         if (block.timestamp > maturity) {
             revert InvalidSubmissionDate(maturity);
@@ -47,12 +35,16 @@ contract StatementDataProvider is BaseProvider {
         return true;
     }
 
-    function provideData(bytes calldata _params) external override {
+    function _provideData(
+        bytes calldata _params,
+        ProvisionMode _mode
+    ) internal override {
         (
             string memory statementId,
             string memory statement,
-            uint256 maturity
-        ) = _decodeParams(_params);
+            uint256 maturity,
+            bytes memory answer
+        ) = _decodeProvidedParams(_params);
 
         if (block.timestamp < maturity) {
             revert InvalidSubmissionDate(maturity);
@@ -64,39 +56,13 @@ contract StatementDataProvider is BaseProvider {
             revert DataNotRequested();
         }
 
-        if (dataExists(requestId)) {
+        if (dataExists(requestId) && _mode == ProvisionMode.create) {
             revert DataAlreadyProvided();
         }
 
         DPStore storage d = DPStorage.load();
 
-        d.dataRequest[requestId].provided = _params;
-
-        emit DataProvided(msg.sender, namespace(), requestId, _params);
-    }
-
-    function updateProvision(bytes calldata _params) external override {
-        (
-            string memory statementId,
-            string memory statement,
-            uint256 maturity
-        ) = _decodeParams(_params);
-        if (block.timestamp < maturity) {
-            revert InvalidSubmissionDate(maturity);
-        }
-        bytes memory requestId = _requestId(statementId, statement, maturity);
-
-        if (!requestExists(requestId)) {
-            revert DataNotRequested();
-        }
-
-        if (!dataExists(requestId)) {
-            revert DataNotProvided();
-        }
-
-        DPStore storage d = DPStorage.load();
-
-        d.dataRequest[requestId].provided = _params;
+        d.dataRequest[requestId].provided = abi.encode(answer);
 
         emit DataProvided(msg.sender, namespace(), requestId, _params);
     }
@@ -133,48 +99,11 @@ contract StatementDataProvider is BaseProvider {
         emit DataRegistered(msg.sender, namespace(), requestId, _params);
     }
 
-    function getData(
-        bytes calldata _params
-    ) external view override returns (bytes memory _data) {
-        (
-            string memory statementId,
-            string memory statement,
-            uint256 maturity
-        ) = _decodeParams(_params);
-
-        bytes memory requestId = _requestId(statementId, statement, maturity);
-        if (!dataExists(requestId)) {
-            revert DataNotProvided();
-        }
-        DPStore storage d = DPStorage.load();
-
-        return d.dataRequest[requestId].provided;
-    }
-
-    function hasData(
-        bytes calldata _params
-    ) external view override returns (bool) {
-        (
-            string memory statementId,
-            string memory statement,
-            uint256 maturity
-        ) = _decodeParams(_params);
-
-        bytes memory requestId = _requestId(statementId, statement, maturity);
-        return dataExists(requestId);
-    }
-
     function validateOptions(
         bytes calldata _params,
         bytes[] calldata _options
     ) external view override returns (bool) {
-        (
-            string memory statementId,
-            string memory statement,
-            uint256 maturity
-        ) = _decodeParams(_params);
-
-        bytes memory requestId = _requestId(statementId, statement, maturity);
+        bytes memory requestId = _requestIdFromParams(_params);
         DPStore storage d = DPStorage.load();
         if (!registerExists(requestId)) {
             revert DataNotRegistered();
@@ -185,6 +114,42 @@ contract StatementDataProvider is BaseProvider {
             }
         }
         return true;
+    }
+
+    function _requestId(
+        string memory statementId,
+        string memory statement,
+        uint256 maturity
+    ) internal pure returns (bytes memory) {
+        return abi.encode(namespace(), statementId, statement, maturity);
+    }
+
+    function _decodeRequestedParams(
+        bytes calldata _params
+    ) internal pure returns (string memory, string memory, uint256) {
+        return abi.decode(_params, (string, string, uint256));
+    }
+
+    function _decodeProvidedParams(
+        bytes calldata _params
+    )
+        internal
+        pure
+        returns (string memory, string memory, uint256, bytes memory)
+    {
+        return abi.decode(_params, (string, string, uint256, bytes));
+    }
+
+    function _requestIdFromParams(
+        bytes calldata _params
+    ) internal pure virtual override returns (bytes memory) {
+        (
+            string memory statementId,
+            string memory statement,
+            uint256 maturity
+        ) = _decodeRequestedParams(_params);
+
+        return _requestId(statementId, statement, maturity);
     }
 
     function namespace() public pure override returns (string memory) {

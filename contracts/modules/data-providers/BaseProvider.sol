@@ -8,6 +8,13 @@ import "../../utils/Helpers.sol";
 import "../../utils/Errors.sol";
 
 abstract contract BaseProvider is IDataProvider, Helpers {
+    enum ProvisionMode {
+        create,
+        update
+    }
+    function _requestIdFromParams(
+        bytes calldata _params
+    ) internal pure virtual returns (bytes memory);
     function requestExists(
         bytes memory requestId
     ) internal view returns (bool) {
@@ -41,5 +48,33 @@ abstract contract BaseProvider is IDataProvider, Helpers {
         bytes[] calldata _options
     ) external virtual returns (bool) {
         return _options.length > 1;
+    }
+
+    function getData(
+        bytes calldata _params
+    ) external view override returns (bytes memory _data) {
+        bytes memory requestId = _requestIdFromParams(_params);
+        if (!dataExists(requestId)) {
+            revert DataNotProvided();
+        }
+        DPStore storage d = DPStorage.load();
+
+        return d.dataRequest[requestId].provided;
+    }
+
+    function hasData(
+        bytes calldata _params
+    ) external view override returns (bool) {
+        return dataExists(_requestIdFromParams(_params));
+    }
+
+    function _provideData(bytes calldata _params, ProvisionMode _mode) internal virtual;
+
+    function provideData(bytes calldata _params) external override {
+        _provideData(_params, ProvisionMode.create);
+    }
+
+    function updateProvision(bytes calldata _params) external override {
+        _provideData(_params, ProvisionMode.update);
     }
 }
