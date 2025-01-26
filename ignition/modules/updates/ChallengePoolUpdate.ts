@@ -9,8 +9,8 @@ import {
 } from "../lib";
 import Soccersm from "../Soccersm";
 
-const ChallengePoolUpdateModule = buildModule(
-  "ChallengePoolUpdateModule",
+const ChallengePoolUpdateIIModule = buildModule(
+  "ChallengePoolUpdateIIModule",
   (m) => {
     const soccersm = m.useModule(Soccersm);
 
@@ -78,4 +78,4 @@ const ChallengePoolUpdateModule = buildModule(
   }
 );
 
-export default ChallengePoolUpdateModule;
+export default ChallengePoolUpdateIIModule;
