@@ -24,7 +24,7 @@ contract ChallengePoolView is IChallengePoolView {
         returns (IChallengePoolHandler.PlayerSupply memory)
     {
         return
-            CPStorage.load().playerOptionSupply[_player][_challengeId][_option];
+            CPStorage.load().playerOptionSupply[_challengeId][_player][_option];
     }
 
     function playerSupply(
@@ -36,7 +36,7 @@ contract ChallengePoolView is IChallengePoolView {
         override
         returns (IChallengePoolHandler.PlayerSupply memory)
     {
-        return CPStorage.load().playerSupply[_player][_challengeId];
+        return CPStorage.load().playerSupply[_challengeId][_player];
     }
 
     function optionSupply(

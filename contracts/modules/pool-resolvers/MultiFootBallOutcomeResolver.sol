@@ -6,9 +6,9 @@ import "./BaseResolver.sol";
 contract MultiFootBallOutcomeResolver is BaseResolver {
     function _isOutcome(bytes memory outcome) internal pure returns (bool) {
         if (
-            !HelpersLib.compareBytes(outcome, abi.encode(HOME)) &&
-            !HelpersLib.compareBytes(outcome, abi.encode(AWAY)) &&
-            !HelpersLib.compareBytes(outcome, abi.encode(DRAW))
+            !HelpersLib.compareBytes(outcome, abi.encode(HelpersLib.HOME)) &&
+            !HelpersLib.compareBytes(outcome, abi.encode(HelpersLib.AWAY)) &&
+            !HelpersLib.compareBytes(outcome, abi.encode(HelpersLib.DRAW))
         ) {
             return false;
         }
@@ -20,11 +20,11 @@ contract MultiFootBallOutcomeResolver is BaseResolver {
         uint256 awayScore
     ) internal pure returns (bytes memory) {
         if (homeScore > awayScore) {
-            return abi.encode(HOME);
+            return abi.encode(HelpersLib.HOME);
         } else if (awayScore > homeScore) {
-            return abi.encode(AWAY);
+            return abi.encode(HelpersLib.AWAY);
         } else {
-            return abi.encode(DRAW);
+            return abi.encode(HelpersLib.DRAW);
         }
     }
 

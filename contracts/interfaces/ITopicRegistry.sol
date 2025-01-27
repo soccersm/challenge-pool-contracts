@@ -24,21 +24,21 @@ interface ITopicRegistry {
     }
 
     event NewTopic(
-        string  topicId,
-        address  poolResolver,
-        address  dataProvider,
+        string topicId,
+        address poolResolver,
+        address dataProvider,
         TopicState state
     );
 
     event UpdateTopic(
-        string  topicId,
-        address  poolResolver,
-        address  dataProvider,
+        string topicId,
+        address poolResolver,
+        address dataProvider,
         TopicState state
     );
 
-    event TopicDisabled(string  topicId, TopicState state);
-    event TopicEnabled(string  topicId, TopicState state);
+    event TopicDisabled(string topicId, TopicState state);
+    event TopicEnabled(string topicId, TopicState state);
 
     error InvalidTopic();
     error ExistingTopic();
@@ -56,7 +56,7 @@ interface ITopicRegistry {
         address _dataProvider
     ) external;
 
-     /**
+    /**
      * @notice  .
      * @dev     upates existing topic
      * @param   _topicId  example football-correct-score

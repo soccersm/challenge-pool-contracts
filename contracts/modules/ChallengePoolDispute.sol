@@ -36,11 +36,11 @@ contract ChallengePoolDispute is
         TRStore storage t = TRStorage.load();
         CPStore storage s = CPStorage.load();
         Challenge storage c = s.challenges[_challengeId];
-        if (HelpersLib.compareBytes(emptyBytes, c.outcome)) {
+        if (HelpersLib.compareBytes(HelpersLib.emptyBytes, c.outcome)) {
             revert InvalidOutcome();
         }
         c.state = ChallengeState.closed;
-        bytes memory result = emptyBytes;
+        bytes memory result = HelpersLib.emptyBytes;
         if (c.multi) {
             bool allCorrect = true;
             for (uint i = 0; i < c.events.length; i++) {
@@ -58,7 +58,7 @@ contract ChallengePoolDispute is
                 }
                 if (
                     HelpersLib.compareBytes(
-                        no,
+                        HelpersLib.no,
                         LibPool._resolveEvent(t, c.events[i])
                     )
                 ) {
@@ -66,11 +66,11 @@ contract ChallengePoolDispute is
                 }
             }
             if (allCorrect) {
-                c.outcome = yes;
-                result = yes;
+                c.outcome = HelpersLib.yes;
+                result = HelpersLib.yes;
             } else {
-                c.outcome = no;
-                result = no;
+                c.outcome = HelpersLib.no;
+                result = HelpersLib.no;
             }
         } else {
             c.outcome = LibPool._resolveEvent(t, c.events[0]);
@@ -109,7 +109,7 @@ contract ChallengePoolDispute is
         ) {
             revert ActionNotAllowedForState(c.state);
         }
-        if (HelpersLib.compareBytes(emptyBytes, c.outcome)) {
+        if (HelpersLib.compareBytes(HelpersLib.emptyBytes, c.outcome)) {
             revert InvalidOutcome();
         }
         c.state = ChallengeState.closed;
@@ -130,7 +130,7 @@ contract ChallengePoolDispute is
         validChallenge(_challengeId)
         poolInState(_challengeId, ChallengeState.evaluated)
     {
-        if (HelpersLib.compareBytes(emptyBytes, _outcome)) {
+        if (HelpersLib.compareBytes(HelpersLib.emptyBytes, _outcome)) {
             revert InvalidOutcome();
         }
         CPStore storage s = CPStorage.load();
@@ -138,7 +138,7 @@ contract ChallengePoolDispute is
         if (!s.optionSupply[_challengeId][_outcome].exists) {
             revert InvalidOutcome();
         }
-        if (s.playerSupply[msg.sender][_challengeId].stakes == 0) {
+        if (s.playerSupply[_challengeId][msg.sender].stakes == 0) {
             revert PlayerNotInPool();
         }
         if (block.timestamp - c.lastOutcomeSet > s.disputePeriod) {
@@ -175,7 +175,7 @@ contract ChallengePoolDispute is
     {
         CPStore storage s = CPStorage.load();
         Challenge storage c = s.challenges[_challengeId];
-        if (s.playerSupply[msg.sender][_challengeId].stakes == 0) {
+        if (s.playerSupply[_challengeId][msg.sender].stakes == 0) {
             revert PlayerNotInPool();
         }
         Dispute storage d = s.playerDisputes[_challengeId][msg.sender];
@@ -206,7 +206,7 @@ contract ChallengePoolDispute is
         validChallenge(_challengeId)
         poolInState(_challengeId, ChallengeState.disputed)
     {
-        if (HelpersLib.compareBytes(emptyBytes, _outcome)) {
+        if (HelpersLib.compareBytes(HelpersLib.emptyBytes, _outcome)) {
             revert InvalidOutcome();
         }
         CPStore storage s = CPStorage.load();

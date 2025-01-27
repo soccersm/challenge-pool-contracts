@@ -29,8 +29,8 @@ library TRStorage {
 
 struct CPStore {
     mapping(uint256 => IChallengePoolHandler.Challenge) challenges;
-    mapping(address => mapping(uint256 => mapping(bytes => IChallengePoolHandler.PlayerSupply))) playerOptionSupply; // player -> challengeId > option > supply
-    mapping(address => mapping(uint256 => IChallengePoolHandler.PlayerSupply)) playerSupply; // player -> challengeId > supply
+    mapping(uint256 => mapping(address => mapping(bytes => IChallengePoolHandler.PlayerSupply))) playerOptionSupply; // challengeId -> player > option > supply
+    mapping(uint256 => mapping(address => IChallengePoolHandler.PlayerSupply)) playerSupply; // challengeId -> player > supply
     mapping(uint256 => mapping(bytes => IChallengePoolHandler.OptionSupply)) optionSupply; // challengeId > option > supply
     mapping(uint256 => IChallengePoolHandler.Supply) poolSupply; // challengeId -> supply
     mapping(address => IChallengePoolManager.StakeToken) stakeTokens;

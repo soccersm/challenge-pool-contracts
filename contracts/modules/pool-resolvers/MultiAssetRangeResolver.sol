@@ -35,7 +35,7 @@ contract MultiAssetRangeResolver is BaseResolver {
                 return _options[i];
             }
         }
-        return emptyBytes;
+        return HelpersLib.emptyBytes;
     }
 
     function validateOptions(

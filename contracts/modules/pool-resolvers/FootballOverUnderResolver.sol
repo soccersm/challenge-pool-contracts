@@ -13,7 +13,7 @@ contract FootballOverUnderResolver is BaseResolver {
             uint256 predictedTotal,
             string memory outcome
         ) = abi.decode(_event.params, (string, uint256, string));
-        if (!HelpersLib.compareStrings(outcome, OVER) && !HelpersLib.compareStrings(outcome, UNDER)) {
+        if (!HelpersLib.compareStrings(outcome, HelpersLib.OVER) && !HelpersLib.compareStrings(outcome, HelpersLib.UNDER)) {
             return false;
         }
         if (predictedTotal < 1) {
@@ -37,18 +37,18 @@ contract FootballOverUnderResolver is BaseResolver {
             (uint256, uint256)
         );
         uint256 actualTotal = homeScore + awayScore;
-        if (HelpersLib.compareStrings(outcome, OVER)) {
+        if (HelpersLib.compareStrings(outcome, HelpersLib.OVER)) {
             if (actualTotal > predictedTotal) {
-                return yes;
+                return HelpersLib.yes;
             }
-        } else if (HelpersLib.compareStrings(outcome, UNDER)) {
+        } else if (HelpersLib.compareStrings(outcome, HelpersLib.UNDER)) {
             if (actualTotal < predictedTotal) {
-                return yes;
+                return HelpersLib.yes;
             }
         } else {
             revert ProtocolInvariantCheckFailed();
         }
-        return no;
+        return HelpersLib.no;
     }
 
     function validateOptions(

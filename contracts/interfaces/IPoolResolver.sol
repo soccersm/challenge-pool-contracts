@@ -13,9 +13,7 @@ interface IPoolResolver {
         IDataProvider dataProvider,
         IChallengePoolHandler.ChallengeEvent calldata _event,
         bytes[] calldata _options
-    )
-        external
-        returns (bytes memory);
+    ) external returns (bytes memory);
 
     /**
      * @notice  .

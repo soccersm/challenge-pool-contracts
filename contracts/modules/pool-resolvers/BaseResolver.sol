@@ -4,7 +4,7 @@ pragma solidity ^0.8.28;
 import "../../interfaces/IPoolResolver.sol";
 import "../../utils/Errors.sol";
 import "../../utils/Helpers.sol";
-abstract contract BaseResolver is IPoolResolver, Helpers {
+abstract contract BaseResolver is IPoolResolver {
     function _requestData(
         IDataProvider dataProvider,
         bytes memory _params

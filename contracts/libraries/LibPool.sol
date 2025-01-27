@@ -33,11 +33,11 @@ library LibPool {
         if (HelpersLib.compareBytes(HelpersLib.emptyBytes, c.outcome)) {
             revert IChallengePoolCommon.InvalidOutcome();
         }
-        if (s.playerSupply[msg.sender][_challengeId].stakes == 0) {
+        if (s.playerSupply[_challengeId][msg.sender].stakes == 0) {
             revert IChallengePoolCommon.PlayerNotInPool();
         }
         IChallengePoolHandler.PlayerSupply storage playerOptionSupply = s
-            .playerOptionSupply[msg.sender][_challengeId][c.outcome];
+            .playerOptionSupply[_challengeId][msg.sender][c.outcome];
         if (playerOptionSupply.withdrawn) {
             revert IChallengePoolCommon.PlayerAlreadyWithdrawn();
         }
@@ -62,14 +62,14 @@ library LibPool {
     function _withdrawAfterCancelled(uint256 _challengeId) internal {
         CPStore storage s = CPStorage.load();
         IChallengePoolHandler.Challenge storage c = s.challenges[_challengeId];
-        if (s.playerSupply[msg.sender][_challengeId].stakes == 0) {
+        if (s.playerSupply[_challengeId][msg.sender].stakes == 0) {
             revert IChallengePoolCommon.PlayerNotInPool();
         }
-        if (s.playerSupply[msg.sender][_challengeId].withdrawn) {
+        if (s.playerSupply[_challengeId][msg.sender].withdrawn) {
             revert IChallengePoolCommon.PlayerAlreadyWithdrawn();
         }
-        s.playerSupply[msg.sender][_challengeId].withdrawn = true;
-        uint256 totalAmount = s.playerSupply[msg.sender][_challengeId].tokens;
+        s.playerSupply[_challengeId][msg.sender].withdrawn = true;
+        uint256 totalAmount = s.playerSupply[_challengeId][msg.sender].tokens;
         LibTransfer._send(c.stakeToken, totalAmount, msg.sender);
         emit IChallengePoolHandler.WinningsWithdrawn(
             _challengeId,

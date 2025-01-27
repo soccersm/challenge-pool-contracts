@@ -17,7 +17,6 @@ abstract contract IChallengePoolCommon {
         ChallengeState state;
         bool multi;
         bytes outcome;
-        uint256 totalStakes;
         uint256 createdAt;
         uint256 maturity;
         uint256 basePrice;

@@ -65,11 +65,13 @@ contract ChallengePoolHandler is
             }
             poolOptions = HelpersLib.yesNoOptions();
             if (
-                !HelpersLib.compareBytes(_prediction, yes) &&
-                !HelpersLib.compareBytes(_prediction, no)
+                !HelpersLib.compareBytes(_prediction, HelpersLib.yes) &&
+                !HelpersLib.compareBytes(_prediction, HelpersLib.no)
             ) {
                 revert InvalidPrediction();
             }
+            s.optionSupply[s.challengeId][HelpersLib.yes].exists = true;
+            s.optionSupply[s.challengeId][HelpersLib.no].exists = true;
         } else {
             multi = true;
             if (_options.length < 2) {
@@ -82,7 +84,12 @@ contract ChallengePoolHandler is
             LibPool._validateOptions(t, _events[0], poolOptions);
             bool predictionExists = false;
             for (uint i = 0; i < _options.length; i++) {
-                if (HelpersLib.compareBytes(emptyBytes, poolOptions[i])) {
+                if (
+                    HelpersLib.compareBytes(
+                        HelpersLib.emptyBytes,
+                        poolOptions[i]
+                    )
+                ) {
                     revert InvalidPoolOption();
                 }
                 if (HelpersLib.compareBytes(_prediction, poolOptions[i])) {
@@ -115,19 +122,18 @@ contract ChallengePoolHandler is
         uint256 totalPrice = _basePrice * _quantity;
         s.poolSupply[s.challengeId] = Supply(_quantity, totalPrice);
         s.optionSupply[s.challengeId][_prediction] = OptionSupply(
-            false,
+            true,
             _quantity,
             totalPrice
         );
-        s.playerOptionSupply[msg.sender][s.challengeId][
+        s.playerOptionSupply[s.challengeId][msg.sender][
             _prediction
         ] = PlayerSupply(false, _quantity, totalPrice);
         LibPool._depositOrPaymaster(_paymaster, _stakeToken, totalPrice + fee);
         s.challenges[s.challengeId] = Challenge(
             ChallengeState.open,
             multi,
-            emptyBytes,
-            _quantity,
+            HelpersLib.emptyBytes,
             block.timestamp,
             maturity,
             _basePrice,
@@ -143,7 +149,7 @@ contract ChallengePoolHandler is
             block.timestamp,
             maturity,
             ChallengeState.open,
-            emptyBytes,
+            HelpersLib.emptyBytes,
             _basePrice,
             fee,
             _quantity,
@@ -193,12 +199,12 @@ contract ChallengePoolHandler is
         uint256 totalAmount = currentPrice * _quantity;
         uint256 fee = LibPool._computeStakeFee(currentPrice);
         PlayerSupply storage playerOptionSupply = s.playerOptionSupply[
-            msg.sender
-        ][_challengeId][_prediction];
+            _challengeId
+        ][msg.sender][_prediction];
         playerOptionSupply.stakes += _quantity;
         playerOptionSupply.tokens += totalAmount;
-        s.playerSupply[msg.sender][_challengeId].stakes += _quantity;
-        s.playerSupply[msg.sender][_challengeId].tokens += totalAmount;
+        s.playerSupply[_challengeId][msg.sender].stakes += _quantity;
+        s.playerSupply[_challengeId][msg.sender].tokens += totalAmount;
         s.optionSupply[_challengeId][_prediction].stakes += _quantity;
         s.optionSupply[_challengeId][_prediction].tokens += totalAmount;
         s.poolSupply[_challengeId].stakes += _quantity;
@@ -254,15 +260,15 @@ contract ChallengePoolHandler is
         uint256 totalAmount = currentPrice * _quantity;
         uint256 fee = LibPool._computeEarlyWithdrawFee(currentPrice);
         PlayerSupply storage playerOptionSupply = s.playerOptionSupply[
-            msg.sender
-        ][_challengeId][_prediction];
+            _challengeId
+        ][msg.sender][_prediction];
         if (playerOptionSupply.stakes < _quantity) {
             revert InsufficientStakes(_quantity, playerOptionSupply.stakes);
         }
         playerOptionSupply.stakes -= _quantity;
         playerOptionSupply.tokens -= totalAmount;
-        s.playerSupply[msg.sender][_challengeId].stakes -= _quantity;
-        s.playerSupply[msg.sender][_challengeId].tokens -= totalAmount;
+        s.playerSupply[_challengeId][msg.sender].stakes -= _quantity;
+        s.playerSupply[_challengeId][msg.sender].tokens -= totalAmount;
         s.optionSupply[_challengeId][_prediction].stakes -= _quantity;
         s.optionSupply[_challengeId][_prediction].tokens -= totalAmount;
         s.poolSupply[_challengeId].stakes -= _quantity;

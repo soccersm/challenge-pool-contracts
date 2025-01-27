@@ -9,11 +9,11 @@ contract FootBallOutcomeResolver is BaseResolver {
         uint256 awayScore
     ) internal pure returns (string memory) {
         if (homeScore > awayScore) {
-            return HOME;
+            return HelpersLib.HOME;
         } else if (awayScore > homeScore) {
-            return AWAY;
+            return HelpersLib.AWAY;
         } else {
-            return DRAW;
+            return HelpersLib.DRAW;
         }
     }
 
@@ -26,12 +26,12 @@ contract FootBallOutcomeResolver is BaseResolver {
             (string, string)
         );
         if (
-            !HelpersLib.compareStrings(outcome, HOME) &&
-            !HelpersLib.compareStrings(outcome, AWAY) &&
-            !HelpersLib.compareStrings(outcome, DRAW) &&
-            !HelpersLib.compareStrings(outcome, HOME_DRAW) &&
-            !HelpersLib.compareStrings(outcome, AWAY_DRAW) &&
-            !HelpersLib.compareStrings(outcome, HOME_AWAY)
+            !HelpersLib.compareStrings(outcome, HelpersLib.HOME) &&
+            !HelpersLib.compareStrings(outcome, HelpersLib.AWAY) &&
+            !HelpersLib.compareStrings(outcome, HelpersLib.DRAW) &&
+            !HelpersLib.compareStrings(outcome, HelpersLib.HOME_DRAW) &&
+            !HelpersLib.compareStrings(outcome, HelpersLib.AWAY_DRAW) &&
+            !HelpersLib.compareStrings(outcome, HelpersLib.HOME_AWAY)
         ) {
             return false;
         }
@@ -52,43 +52,43 @@ contract FootBallOutcomeResolver is BaseResolver {
             (uint256, uint256)
         );
         string memory result = _scoreToOutcome(homeScore, awayScore);
-        if (HelpersLib.compareStrings(outcome, HOME)) {
-            if (HelpersLib.compareStrings(HOME, result)) {
-                return yes;
+        if (HelpersLib.compareStrings(outcome, HelpersLib.HOME)) {
+            if (HelpersLib.compareStrings(HelpersLib.HOME, result)) {
+                return HelpersLib.yes;
             }
-        } else if (HelpersLib.compareStrings(outcome, AWAY)) {
-            if (HelpersLib.compareStrings(AWAY, result)) {
-                return yes;
+        } else if (HelpersLib.compareStrings(outcome, HelpersLib.AWAY)) {
+            if (HelpersLib.compareStrings(HelpersLib.AWAY, result)) {
+                return HelpersLib.yes;
             }
-        } else if (HelpersLib.compareStrings(outcome, DRAW)) {
-            if (HelpersLib.compareStrings(DRAW, result)) {
-                return yes;
+        } else if (HelpersLib.compareStrings(outcome, HelpersLib.DRAW)) {
+            if (HelpersLib.compareStrings(HelpersLib.DRAW, result)) {
+                return HelpersLib.yes;
             }
-        } else if (HelpersLib.compareStrings(outcome, HOME_DRAW)) {
-            if (HelpersLib.compareStrings(HOME, result)) {
-                return yes;
+        } else if (HelpersLib.compareStrings(outcome, HelpersLib.HOME_DRAW)) {
+            if (HelpersLib.compareStrings(HelpersLib.HOME, result)) {
+                return HelpersLib.yes;
             }
-            if (HelpersLib.compareStrings(DRAW, result)) {
-                return yes;
+            if (HelpersLib.compareStrings(HelpersLib.DRAW, result)) {
+                return HelpersLib.yes;
             }
-        } else if (HelpersLib.compareStrings(outcome, AWAY_DRAW)) {
-            if (HelpersLib.compareStrings(AWAY, result)) {
-                return yes;
+        } else if (HelpersLib.compareStrings(outcome, HelpersLib.AWAY_DRAW)) {
+            if (HelpersLib.compareStrings(HelpersLib.AWAY, result)) {
+                return HelpersLib.yes;
             }
-            if (HelpersLib.compareStrings(DRAW, result)) {
-                return yes;
+            if (HelpersLib.compareStrings(HelpersLib.DRAW, result)) {
+                return HelpersLib.yes;
             }
-        } else if (HelpersLib.compareStrings(outcome, HOME_AWAY)) {
-            if (HelpersLib.compareStrings(HOME, result)) {
-                return yes;
+        } else if (HelpersLib.compareStrings(outcome, HelpersLib.HOME_AWAY)) {
+            if (HelpersLib.compareStrings(HelpersLib.HOME, result)) {
+                return HelpersLib.yes;
             }
-            if (HelpersLib.compareStrings(AWAY, result)) {
-                return yes;
+            if (HelpersLib.compareStrings(HelpersLib.AWAY, result)) {
+                return HelpersLib.yes;
             }
         } else {
             revert ProtocolInvariantCheckFailed();
         }
-        return no;
+        return HelpersLib.no;
     }
 
     function validateOptions(

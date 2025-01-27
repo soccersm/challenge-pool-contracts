@@ -32,9 +32,9 @@ contract FootBallCorrectScoreResolver is BaseResolver {
         if (
             homeScore == predictedHomeScore && awayScore == predictedAwayScore
         ) {
-            return yes;
+            return HelpersLib.yes;
         } else {
-            return no;
+            return HelpersLib.no;
         }
     }
 

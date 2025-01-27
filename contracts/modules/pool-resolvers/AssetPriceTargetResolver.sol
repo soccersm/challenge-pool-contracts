@@ -15,7 +15,7 @@ contract AssetPriceTargetResolver is BaseResolver {
             string memory outcome
         ) = abi.decode(_event.params, (string, uint256, string));
         if (
-            !HelpersLib.compareStrings(outcome, ABOVE) && !HelpersLib.compareStrings(outcome, BELOW)
+            !HelpersLib.compareStrings(outcome, HelpersLib.ABOVE) && !HelpersLib.compareStrings(outcome, HelpersLib.BELOW)
         ) {
             return false;
         }
@@ -43,18 +43,18 @@ contract AssetPriceTargetResolver is BaseResolver {
             _getData(dataProvider, abi.encode(assetSymbol, _event.maturity)),
             (uint256)
         );
-        if (HelpersLib.compareStrings(outcome, ABOVE)) {
+        if (HelpersLib.compareStrings(outcome, HelpersLib.ABOVE)) {
             if (actualPrice > predictedPrice) {
-                return yes;
+                return HelpersLib.yes;
             }
-        } else if (HelpersLib.compareStrings(outcome, BELOW)) {
+        } else if (HelpersLib.compareStrings(outcome, HelpersLib.BELOW)) {
             if (actualPrice < predictedPrice) {
-                return yes;
+                return HelpersLib.yes;
             }
         } else {
             revert ProtocolInvariantCheckFailed();
         }
-        return no;
+        return HelpersLib.no;
     }
 
     function validateOptions(
