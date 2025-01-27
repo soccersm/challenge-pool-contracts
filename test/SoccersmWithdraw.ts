@@ -158,9 +158,12 @@ describe("ChallengePool - Withdraw And Fees", function () {
         )).to.be.reverted;
 
        //Reverts for withdraw
+       //revert for challenge state: open
        const _challengeId = 0n;
         await expect((poolHandlerProxy.connect(baller) as any).withdraw(
           _challengeId
-        )).to.not.be.reverted;
+        )).to.be.reverted;
+
+        //get challenge states
     });
 })
