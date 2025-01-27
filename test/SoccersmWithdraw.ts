@@ -85,15 +85,27 @@ describe("ChallengePool - Withdraw And Fees", function () {
             maxPrice
           )
           //should stake
-        await expect((poolHandlerProxy.connect(baller) as any).stake(
+        await (poolHandlerProxy.connect(baller) as any).stake(
          stakeParams._challengeId,
          stakeParams._prediction,
          stakeParams._quantity,
          stakeParams._maxPrice,
          stakeParams._deadline,
          stakeParams._paymaster 
+        )
+
+        //Assert: earlyWithdraw
+        const earlyWithdrawParams = {
+          ...stakeParams, _minPrice: oneGrand
+        }
+
+        await expect((poolHandlerProxy.connect(baller) as any).earlyWithdraw(
+          earlyWithdrawParams._challengeId,
+          earlyWithdrawParams._prediction,
+          earlyWithdrawParams._quantity,
+          earlyWithdrawParams._minPrice,
+          earlyWithdrawParams._deadline
         )).to.not.be.reverted;
 
-        
     });
 })
