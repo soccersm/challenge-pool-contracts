@@ -6,14 +6,14 @@ import "./BaseResolver.sol";
 contract FootballOverUnderResolver is BaseResolver {
     function validateEvent(
         IDataProvider dataProvider,
-        IChallengePool.ChallengeEvent memory _event
+        IChallengePoolHandler.ChallengeEvent memory _event
     ) external override returns (bool) {
         (
             string memory matchId,
             uint256 predictedTotal,
             string memory outcome
         ) = abi.decode(_event.params, (string, uint256, string));
-        if (!compareStrings(outcome, OVER) && !compareStrings(outcome, UNDER)) {
+        if (!HelpersLib.compareStrings(outcome, OVER) && !HelpersLib.compareStrings(outcome, UNDER)) {
             return false;
         }
         if (predictedTotal < 1) {
@@ -24,7 +24,7 @@ contract FootballOverUnderResolver is BaseResolver {
 
     function resolveEvent(
         IDataProvider dataProvider,
-        IChallengePool.ChallengeEvent memory _event,
+        IChallengePoolHandler.ChallengeEvent memory _event,
         bytes[] calldata /*_options*/
     ) external override returns (bytes memory) {
         (
@@ -37,11 +37,11 @@ contract FootballOverUnderResolver is BaseResolver {
             (uint256, uint256)
         );
         uint256 actualTotal = homeScore + awayScore;
-        if (compareStrings(outcome, OVER)) {
+        if (HelpersLib.compareStrings(outcome, OVER)) {
             if (actualTotal > predictedTotal) {
                 return yes;
             }
-        } else if (compareStrings(outcome, UNDER)) {
+        } else if (HelpersLib.compareStrings(outcome, UNDER)) {
             if (actualTotal < predictedTotal) {
                 return yes;
             }
@@ -53,7 +53,7 @@ contract FootballOverUnderResolver is BaseResolver {
 
     function validateOptions(
         IDataProvider /*dataProvider*/,
-        IChallengePool.ChallengeEvent memory /*_event*/,
+        IChallengePoolHandler.ChallengeEvent memory /*_event*/,
         bytes[] calldata /*_options*/
     ) external pure override returns (bool) {
         revert NotImplemented();

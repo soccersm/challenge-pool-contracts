@@ -18,6 +18,43 @@ import "./TopicRegistry.sol";
 import "../diamond/interfaces/SoccersmRoles.sol";
 
 contract ChallengePoolHandler is IChallengePoolHandler, SoccersmRoles, Helpers {
+    modifier validChallenge(uint256 _challengeId) {
+        if (_challengeId >= CPStorage.load().challengeId) {
+            revert InvalidChallenge();
+        }
+        _;
+    }
+
+    modifier poolInState(uint256 _challengeId, ChallengeState _state) {
+        ChallengeState currentState = LibPool._poolState(
+            CPStorage.load().challenges[_challengeId]
+        );
+        if (currentState != _state) {
+            revert ActionNotAllowedForState(currentState);
+        }
+        _;
+    }
+
+    modifier validStake(uint256 _stake) {
+        if (_stake < CPStorage.load().minStakeAmount) {
+            revert StakeLowerThanMinimum();
+        }
+        _;
+    }
+
+    modifier validPrediction(bytes memory _prediction) {
+        if (HelpersLib.compareBytes(_prediction, HelpersLib.emptyBytes)) {
+            revert InvalidPrediction();
+        }
+        _;
+    }
+
+    modifier supportedToken(address _token) {
+        if (!CPStorage.load().stakeTokens[_token].active) {
+            revert UnsupportedToken(_token);
+        }
+        _;
+    }
     function createChallenge(
         ChallengeEvent[] calldata _events,
         bytes[] calldata _options,
@@ -57,10 +94,10 @@ contract ChallengePoolHandler is IChallengePoolHandler, SoccersmRoles, Helpers {
             if (_events.length > s.maxEventsPerPool) {
                 revert InvalidEventLength();
             }
-            poolOptions = Helpers.yesNoOptions();
+            poolOptions = HelpersLib.yesNoOptions();
             if (
-                !compareBytes(_prediction, yes) &&
-                !compareBytes(_prediction, no)
+                !HelpersLib.compareBytes(_prediction, yes) &&
+                !HelpersLib.compareBytes(_prediction, no)
             ) {
                 revert InvalidPrediction();
             }
@@ -76,10 +113,10 @@ contract ChallengePoolHandler is IChallengePoolHandler, SoccersmRoles, Helpers {
             LibPool._validateOptions(t, _events[0], poolOptions);
             bool predictionExists = false;
             for (uint i = 0; i < _options.length; i++) {
-                if (compareBytes(emptyBytes, poolOptions[i])) {
+                if (HelpersLib.compareBytes(emptyBytes, poolOptions[i])) {
                     revert InvalidPoolOption();
                 }
-                if (compareBytes(_prediction, poolOptions[i])) {
+                if (HelpersLib.compareBytes(_prediction, poolOptions[i])) {
                     predictionExists = true;
                 }
                 s.optionSupply[s.challengeId][poolOptions[i]].exists = true;
@@ -145,8 +182,8 @@ contract ChallengePoolHandler is IChallengePoolHandler, SoccersmRoles, Helpers {
             _events,
             poolOptions,
             _stakeToken,
-            _paymaster
-            // multi,
+            _paymaster,
+            multi
         );
         s.challengeId += 1;
     }
@@ -181,9 +218,9 @@ contract ChallengePoolHandler is IChallengePoolHandler, SoccersmRoles, Helpers {
         if (currentPrice > _maxPrice) {
             revert MaxPriceExceeded();
         }
-        // if (!s.optionSupply[_challengeId][_prediction].exists) {
-        //     revert InvalidPrediction();
-        // }
+        if (!s.optionSupply[_challengeId][_prediction].exists) {
+            revert InvalidPrediction();
+        }
         uint256 totalAmount = currentPrice * _quantity;
         uint256 fee = LibPool._computeStakeFee(currentPrice);
         PlayerSupply storage playerOptionSupply = s.playerOptionSupply[
@@ -242,9 +279,9 @@ contract ChallengePoolHandler is IChallengePoolHandler, SoccersmRoles, Helpers {
         if (currentPrice < _minPrice) {
             revert BelowMinPrie();
         }
-        // if (!s.optionSupply[_challengeId][_prediction].exists) {
-        //     revert InvalidPrediction();
-        // }
+        if (!s.optionSupply[_challengeId][_prediction].exists) {
+            revert InvalidPrediction();
+        }
         uint256 totalAmount = currentPrice * _quantity;
         uint256 fee = LibPool._computeEarlyWithdrawFee(currentPrice);
         PlayerSupply storage playerOptionSupply = s.playerOptionSupply[

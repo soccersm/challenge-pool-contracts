@@ -6,9 +6,9 @@ import "./BaseResolver.sol";
 contract MultiFootBallOutcomeResolver is BaseResolver {
     function _isOutcome(bytes memory outcome) internal pure returns (bool) {
         if (
-            !compareBytes(outcome, abi.encode(HOME)) &&
-            !compareBytes(outcome, abi.encode(AWAY)) &&
-            !compareBytes(outcome, abi.encode(DRAW))
+            !HelpersLib.compareBytes(outcome, abi.encode(HOME)) &&
+            !HelpersLib.compareBytes(outcome, abi.encode(AWAY)) &&
+            !HelpersLib.compareBytes(outcome, abi.encode(DRAW))
         ) {
             return false;
         }
@@ -30,14 +30,14 @@ contract MultiFootBallOutcomeResolver is BaseResolver {
 
     function validateEvent(
         IDataProvider dataProvider,
-        IChallengePool.ChallengeEvent calldata _event
+        IChallengePoolHandler.ChallengeEvent calldata _event
     ) external override returns (bool) {
         return _requestData(dataProvider, _event.params);
     }
 
     function resolveEvent(
         IDataProvider dataProvider,
-        IChallengePool.ChallengeEvent calldata _event,
+        IChallengePoolHandler.ChallengeEvent calldata _event,
         bytes[] calldata /*_options*/
     ) external override returns (bytes memory) {
         (uint256 homeScore, uint256 awayScore) = abi.decode(
@@ -49,7 +49,7 @@ contract MultiFootBallOutcomeResolver is BaseResolver {
 
     function validateOptions(
         IDataProvider /*dataProvider*/,
-        IChallengePool.ChallengeEvent calldata /*_event*/,
+        IChallengePoolHandler.ChallengeEvent calldata /*_event*/,
         bytes[] calldata _options
     ) external pure override returns (bool) {
         if (_options.length == 0) {

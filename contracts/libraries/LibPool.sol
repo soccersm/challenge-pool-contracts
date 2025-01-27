@@ -1,7 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.28;
 import "../libraries/LibData.sol";
-import "../interfaces/IChallengePool.sol";
+import "../interfaces/IChallengePoolHandler.sol";
+import "../interfaces/IChallengePoolCommon.sol";
 
 import "../interfaces/IPoolResolver.sol";
 import "../interfaces/IDataProvider.sol";
@@ -19,7 +20,7 @@ library LibPool {
         uint256 stakes
     ) internal view returns (uint256) {
         CPStore storage s = CPStorage.load();
-        IChallengePool.Challenge storage c = s.challenges[_challengeId];
+        IChallengePoolHandler.Challenge storage c = s.challenges[_challengeId];
         uint256 winnerStakes = s.optionSupply[_challengeId][c.outcome].stakes;
         uint256 winnerTokens = s.optionSupply[_challengeId][c.outcome].tokens;
         uint256 looserTokens = s.poolSupply[_challengeId].tokens - winnerTokens;
@@ -28,20 +29,20 @@ library LibPool {
 
     function _withdrawWinnigs(uint256 _challengeId) internal {
         CPStore storage s = CPStorage.load();
-        IChallengePool.Challenge storage c = s.challenges[_challengeId];
+        IChallengePoolHandler.Challenge storage c = s.challenges[_challengeId];
         if (HelpersLib.compareBytes(HelpersLib.emptyBytes, c.outcome)) {
-            revert IChallengePool.InvalidOutcome();
+            revert IChallengePoolCommon.InvalidOutcome();
         }
         if (s.playerSupply[msg.sender][_challengeId].stakes == 0) {
-            revert IChallengePool.PlayerNotInPool();
+            revert IChallengePoolCommon.PlayerNotInPool();
         }
-        IChallengePool.PlayerSupply storage playerOptionSupply = s
+        IChallengePoolHandler.PlayerSupply storage playerOptionSupply = s
             .playerOptionSupply[msg.sender][_challengeId][c.outcome];
         if (playerOptionSupply.withdrawn) {
-            revert IChallengePool.PlayerAlreadyWithdrawn();
+            revert IChallengePoolCommon.PlayerAlreadyWithdrawn();
         }
         if (playerOptionSupply.stakes == 0) {
-            revert IChallengePool.PlayerDidNotWinPool();
+            revert IChallengePoolCommon.PlayerDidNotWinPool();
         }
         playerOptionSupply.withdrawn = true;
         uint256 playerShare = _computeWinnerShare(
@@ -50,7 +51,7 @@ library LibPool {
         );
         uint256 totalAmount = playerShare + playerOptionSupply.tokens;
         LibTransfer._send(c.stakeToken, totalAmount, msg.sender);
-        emit IChallengePool.WinningsWithdrawn(
+        emit IChallengePoolHandler.WinningsWithdrawn(
             _challengeId,
             msg.sender,
             playerShare,
@@ -60,17 +61,17 @@ library LibPool {
 
     function _withdrawAfterCancelled(uint256 _challengeId) internal {
         CPStore storage s = CPStorage.load();
-        IChallengePool.Challenge storage c = s.challenges[_challengeId];
+        IChallengePoolHandler.Challenge storage c = s.challenges[_challengeId];
         if (s.playerSupply[msg.sender][_challengeId].stakes == 0) {
-            revert IChallengePool.PlayerNotInPool();
+            revert IChallengePoolCommon.PlayerNotInPool();
         }
         if (s.playerSupply[msg.sender][_challengeId].withdrawn) {
-            revert IChallengePool.PlayerAlreadyWithdrawn();
+            revert IChallengePoolCommon.PlayerAlreadyWithdrawn();
         }
         s.playerSupply[msg.sender][_challengeId].withdrawn = true;
         uint256 totalAmount = s.playerSupply[msg.sender][_challengeId].tokens;
         LibTransfer._send(c.stakeToken, totalAmount, msg.sender);
-        emit IChallengePool.WinningsWithdrawn(
+        emit IChallengePoolHandler.WinningsWithdrawn(
             _challengeId,
             msg.sender,
             0,
@@ -103,7 +104,7 @@ library LibPool {
 
     function _validateEvent(
         TRStore storage t,
-        IChallengePool.ChallengeEvent calldata _event
+        IChallengePoolHandler.ChallengeEvent calldata _event
     ) internal {
         IPoolResolver resolver = t.registry[_event.topicId].poolResolver;
         IDataProvider provider = t.registry[_event.topicId].dataProvider;
@@ -119,13 +120,13 @@ library LibPool {
         }
         bool validParam = abi.decode(result, (bool));
         if (!validParam) {
-            revert IChallengePool.InvalidEventParam();
+            revert IChallengePoolCommon.InvalidEventParam();
         }
     }
 
     function _resolveEvent(
         TRStore storage t,
-        IChallengePool.ChallengeEvent memory _event
+        IChallengePoolHandler.ChallengeEvent memory _event
     ) internal returns (bytes memory) {
         IPoolResolver resolver = t.registry[_event.topicId].poolResolver;
         IDataProvider provider = t.registry[_event.topicId].dataProvider;
@@ -144,7 +145,7 @@ library LibPool {
 
     function _validateOptions(
         TRStore storage t,
-        IChallengePool.ChallengeEvent calldata _event,
+        IChallengePoolHandler.ChallengeEvent calldata _event,
         bytes[] memory _options
     ) internal {
         IPoolResolver resolver = t.registry[_event.topicId].poolResolver;
@@ -163,16 +164,16 @@ library LibPool {
 
         bool validParam = abi.decode(result, (bool));
         if (!validParam) {
-            revert IChallengePool.InvalidEventParam();
+            revert IChallengePoolCommon.InvalidEventParam();
         }
     }
 
     function _poolState(
-        IChallengePool.Challenge storage _challenge
-    ) internal view returns (IChallengePool.ChallengeState) {
-        if (_challenge.state == IChallengePool.ChallengeState.open) {
+        IChallengePoolHandler.Challenge storage _challenge
+    ) internal view returns (IChallengePoolHandler.ChallengeState) {
+        if (_challenge.state == IChallengePoolCommon.ChallengeState.open) {
             if (block.timestamp >= _challenge.maturity) {
-                return IChallengePool.ChallengeState.matured;
+                return IChallengePoolCommon.ChallengeState.matured;
             }
         }
         return _challenge.state;
@@ -194,7 +195,7 @@ library LibPool {
         uint256 _challengeId,
         bytes calldata _option,
         uint256 _quantity,
-        IChallengePool.PoolAction _action
+        IChallengePoolHandler.PoolAction _action
     ) internal view returns (uint256) {
         return _simplePrice(_challengeId, _option, _quantity, _action);
     }
@@ -203,7 +204,7 @@ library LibPool {
         uint256 _challengeId,
         bytes calldata _option,
         uint256 _quantity,
-        IChallengePool.PoolAction _action
+        IChallengePoolHandler.PoolAction _action
     ) internal view returns (uint256) {
         CPStore storage s = CPStorage.load();
         return
@@ -221,7 +222,7 @@ library LibPool {
         uint256 _challengeId,
         bytes calldata /*_option*/,
         uint256 /*_quantity*/,
-        IChallengePool.PoolAction /*_action*/
+        IChallengePoolHandler.PoolAction /*_action*/
     ) internal view returns (uint256) {
         CPStore storage s = CPStorage.load();
         return LibPrice.simplePrice(s.challenges[_challengeId].basePrice);

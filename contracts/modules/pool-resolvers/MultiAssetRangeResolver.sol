@@ -6,7 +6,7 @@ import "./BaseResolver.sol";
 contract MultiAssetRangeResolver is BaseResolver {
     function validateEvent(
         IDataProvider dataProvider,
-        IChallengePool.ChallengeEvent calldata _event
+        IChallengePoolHandler.ChallengeEvent calldata _event
     ) external override returns (bool) {
         string memory assetSymbol = abi.decode(_event.params, (string));
         return
@@ -18,7 +18,7 @@ contract MultiAssetRangeResolver is BaseResolver {
 
     function resolveEvent(
         IDataProvider dataProvider,
-        IChallengePool.ChallengeEvent calldata _event,
+        IChallengePoolHandler.ChallengeEvent calldata _event,
         bytes[] calldata _options
     ) external override returns (bytes memory) {
         string memory assetSymbol = abi.decode(_event.params, (string));
@@ -40,7 +40,7 @@ contract MultiAssetRangeResolver is BaseResolver {
 
     function validateOptions(
         IDataProvider /*dataProvider*/,
-        IChallengePool.ChallengeEvent calldata /*_event*/,
+        IChallengePoolHandler.ChallengeEvent calldata /*_event*/,
         bytes[] calldata _options
     ) external pure override returns (bool) {
         if (_options.length == 0) {

@@ -1,10 +1,67 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.28;
+import "./IChallengePoolCommon.sol";
+abstract contract IChallengePoolHandler is IChallengePoolCommon {
+    
+    struct Supply {
+        uint256 stakes;
+        uint256 tokens;
+    }
+    struct OptionSupply {
+        bool exists;
+        uint256 stakes;
+        uint256 tokens;
+    }
+    struct PlayerSupply {
+        bool withdrawn;
+        uint256 stakes;
+        uint256 tokens;
+    }
 
-import "./IPaymaster.sol";
-import "./IChallengePool.sol";
+    event NewChallenge(
+        uint256 challengeId,
+        address creator,
+        uint256 createdAt,
+        uint256 maturity,
+        ChallengeState state,
+        bytes result,
+        uint256 basePrice,
+        uint256 fee,
+        uint256 totalStakes,
+        bytes prediction,
+        ChallengeEvent[] events,
+        bytes[] options,
+        address stakeToken,
+        address paymaster,
+        bool multi
+    );
+    event Stake(
+        uint256 challengeId,
+        address participant,
+        bytes option,
+        uint256 stakes,
+        uint256 amount,
+        uint256 fee
+    );
+    event WinningsWithdrawn(
+        uint256 challengeId,
+        address participant,
+        uint256 amountWon,
+        uint256 amountWithdrawn
+    );
+    event Withdraw(
+        uint256 challengeId,
+        address participant,
+        bytes option,
+        uint256 stakes,
+        uint256 amount,
+        uint256 fee
+    );
 
-abstract contract IChallengePoolHandler is IChallengePool {
+    enum PoolAction {
+        stake,
+        withdraw
+    }
     /**
      * @notice  .
      * @dev     create a new challenge

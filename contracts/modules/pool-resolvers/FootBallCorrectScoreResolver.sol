@@ -6,7 +6,7 @@ import "./BaseResolver.sol";
 contract FootBallCorrectScoreResolver is BaseResolver {
     function validateEvent(
         IDataProvider dataProvider,
-        IChallengePool.ChallengeEvent memory _event
+        IChallengePoolHandler.ChallengeEvent memory _event
     ) external override returns (bool) {
         (string memory matchId, , ) = abi.decode(
             _event.params,
@@ -17,7 +17,7 @@ contract FootBallCorrectScoreResolver is BaseResolver {
 
     function resolveEvent(
         IDataProvider dataProvider,
-        IChallengePool.ChallengeEvent memory _event,
+        IChallengePoolHandler.ChallengeEvent memory _event,
         bytes[] calldata /*_options*/
     ) external override returns (bytes memory) {
         (
@@ -40,7 +40,7 @@ contract FootBallCorrectScoreResolver is BaseResolver {
 
     function validateOptions(
         IDataProvider /*dataProvider*/,
-        IChallengePool.ChallengeEvent memory /*_event*/,
+        IChallengePoolHandler.ChallengeEvent memory /*_event*/,
         bytes[] calldata /*_options*/
     ) external pure override returns (bool) {
         revert NotImplemented();

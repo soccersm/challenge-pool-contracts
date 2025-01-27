@@ -7,6 +7,8 @@ import "../interfaces/IChallengePool.sol";
 
 import "../interfaces/IChallengePoolManager.sol";
 
+import "../interfaces/IChallengePoolDispute.sol";
+
 import "../interfaces/IDataProvider.sol";
 
 struct TRStore {
@@ -26,13 +28,13 @@ library TRStorage {
 }
 
 struct CPStore {
-    mapping(uint256 => IChallengePool.Challenge) challenges;
-    mapping(address => mapping(uint256 => mapping(bytes => IChallengePool.PlayerSupply))) playerOptionSupply; // player -> challengeId > option > supply
-    mapping(address => mapping(uint256 => IChallengePool.PlayerSupply)) playerSupply; // player -> challengeId > supply
-    mapping(uint256 => mapping(bytes => IChallengePool.OptionSupply)) optionSupply; // challengeId > option > supply
-    mapping(uint256 => IChallengePool.Supply) poolSupply; // challengeId -> supply
+    mapping(uint256 => IChallengePoolHandler.Challenge) challenges;
+    mapping(address => mapping(uint256 => mapping(bytes => IChallengePoolHandler.PlayerSupply))) playerOptionSupply; // player -> challengeId > option > supply
+    mapping(address => mapping(uint256 => IChallengePoolHandler.PlayerSupply)) playerSupply; // player -> challengeId > supply
+    mapping(uint256 => mapping(bytes => IChallengePoolHandler.OptionSupply)) optionSupply; // challengeId > option > supply
+    mapping(uint256 => IChallengePoolHandler.Supply) poolSupply; // challengeId -> supply
     mapping(address => IChallengePoolManager.StakeToken) stakeTokens;
-    mapping(uint256 => mapping(address => IChallengePool.Dispute)) playerDisputes; // challengeId -> disputer -> data dispute
+    mapping(uint256 => mapping(address => IChallengePoolDispute.Dispute)) playerDisputes; // challengeId -> disputer -> data dispute
     mapping(uint256 => mapping(bytes => uint256)) optionDisputes; // challengeId -> disputer -> stakes
     mapping(uint256 => uint256) poolDisputes; // challengeId -> stakes
     uint256 challengeId;

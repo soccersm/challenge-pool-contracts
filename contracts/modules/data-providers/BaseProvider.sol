@@ -7,7 +7,7 @@ import "../../utils/Helpers.sol";
 
 import "../../utils/Errors.sol";
 
-abstract contract BaseProvider is IDataProvider, Helpers {
+abstract contract BaseProvider is IDataProvider {
     enum ProvisionMode {
         create,
         update
@@ -19,9 +19,9 @@ abstract contract BaseProvider is IDataProvider, Helpers {
         bytes memory requestId
     ) internal view returns (bool) {
         DPStore storage d = DPStorage.load();
-        bool requestEmpty = compareBytes(
+        bool requestEmpty = HelpersLib.compareBytes(
             d.dataRequest[requestId].requested,
-            emptyBytes
+            HelpersLib.emptyBytes
         );
         bool isRegister = d.dataRequest[requestId].register;
         return !requestEmpty && !isRegister;
@@ -29,7 +29,11 @@ abstract contract BaseProvider is IDataProvider, Helpers {
 
     function dataExists(bytes memory requestId) internal view returns (bool) {
         DPStore storage d = DPStorage.load();
-        return !compareBytes(d.dataRequest[requestId].provided, emptyBytes);
+        return
+            !HelpersLib.compareBytes(
+                d.dataRequest[requestId].provided,
+                HelpersLib.emptyBytes
+            );
     }
 
     function registerExists(
@@ -68,7 +72,10 @@ abstract contract BaseProvider is IDataProvider, Helpers {
         return dataExists(_requestIdFromParams(_params));
     }
 
-    function _provideData(bytes calldata _params, ProvisionMode _mode) internal virtual;
+    function _provideData(
+        bytes calldata _params,
+        ProvisionMode _mode
+    ) internal virtual;
 
     function provideData(bytes calldata _params) external override {
         _provideData(_params, ProvisionMode.create);

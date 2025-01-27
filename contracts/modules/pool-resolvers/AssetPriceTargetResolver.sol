@@ -7,7 +7,7 @@ contract AssetPriceTargetResolver is BaseResolver {
 
     function validateEvent(
         IDataProvider dataProvider,
-        IChallengePool.ChallengeEvent calldata _event
+        IChallengePoolHandler.ChallengeEvent calldata _event
     ) external override returns (bool) {
         (
             string memory assetSymbol,
@@ -15,7 +15,7 @@ contract AssetPriceTargetResolver is BaseResolver {
             string memory outcome
         ) = abi.decode(_event.params, (string, uint256, string));
         if (
-            !compareStrings(outcome, ABOVE) && !compareStrings(outcome, BELOW)
+            !HelpersLib.compareStrings(outcome, ABOVE) && !HelpersLib.compareStrings(outcome, BELOW)
         ) {
             return false;
         }
@@ -31,7 +31,7 @@ contract AssetPriceTargetResolver is BaseResolver {
 
     function resolveEvent(
         IDataProvider dataProvider,
-        IChallengePool.ChallengeEvent calldata _event,
+        IChallengePoolHandler.ChallengeEvent calldata _event,
         bytes[] calldata /*_options*/
     ) external override returns (bytes memory) {
         (
@@ -43,11 +43,11 @@ contract AssetPriceTargetResolver is BaseResolver {
             _getData(dataProvider, abi.encode(assetSymbol, _event.maturity)),
             (uint256)
         );
-        if (compareStrings(outcome, ABOVE)) {
+        if (HelpersLib.compareStrings(outcome, ABOVE)) {
             if (actualPrice > predictedPrice) {
                 return yes;
             }
-        } else if (compareStrings(outcome, BELOW)) {
+        } else if (HelpersLib.compareStrings(outcome, BELOW)) {
             if (actualPrice < predictedPrice) {
                 return yes;
             }
@@ -59,7 +59,7 @@ contract AssetPriceTargetResolver is BaseResolver {
 
     function validateOptions(
         IDataProvider /*dataProvider*/,
-        IChallengePool.ChallengeEvent calldata /*_event*/,
+        IChallengePoolHandler.ChallengeEvent calldata /*_event*/,
         bytes[] calldata /*_options*/
     ) external pure override returns (bool) {
         revert NotImplemented();

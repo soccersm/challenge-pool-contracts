@@ -1,10 +1,13 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.28;
+import "./IChallengePoolCommon.sol";
 
-import "./IPaymaster.sol";
-import "./IChallengePool.sol";
-
-abstract contract IChallengePoolDispute is IChallengePool {
+abstract contract IChallengePoolDispute is  IChallengePoolCommon {
+    struct Dispute {
+        bytes dispute;
+        uint256 stake;
+        bool released;
+    }
     event DisputeOutcome(
         uint256 challengeId,
         address disputor,
@@ -31,6 +34,17 @@ abstract contract IChallengePoolDispute is IChallengePool {
         address closer,
         ChallengeState state,
         bytes result
+    );
+    event EvaluateChallenge(
+        uint256 challengeId,
+        address evaluator,
+        ChallengeState state,
+        bytes result
+    );
+    event CancelChallenge(
+        uint256 challengeId,
+        address canceller,
+        ChallengeState state
     );
 
     /**

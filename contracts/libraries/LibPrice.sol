@@ -14,16 +14,6 @@ library LibPrice {
         IChallengePool.PoolAction _action
     ) internal pure returns (uint256) {}
 
-    // @dev computes fraction of [value] in [bps]
-    // 100 bps is equivalent to 1%
-    function basisPoint(
-        uint256 value,
-        uint256 bps
-    ) internal pure returns (uint256) {
-        require((value * bps) >= 10_000);
-        return Math.mulDiv(value, bps, 10_000);
-    }
-
     function simplePrice(
         uint256 _basePrice
     ) internal pure returns (uint256) {

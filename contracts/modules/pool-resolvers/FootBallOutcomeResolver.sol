@@ -19,19 +19,19 @@ contract FootBallOutcomeResolver is BaseResolver {
 
     function validateEvent(
         IDataProvider dataProvider,
-        IChallengePool.ChallengeEvent memory _event
+        IChallengePoolHandler.ChallengeEvent memory _event
     ) external override returns (bool) {
         (string memory matchId, string memory outcome) = abi.decode(
             _event.params,
             (string, string)
         );
         if (
-            !compareStrings(outcome, HOME) &&
-            !compareStrings(outcome, AWAY) &&
-            !compareStrings(outcome, DRAW) &&
-            !compareStrings(outcome, HOME_DRAW) &&
-            !compareStrings(outcome, AWAY_DRAW) &&
-            !compareStrings(outcome, HOME_AWAY)
+            !HelpersLib.compareStrings(outcome, HOME) &&
+            !HelpersLib.compareStrings(outcome, AWAY) &&
+            !HelpersLib.compareStrings(outcome, DRAW) &&
+            !HelpersLib.compareStrings(outcome, HOME_DRAW) &&
+            !HelpersLib.compareStrings(outcome, AWAY_DRAW) &&
+            !HelpersLib.compareStrings(outcome, HOME_AWAY)
         ) {
             return false;
         }
@@ -40,7 +40,7 @@ contract FootBallOutcomeResolver is BaseResolver {
 
     function resolveEvent(
         IDataProvider dataProvider,
-        IChallengePool.ChallengeEvent memory _event,
+        IChallengePoolHandler.ChallengeEvent memory _event,
         bytes[] calldata /*_options*/
     ) external override returns (bytes memory) {
         (string memory matchId, string memory outcome) = abi.decode(
@@ -52,37 +52,37 @@ contract FootBallOutcomeResolver is BaseResolver {
             (uint256, uint256)
         );
         string memory result = _scoreToOutcome(homeScore, awayScore);
-        if (compareStrings(outcome, HOME)) {
-            if (compareStrings(HOME, result)) {
+        if (HelpersLib.compareStrings(outcome, HOME)) {
+            if (HelpersLib.compareStrings(HOME, result)) {
                 return yes;
             }
-        } else if (compareStrings(outcome, AWAY)) {
-            if (compareStrings(AWAY, result)) {
+        } else if (HelpersLib.compareStrings(outcome, AWAY)) {
+            if (HelpersLib.compareStrings(AWAY, result)) {
                 return yes;
             }
-        } else if (compareStrings(outcome, DRAW)) {
-            if (compareStrings(DRAW, result)) {
+        } else if (HelpersLib.compareStrings(outcome, DRAW)) {
+            if (HelpersLib.compareStrings(DRAW, result)) {
                 return yes;
             }
-        } else if (compareStrings(outcome, HOME_DRAW)) {
-            if (compareStrings(HOME, result)) {
+        } else if (HelpersLib.compareStrings(outcome, HOME_DRAW)) {
+            if (HelpersLib.compareStrings(HOME, result)) {
                 return yes;
             }
-            if (compareStrings(DRAW, result)) {
+            if (HelpersLib.compareStrings(DRAW, result)) {
                 return yes;
             }
-        } else if (compareStrings(outcome, AWAY_DRAW)) {
-            if (compareStrings(AWAY, result)) {
+        } else if (HelpersLib.compareStrings(outcome, AWAY_DRAW)) {
+            if (HelpersLib.compareStrings(AWAY, result)) {
                 return yes;
             }
-            if (compareStrings(DRAW, result)) {
+            if (HelpersLib.compareStrings(DRAW, result)) {
                 return yes;
             }
-        } else if (compareStrings(outcome, HOME_AWAY)) {
-            if (compareStrings(HOME, result)) {
+        } else if (HelpersLib.compareStrings(outcome, HOME_AWAY)) {
+            if (HelpersLib.compareStrings(HOME, result)) {
                 return yes;
             }
-            if (compareStrings(AWAY, result)) {
+            if (HelpersLib.compareStrings(AWAY, result)) {
                 return yes;
             }
         } else {
@@ -93,7 +93,7 @@ contract FootBallOutcomeResolver is BaseResolver {
 
     function validateOptions(
         IDataProvider /*dataProvider*/,
-        IChallengePool.ChallengeEvent memory /*_event*/,
+        IChallengePoolHandler.ChallengeEvent memory /*_event*/,
         bytes[] calldata /*_options*/
     ) external pure override returns (bool) {
         revert NotImplemented();

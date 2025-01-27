@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.28;
-import "./IChallengePool.sol";
+import "./IChallengePoolHandler.sol";
 
 import "./IDataProvider.sol";
 interface IPoolResolver {
@@ -11,7 +11,7 @@ interface IPoolResolver {
      */
     function resolveEvent(
         IDataProvider dataProvider,
-        IChallengePool.ChallengeEvent calldata _event,
+        IChallengePoolHandler.ChallengeEvent calldata _event,
         bytes[] calldata _options
     )
         external
@@ -25,7 +25,7 @@ interface IPoolResolver {
      */
     function validateEvent(
         IDataProvider dataProvider,
-        IChallengePool.ChallengeEvent calldata _event
+        IChallengePoolHandler.ChallengeEvent calldata _event
     ) external returns (bool);
 
     /**
@@ -36,7 +36,7 @@ interface IPoolResolver {
      */
     function validateOptions(
         IDataProvider dataProvider,
-        IChallengePool.ChallengeEvent calldata _event,
+        IChallengePoolHandler.ChallengeEvent calldata _event,
         bytes[] calldata _options
     ) external returns (bool);
 }

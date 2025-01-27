@@ -18,6 +18,43 @@ import "./TopicRegistry.sol";
 import "../diamond/interfaces/SoccersmRoles.sol";
 
 contract ChallengePoolDispute is IChallengePoolDispute, SoccersmRoles, Helpers {
+    modifier validChallenge(uint256 _challengeId) {
+        if (_challengeId >= CPStorage.load().challengeId) {
+            revert InvalidChallenge();
+        }
+        _;
+    }
+
+    modifier poolInState(uint256 _challengeId, ChallengeState _state) {
+        ChallengeState currentState = LibPool._poolState(
+            CPStorage.load().challenges[_challengeId]
+        );
+        if (currentState != _state) {
+            revert ActionNotAllowedForState(currentState);
+        }
+        _;
+    }
+
+    modifier validStake(uint256 _stake) {
+        if (_stake < CPStorage.load().minStakeAmount) {
+            revert StakeLowerThanMinimum();
+        }
+        _;
+    }
+
+    modifier validPrediction(bytes memory _prediction) {
+        if (HelpersLib.compareBytes(_prediction, HelpersLib.emptyBytes)) {
+            revert InvalidPrediction();
+        }
+        _;
+    }
+
+    modifier supportedToken(address _token) {
+        if (!CPStorage.load().stakeTokens[_token].active) {
+            revert UnsupportedToken(_token);
+        }
+        _;
+    }
     function evaluate(
         uint256 _challengeId
     )
@@ -29,7 +66,7 @@ contract ChallengePoolDispute is IChallengePoolDispute, SoccersmRoles, Helpers {
         TRStore storage t = TRStorage.load();
         CPStore storage s = CPStorage.load();
         Challenge storage c = s.challenges[_challengeId];
-        if (compareBytes(emptyBytes, c.outcome)) {
+        if (HelpersLib.compareBytes(emptyBytes, c.outcome)) {
             revert InvalidOutcome();
         }
         c.state = ChallengeState.closed;
@@ -49,7 +86,12 @@ contract ChallengePoolDispute is IChallengePoolDispute, SoccersmRoles, Helpers {
                 ) {
                     revert InvalidEventMaturity();
                 }
-                if (compareBytes(no, LibPool._resolveEvent(t, c.events[i]))) {
+                if (
+                    HelpersLib.compareBytes(
+                        no,
+                        LibPool._resolveEvent(t, c.events[i])
+                    )
+                ) {
                     allCorrect = false;
                 }
             }
@@ -97,7 +139,7 @@ contract ChallengePoolDispute is IChallengePoolDispute, SoccersmRoles, Helpers {
         ) {
             revert ActionNotAllowedForState(c.state);
         }
-        if (compareBytes(emptyBytes, c.outcome)) {
+        if (HelpersLib.compareBytes(emptyBytes, c.outcome)) {
             revert InvalidOutcome();
         }
         c.state = ChallengeState.closed;
@@ -118,7 +160,7 @@ contract ChallengePoolDispute is IChallengePoolDispute, SoccersmRoles, Helpers {
         validChallenge(_challengeId)
         poolInState(_challengeId, ChallengeState.evaluated)
     {
-        if (compareBytes(emptyBytes, _outcome)) {
+        if (HelpersLib.compareBytes(emptyBytes, _outcome)) {
             revert InvalidOutcome();
         }
         CPStore storage s = CPStorage.load();
@@ -194,7 +236,7 @@ contract ChallengePoolDispute is IChallengePoolDispute, SoccersmRoles, Helpers {
         validChallenge(_challengeId)
         poolInState(_challengeId, ChallengeState.disputed)
     {
-        if (compareBytes(emptyBytes, _outcome)) {
+        if (HelpersLib.compareBytes(emptyBytes, _outcome)) {
             revert InvalidOutcome();
         }
         CPStore storage s = CPStorage.load();

@@ -5,7 +5,7 @@ import "./BaseResolver.sol";
 contract AssetPriceBoundedResolver is BaseResolver {
     function validateEvent(
         IDataProvider dataProvider,
-        IChallengePool.ChallengeEvent calldata _event
+        IChallengePoolHandler.ChallengeEvent calldata _event
     ) external override returns (bool) {
         (
             string memory assetSymbol,
@@ -13,7 +13,7 @@ contract AssetPriceBoundedResolver is BaseResolver {
             uint256 priceUpperBound,
             string memory outcome
         ) = abi.decode(_event.params, (string, uint256, uint256, string));
-        if (!compareStrings(outcome, IN) && !compareStrings(outcome, OUT)) {
+        if (!HelpersLib.compareStrings(outcome, IN) && !HelpersLib.compareStrings(outcome, OUT)) {
             return false;
         }
         if (priceLowerBound >= priceUpperBound) {
@@ -28,7 +28,7 @@ contract AssetPriceBoundedResolver is BaseResolver {
 
     function resolveEvent(
         IDataProvider dataProvider,
-        IChallengePool.ChallengeEvent calldata _event,
+        IChallengePoolHandler.ChallengeEvent calldata _event,
         bytes[] calldata /*_options*/
     ) external override returns (bytes memory) {
         (
@@ -41,13 +41,13 @@ contract AssetPriceBoundedResolver is BaseResolver {
             _getData(dataProvider, abi.encode(assetSymbol, _event.maturity)),
             (uint256)
         );
-        if (compareStrings(outcome, IN)) {
+        if (HelpersLib.compareStrings(outcome, IN)) {
             if (
                 assetPrice >= priceLowerBound && assetPrice <= priceUpperBound
             ) {
                 return yes;
             }
-        } else if (compareStrings(outcome, OUT)) {
+        } else if (HelpersLib.compareStrings(outcome, OUT)) {
             if (assetPrice < priceLowerBound || assetPrice > priceUpperBound) {
                 return yes;
             }
@@ -59,7 +59,7 @@ contract AssetPriceBoundedResolver is BaseResolver {
 
     function validateOptions(
         IDataProvider /*dataProvider*/,
-        IChallengePool.ChallengeEvent calldata /*_event*/,
+        IChallengePoolHandler.ChallengeEvent calldata /*_event*/,
         bytes[] calldata /*_options*/
     ) external pure override returns (bool) {
         revert NotImplemented();

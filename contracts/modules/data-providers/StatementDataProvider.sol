@@ -29,7 +29,7 @@ contract StatementDataProvider is BaseProvider {
 
         DPStore storage d = DPStorage.load();
 
-        d.dataRequest[requestId] = DataRequest(_params, emptyBytes, false);
+        d.dataRequest[requestId] = DataRequest(_params, HelpersLib.emptyBytes, false);
 
         emit DataRequested(msg.sender, namespace(), requestId, _params);
         return true;
@@ -90,7 +90,7 @@ contract StatementDataProvider is BaseProvider {
 
         DPStore storage d = DPStorage.load();
 
-        d.dataRequest[requestId] = DataRequest(_params, emptyBytes, true);
+        d.dataRequest[requestId] = DataRequest(_params, HelpersLib.emptyBytes, true);
 
         for (uint256 i = 0; i < options.length; i++) {
             d.requestOptions[requestId][options[i]] = true;
