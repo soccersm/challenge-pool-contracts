@@ -116,5 +116,15 @@ describe("ChallengePool - Withdraw And Fees", function () {
           earlyWithdrawParams._minPrice,
           earlyWithdrawParams._deadline
         )).to.be.reverted;
+
+        //revert for invalid prediction
+        const invalidPrediction = ethers.AbiCoder.defaultAbiCoder().encode(["string"], ["invalid"])
+        await expect((poolHandlerProxy.connect(baller) as any).earlyWithdraw(
+          earlyWithdrawParams._challengeId,
+          invalidPrediction,
+          earlyWithdrawParams._quantity,
+          earlyWithdrawParams._minPrice,
+          earlyWithdrawParams._deadline
+        )).to.be.reverted;
     });
 })
