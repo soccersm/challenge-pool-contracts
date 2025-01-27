@@ -67,10 +67,14 @@ const IgniteTestModule = buildModule("IgniteTestModule", (m) => {
   const cpd = m.contract("ChallengePoolDispute");
   const cpdC = [cpd, FacetCutAction.Add, cpdS];
 
+  const cpvS = functionSelectors("ChallengePoolView");
+  const cpv = m.contract("ChallengePoolView");
+  const cpvC = [cpv, FacetCutAction.Add, cpvS];
+
   m.call(
     cutProxy,
     "diamondCut",
-    [[trC, cphC, cpdC, cpmC], cpiInit.contract, cpiInit.selector],
+    [[trC, cphC, cpdC, cpmC, cpvC], cpiInit.contract, cpiInit.selector],
     { id: "ChallengePoolDiamondCut" }
   );
 
@@ -88,6 +92,10 @@ const IgniteTestModule = buildModule("IgniteTestModule", (m) => {
 
   const poolManagerProxy = m.contractAt("ChallengePoolManager", soccersm, {
     id: "SoccersmChallengePoolManager",
+  });
+
+  const poolViewProxy = m.contractAt("ChallengePoolView", soccersm, {
+    id: "SoccersmChallengePoolView",
   });
 
   const assetPriceBoundedResolver = m.contract("AssetPriceBoundedResolver");
@@ -162,10 +170,11 @@ const IgniteTestModule = buildModule("IgniteTestModule", (m) => {
     cutProxy,
     acProxy,
     registryProxy,
+    poolViewProxy,
     poolHandlerProxy,
     poolDisputeProxy,
     poolManagerProxy,
-    paymaster
+    paymaster,
   };
 });
 

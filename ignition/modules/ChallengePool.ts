@@ -71,8 +71,17 @@ const ChallengePoolModule = buildModule("ChallengePoolModule", (m) => {
     }
   );
 
+  const poolViewProxy = m.contractAt(
+    "ChallengePoolView",
+    soccersm.soccersm,
+    {
+      id: "SoccersmChallengePoolView",
+    }
+  );
+
   return {
     registryProxy,
+    poolViewProxy,
     poolHandlerProxy,
     poolDisputeProxy,
     poolManagerProxy,
