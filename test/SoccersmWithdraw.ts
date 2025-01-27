@@ -148,7 +148,7 @@ describe("ChallengePool - Withdraw And Fees", function () {
         )).to.be.reverted;
 
         //revert for invalid minimum price
-        const invalidMinPrice = 0n
+        const invalidMinPrice = 0n;
         await expect((poolHandlerProxy.connect(baller) as any).earlyWithdraw(
           earlyWithdrawParams._challengeId,
           earlyWithdrawParams._prediction,
@@ -156,5 +156,11 @@ describe("ChallengePool - Withdraw And Fees", function () {
           invalidMinPrice,
           earlyWithdrawParams._deadline
         )).to.be.reverted;
+
+       //Reverts for withdraw
+       const _challengeId = 0n;
+        await expect((poolHandlerProxy.connect(baller) as any).withdraw(
+          _challengeId
+        )).to.not.be.reverted;
     });
 })
