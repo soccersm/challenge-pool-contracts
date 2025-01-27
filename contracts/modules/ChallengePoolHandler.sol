@@ -181,9 +181,9 @@ contract ChallengePoolHandler is IChallengePoolHandler, SoccersmRoles, Helpers {
         if (currentPrice > _maxPrice) {
             revert MaxPriceExceeded();
         }
-        if (!s.optionSupply[_challengeId][_prediction].exists) {
-            revert InvalidPrediction();
-        }
+        // if (!s.optionSupply[_challengeId][_prediction].exists) {
+        //     revert InvalidPrediction();
+        // }
         uint256 totalAmount = currentPrice * _quantity;
         uint256 fee = LibPool._computeStakeFee(currentPrice);
         PlayerSupply storage playerOptionSupply = s.playerOptionSupply[
@@ -242,9 +242,9 @@ contract ChallengePoolHandler is IChallengePoolHandler, SoccersmRoles, Helpers {
         if (currentPrice < _minPrice) {
             revert BelowMinPrie();
         }
-        if (!s.optionSupply[_challengeId][_prediction].exists) {
-            revert InvalidPrediction();
-        }
+        // if (!s.optionSupply[_challengeId][_prediction].exists) {
+        //     revert InvalidPrediction();
+        // }
         uint256 totalAmount = currentPrice * _quantity;
         uint256 fee = LibPool._computeEarlyWithdrawFee(currentPrice);
         PlayerSupply storage playerOptionSupply = s.playerOptionSupply[

@@ -5,6 +5,33 @@ import "./IPaymaster.sol";
 import "./IChallengePool.sol";
 
 abstract contract IChallengePoolDispute is IChallengePool {
+    event DisputeOutcome(
+        uint256 challengeId,
+        address disputor,
+        ChallengeState state,
+        bytes result,
+        uint256 amount
+    );
+    event DisputeReleased(
+        uint256 challengeId,
+        address disputor,
+        ChallengeState state,
+        bytes result,
+        uint256 amount
+    );
+    event SettleDispute(
+        uint256 challengeId,
+        address disputor,
+        ChallengeState state,
+        bytes result,
+        uint256 amount
+    );
+    event CloseChallenge(
+        uint256 challengeId,
+        address closer,
+        ChallengeState state,
+        bytes result
+    );
 
     /**
      * @notice  .
@@ -18,7 +45,10 @@ abstract contract IChallengePoolDispute is IChallengePool {
      * @param   _challengeId  .
      * @param   _outcome  their suggested outcome.
      */
-    function dispute(uint256 _challengeId, bytes calldata _outcome) external virtual;
+    function dispute(
+        uint256 _challengeId,
+        bytes calldata _outcome
+    ) external virtual;
     function releaseDispute(uint256 _challengeId) external virtual;
     /**
      * @notice  .
@@ -26,7 +56,10 @@ abstract contract IChallengePoolDispute is IChallengePool {
      * @param   _challengeId  .
      * @param   _outcome  decoded and applied based on the event topic type.
      */
-    function settle(uint256 _challengeId, bytes calldata _outcome) external virtual;
+    function settle(
+        uint256 _challengeId,
+        bytes calldata _outcome
+    ) external virtual;
     /**
      * @notice  .
      * @dev     cancel pool for some reason

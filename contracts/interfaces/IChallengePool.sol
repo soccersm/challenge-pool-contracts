@@ -114,39 +114,14 @@ abstract contract IChallengePool {
         address paymaster
         // bool multi
     );
-    event CloseChallenge(
-        uint256 challengeId,
-        address closer,
-        ChallengeState state,
-        bytes result
-    );
+    
     event EvaluateChallenge(
         uint256 challengeId,
         address evaluator,
         ChallengeState state,
         bytes result
     );
-    event DisputeOutcome(
-        uint256 challengeId,
-        address disputor,
-        ChallengeState state,
-        bytes result,
-        uint256 amount
-    );
-    event DisputeReleased(
-        uint256 challengeId,
-        address disputor,
-        ChallengeState state,
-        bytes result,
-        uint256 amount
-    );
-    event SettleDispute(
-        uint256 challengeId,
-        address disputor,
-        ChallengeState state,
-        bytes result,
-        uint256 amount
-    );
+    
     event CancelChallenge(
         uint256 challengeId,
         address canceller,

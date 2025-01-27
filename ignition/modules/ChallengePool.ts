@@ -32,10 +32,14 @@ const ChallengePoolModule = buildModule("ChallengePoolModule", (m) => {
   const cpd = m.contract("ChallengePoolDispute");
   const cpdC = [cpd, FacetCutAction.Add, cpdS];
 
+  const cpvS = functionSelectors("ChallengePoolView");
+  const cpv = m.contract("ChallengePoolView");
+  const cpvC = [cpv, FacetCutAction.Add, cpvS];
+
   m.call(
     soccersm.cutProxy,
     "diamondCut",
-    [[trC, cphC, cpdC, cpmC], cpiInit.contract, cpiInit.selector],
+    [[trC, cphC, cpdC, cpmC, cpvC], cpiInit.contract, cpiInit.selector],
     { id: "ChallengePoolDiamondCut" }
   );
 
