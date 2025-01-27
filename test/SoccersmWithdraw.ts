@@ -107,5 +107,14 @@ describe("ChallengePool - Withdraw And Fees", function () {
           earlyWithdrawParams._deadline
         )).to.not.be.reverted;
 
+        //Reverts: earlyWithdraw
+        //revert invalid challengeId
+        await expect((poolHandlerProxy.connect(baller) as any).earlyWithdraw(
+          1,
+          earlyWithdrawParams._prediction,
+          earlyWithdrawParams._quantity,
+          earlyWithdrawParams._minPrice,
+          earlyWithdrawParams._deadline
+        )).to.be.reverted;
     });
 })
