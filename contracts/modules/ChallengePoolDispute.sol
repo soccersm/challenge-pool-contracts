@@ -11,50 +11,20 @@ import "../libraries/LibTransfer.sol";
 import "../libraries/LibPool.sol";
 
 import "../utils/Helpers.sol";
+
+import "../utils/ChallengePoolHelpers.sol";
 import "../utils/Errors.sol";
 
 import "./TopicRegistry.sol";
 
 import "../diamond/interfaces/SoccersmRoles.sol";
 
-contract ChallengePoolDispute is IChallengePoolDispute, SoccersmRoles, Helpers {
-    modifier validChallenge(uint256 _challengeId) {
-        if (_challengeId >= CPStorage.load().challengeId) {
-            revert InvalidChallenge();
-        }
-        _;
-    }
-
-    modifier poolInState(uint256 _challengeId, ChallengeState _state) {
-        ChallengeState currentState = LibPool._poolState(
-            CPStorage.load().challenges[_challengeId]
-        );
-        if (currentState != _state) {
-            revert ActionNotAllowedForState(currentState);
-        }
-        _;
-    }
-
-    modifier validStake(uint256 _stake) {
-        if (_stake < CPStorage.load().minStakeAmount) {
-            revert StakeLowerThanMinimum();
-        }
-        _;
-    }
-
-    modifier validPrediction(bytes memory _prediction) {
-        if (HelpersLib.compareBytes(_prediction, HelpersLib.emptyBytes)) {
-            revert InvalidPrediction();
-        }
-        _;
-    }
-
-    modifier supportedToken(address _token) {
-        if (!CPStorage.load().stakeTokens[_token].active) {
-            revert UnsupportedToken(_token);
-        }
-        _;
-    }
+contract ChallengePoolDispute is
+    IChallengePoolDispute,
+    SoccersmRoles,
+    Helpers,
+    ChallengePoolHelpers
+{
     function evaluate(
         uint256 _challengeId
     )

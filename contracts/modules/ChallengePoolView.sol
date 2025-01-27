@@ -14,10 +14,15 @@ contract ChallengePoolView is IChallengePoolView {
     }
 
     function playerOptionSupply(
-        address _player,
         uint256 _challengeId,
+        address _player,
         bytes calldata _option
-    ) external view override returns (IChallengePoolHandler.PlayerSupply memory) {
+    )
+        external
+        view
+        override
+        returns (IChallengePoolHandler.PlayerSupply memory)
+    {
         return
             CPStorage.load().playerOptionSupply[_player][_challengeId][_option];
     }
@@ -25,14 +30,24 @@ contract ChallengePoolView is IChallengePoolView {
     function playerSupply(
         uint256 _challengeId,
         address _player
-    ) external view override returns (IChallengePoolHandler.PlayerSupply memory) {
+    )
+        external
+        view
+        override
+        returns (IChallengePoolHandler.PlayerSupply memory)
+    {
         return CPStorage.load().playerSupply[_player][_challengeId];
     }
 
     function optionSupply(
         uint256 _challengeId,
         bytes calldata _option
-    ) external view override returns (IChallengePoolHandler.OptionSupply memory) {
+    )
+        external
+        view
+        override
+        returns (IChallengePoolHandler.OptionSupply memory)
+    {
         return CPStorage.load().optionSupply[_challengeId][_option];
     }
 

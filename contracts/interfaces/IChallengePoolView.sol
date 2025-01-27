@@ -8,8 +8,8 @@ interface IChallengePoolView {
     ) external view returns (IChallengePoolHandler.Challenge memory);
 
     function playerOptionSupply(
-        address _player,
         uint256 _challengeId,
+        address _player,
         bytes calldata _option
     ) external view returns (IChallengePoolHandler.PlayerSupply memory);
     function playerSupply(
