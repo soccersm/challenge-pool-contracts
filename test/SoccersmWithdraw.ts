@@ -127,7 +127,7 @@ describe("ChallengePool - Withdraw And Fees", function () {
           earlyWithdrawParams._deadline
         )).to.be.reverted;
 
-        //revert for quantity
+        //revert for invalid quantity
         const invalidQuantity = 0n;
          await expect((poolHandlerProxy.connect(baller) as any).earlyWithdraw(
           earlyWithdrawParams._challengeId,
@@ -135,6 +135,16 @@ describe("ChallengePool - Withdraw And Fees", function () {
           invalidQuantity,
           earlyWithdrawParams._minPrice,
           earlyWithdrawParams._deadline
+        )).to.be.reverted;
+
+        //revert for invalid deadline
+        const invalidDeadline = await time.latest() - 1000;
+        await expect((poolHandlerProxy.connect(baller) as any).earlyWithdraw(
+          earlyWithdrawParams._challengeId,
+          earlyWithdrawParams._prediction,
+          earlyWithdrawParams._quantity,
+          earlyWithdrawParams._minPrice,
+          invalidDeadline
         )).to.be.reverted;
     });
 })
