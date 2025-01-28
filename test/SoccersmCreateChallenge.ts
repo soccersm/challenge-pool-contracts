@@ -35,6 +35,7 @@ describe("ChallengePool - Create Challenge", function () {
             poolManagerProxy,
             keeper,
             paymaster,
+            owner
           } = await loadFixture(deploySoccersm);
 
           const btcChallenge = btcEvent(
@@ -98,7 +99,7 @@ describe("ChallengePool - Create Challenge", function () {
           await (poolHandlerProxy.connect(baller) as any).createChallenge(
             ...(preparedETHChallenge as any)
           );
-    
+          
           const multiCorrectScoreChallenge = multiCorrectScore(
             await ballsToken.getAddress(),
             1,
@@ -374,7 +375,7 @@ describe("ChallengePool - Create Challenge", function () {
           await expect((poolHandlerProxy.connect(baller) as any).createChallenge(
             ...(preparedBTCChallenge__zeroEventLength as any)
           )).to.be.revertedWithCustomError(poolHandlerProxy, "InvalidEventLength");
-
+          
           //Revert for multi options: InvalidOptionsLength: options > 2
           const ethPriceRangeChallenge__invalidOptionsLength = ethPriceRange(
             await ballsToken.getAddress(),
@@ -425,34 +426,19 @@ describe("ChallengePool - Create Challenge", function () {
             ...(preparedETHChallenge__invalidMaturity as any)
           )).to.be.reverted;
 
-          // Revert on invalid topicId: TYPE ERROR
-        //   const ethPriceRangeChallenge__invalidTopicId = ethPriceRange(
-        //     await ballsToken.getAddress(),
-        //     1,
-        //     oneGrand,
-        //     ethers.ZeroAddress
-        //   );
-        //     ethPriceRangeChallenge__invalidTopicId.challenge.events[0].topicId = "InvalidTopicId" as any;
+          // createChallenge Fees Tests
+          //BTCchallenge: createFee
 
-        //     console.log("ETH Challenge - TopicID: ", ethPriceRangeChallenge__invalidTopicId.challenge.events[0]);
+          //poolSupply = playerSupply  
+          const btcChallengeId = 0;
+          const btcPoolSupply = await poolViewProxy.poolSupply(btcChallengeId);
+          const btcPlayerSupply = await poolViewProxy.playerSupply(btcChallengeId, await baller.getAddress());
+          expect(btcPoolSupply[1]).to.be.equal(btcPlayerSupply[2]);
 
-        //     //!throws error on prepareCreateChallenge
-        //     const preparedETHChallenge__invalidTopicId = prepareCreateChallenge(
-        //     ethPriceRangeChallenge__invalidTopicId.challenge
-        //   );
-
-        //   await ballsToken
-        //     .connect(baller)
-        //     .approve(
-        //       await poolHandlerProxy.getAddress(),
-        //       (
-        //         await poolViewProxy.createFee(oneGrand)
-        //       )[1]
-        //     );
-        //     //revert on invalid topic id
-        //   await expect((poolHandlerProxy.connect(baller) as any).createChallenge(
-        //     ...(preparedETHChallenge__invalidTopicId as any)
-        //   )).to.be.reverted;
+          //total amount = basePrice + fee
+          const fee = await poolViewProxy.createFee(oneGrand);
+          const btcBasePrice = await poolViewProxy.price(btcChallengeId);
+          expect(fee[1]).to.equal(btcBasePrice + fee[0])
 
         }); 
 })
