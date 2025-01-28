@@ -45,4 +45,16 @@ library LibTransfer {
             revert ProtocolInvariantCheckFailed();
         }
     }
+
+    function _depositOrPaymaster(
+        address _paymaster,
+        address _token,
+        uint256 _amount
+    ) internal {
+        if (_paymaster == address(0)) {
+            _receive(_token, _amount);
+        } else {
+            _depositFromPaymaster(_paymaster, _token, _amount);
+        }
+    }
 }

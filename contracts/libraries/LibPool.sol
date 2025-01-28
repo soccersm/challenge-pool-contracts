@@ -11,77 +11,6 @@ import "./LibPrice.sol";
 import "../utils/Helpers.sol";
 
 library LibPool {
-    function _recordFee(address _token, uint256 _fee) internal {
-        CPStorage.load().stakeTokens[_token].accumulatedFee += _fee;
-    }
-
-    function _withdrawWinnigs(uint256 _challengeId) internal {
-        CPStore storage s = CPStorage.load();
-        IChallengePoolHandler.Challenge storage c = s.challenges[_challengeId];
-        if (HelpersLib.compareBytes(HelpersLib.emptyBytes, c.outcome)) {
-            revert IChallengePoolCommon.InvalidOutcome();
-        }
-        if (s.playerSupply[_challengeId][msg.sender].stakes == 0) {
-            revert IChallengePoolCommon.PlayerNotInPool();
-        }
-        IChallengePoolHandler.PlayerSupply storage playerOptionSupply = s
-            .playerOptionSupply[_challengeId][msg.sender][c.outcome];
-        if (playerOptionSupply.withdrawn) {
-            revert IChallengePoolCommon.PlayerAlreadyWithdrawn();
-        }
-        if (playerOptionSupply.stakes == 0) {
-            revert IChallengePoolCommon.PlayerDidNotWinPool();
-        }
-        playerOptionSupply.withdrawn = true;
-        uint256 playerShare = LibPrice._computeWinnerShare(
-            _challengeId,
-            playerOptionSupply.stakes
-        );
-        uint256 totalAmount = playerShare + playerOptionSupply.tokens;
-        LibTransfer._send(c.stakeToken, totalAmount, msg.sender);
-        emit IChallengePoolHandler.WinningsWithdrawn(
-            _challengeId,
-            msg.sender,
-            playerShare,
-            totalAmount
-        );
-    }
-
-    function _withdrawAfterCancelled(uint256 _challengeId) internal {
-        CPStore storage s = CPStorage.load();
-        IChallengePoolHandler.Challenge storage c = s.challenges[_challengeId];
-        if (s.playerSupply[_challengeId][msg.sender].stakes == 0) {
-            revert IChallengePoolCommon.PlayerNotInPool();
-        }
-        if (s.playerSupply[_challengeId][msg.sender].withdrawn) {
-            revert IChallengePoolCommon.PlayerAlreadyWithdrawn();
-        }
-        s.playerSupply[_challengeId][msg.sender].withdrawn = true;
-        uint256 totalAmount = s.playerSupply[_challengeId][msg.sender].tokens;
-        LibTransfer._send(c.stakeToken, totalAmount, msg.sender);
-        emit IChallengePoolHandler.WinningsWithdrawn(
-            _challengeId,
-            msg.sender,
-            0,
-            totalAmount
-        );
-    }
-
-    function _withdraw(uint256 _challengeId) internal {
-        IChallengePoolCommon.ChallengeState state = CPStorage
-            .load()
-            .challenges[_challengeId]
-            .state;
-
-        if (state == IChallengePoolCommon.ChallengeState.closed) {
-            _withdrawWinnigs(_challengeId);
-        } else if (state == IChallengePoolCommon.ChallengeState.cancelled) {
-            _withdrawAfterCancelled(_challengeId);
-        } else {
-            revert IChallengePoolCommon.ActionNotAllowedForState(state);
-        }
-    }
-
     function _initPool(
         CPStore storage s,
         address _stakeToken,
@@ -260,15 +189,74 @@ library LibPool {
         return _challenge.state;
     }
 
-    function _depositOrPaymaster(
-        address _paymaster,
-        address _token,
-        uint256 _amount
-    ) internal {
-        if (_paymaster == address(0)) {
-            LibTransfer._receive(_token, _amount);
+    function _recordFee(address _token, uint256 _fee) internal {
+        CPStorage.load().stakeTokens[_token].accumulatedFee += _fee;
+    }
+
+    function _withdrawWinnigs(uint256 _challengeId) internal {
+        CPStore storage s = CPStorage.load();
+        IChallengePoolHandler.Challenge storage c = s.challenges[_challengeId];
+        if (HelpersLib.compareBytes(HelpersLib.emptyBytes, c.outcome)) {
+            revert IChallengePoolCommon.InvalidOutcome();
+        }
+        if (s.playerSupply[_challengeId][msg.sender].stakes == 0) {
+            revert IChallengePoolCommon.PlayerNotInPool();
+        }
+        IChallengePoolHandler.PlayerSupply storage playerOptionSupply = s
+            .playerOptionSupply[_challengeId][msg.sender][c.outcome];
+        if (playerOptionSupply.withdrawn) {
+            revert IChallengePoolCommon.PlayerAlreadyWithdrawn();
+        }
+        if (playerOptionSupply.stakes == 0) {
+            revert IChallengePoolCommon.PlayerDidNotWinPool();
+        }
+        playerOptionSupply.withdrawn = true;
+        uint256 playerShare = LibPrice._computeWinnerShare(
+            _challengeId,
+            playerOptionSupply.stakes
+        );
+        uint256 totalAmount = playerShare + playerOptionSupply.tokens;
+        LibTransfer._send(c.stakeToken, totalAmount, msg.sender);
+        emit IChallengePoolHandler.WinningsWithdrawn(
+            _challengeId,
+            msg.sender,
+            playerShare,
+            totalAmount
+        );
+    }
+
+    function _withdrawAfterCancelled(uint256 _challengeId) internal {
+        CPStore storage s = CPStorage.load();
+        IChallengePoolHandler.Challenge storage c = s.challenges[_challengeId];
+        if (s.playerSupply[_challengeId][msg.sender].stakes == 0) {
+            revert IChallengePoolCommon.PlayerNotInPool();
+        }
+        if (s.playerSupply[_challengeId][msg.sender].withdrawn) {
+            revert IChallengePoolCommon.PlayerAlreadyWithdrawn();
+        }
+        s.playerSupply[_challengeId][msg.sender].withdrawn = true;
+        uint256 totalAmount = s.playerSupply[_challengeId][msg.sender].tokens;
+        LibTransfer._send(c.stakeToken, totalAmount, msg.sender);
+        emit IChallengePoolHandler.WinningsWithdrawn(
+            _challengeId,
+            msg.sender,
+            0,
+            totalAmount
+        );
+    }
+
+    function _withdraw(uint256 _challengeId) internal {
+        IChallengePoolCommon.ChallengeState state = CPStorage
+            .load()
+            .challenges[_challengeId]
+            .state;
+
+        if (state == IChallengePoolCommon.ChallengeState.closed) {
+            _withdrawWinnigs(_challengeId);
+        } else if (state == IChallengePoolCommon.ChallengeState.cancelled) {
+            _withdrawAfterCancelled(_challengeId);
         } else {
-            LibTransfer._depositFromPaymaster(_paymaster, _token, _amount);
+            revert IChallengePoolCommon.ActionNotAllowedForState(state);
         }
     }
 }

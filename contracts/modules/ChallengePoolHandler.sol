@@ -115,7 +115,11 @@ contract ChallengePoolHandler is
             _quantity,
             totalAmount
         );
-        LibPool._depositOrPaymaster(_paymaster, _stakeToken, totalAmount + fee);
+        LibTransfer._depositOrPaymaster(
+            _paymaster,
+            _stakeToken,
+            totalAmount + fee
+        );
         emit NewChallenge(
             s.challengeId,
             msg.sender,
@@ -141,8 +145,6 @@ contract ChallengePoolHandler is
         uint256 _challengeId,
         bytes calldata _prediction,
         uint256 _quantity,
-        uint256 _maxPrice,
-        uint256 _deadline,
         address _paymaster
     )
         external
@@ -150,18 +152,12 @@ contract ChallengePoolHandler is
         validChallenge(_challengeId)
         validPrediction(_prediction)
         nonZero(_quantity)
-        nonZero(_deadline)
-        nonZero(_maxPrice)
         poolInState(_challengeId, ChallengeState.open)
     {
         CPStore storage s = CPStorage.load();
-        if (_deadline < block.timestamp) {
-            revert DeadlineExceeded();
-        }
+
         uint256 currentPrice = s.challenges[_challengeId].basePrice;
-        if (currentPrice > _maxPrice) {
-            revert MaxPriceExceeded();
-        }
+
         if (!s.optionSupply[_challengeId][_prediction].exists) {
             revert InvalidPrediction();
         }
@@ -181,7 +177,7 @@ contract ChallengePoolHandler is
             rewardPoints
         );
         LibPool._recordFee(s.challenges[_challengeId].stakeToken, fee);
-        LibPool._depositOrPaymaster(
+        LibTransfer._depositOrPaymaster(
             _paymaster,
             s.challenges[_challengeId].stakeToken,
             fee + totalAmount
@@ -201,7 +197,6 @@ contract ChallengePoolHandler is
         uint256 _challengeId,
         bytes calldata _prediction,
         uint256 _quantity,
-        uint256 _minPrice,
         uint256 _deadline
     )
         external
@@ -210,7 +205,6 @@ contract ChallengePoolHandler is
         validPrediction(_prediction)
         nonZero(_quantity)
         nonZero(_deadline)
-        nonZero(_minPrice)
         poolInState(_challengeId, ChallengeState.open)
     {
         CPStore storage s = CPStorage.load();

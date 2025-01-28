@@ -104,17 +104,28 @@ abstract contract IChallengePoolHandler is IChallengePoolCommon {
      * @param   _challengeId  .
      * @param   _prediction  .
      * @param   _quantity  how many stakes user is purchasing for this prediction
-     * @param   _maxPrice  the maximum price user is willing to pay.
-     * @param   _deadline  time after which this stake transaction will revert
      * @param   _paymaster  a contract the pays the total amount on behalf of the user set to 0x if none
      */
     function stake(
         uint256 _challengeId,
         bytes calldata _prediction,
         uint256 _quantity,
-        uint256 _maxPrice,
-        uint256 _deadline,
         address _paymaster
+    ) external virtual;
+
+    /**
+     * @notice  .
+     * @dev     early withdrawal allows player to get out of their stake. price of option calculated accordingly and applied
+     * @param   _challengeId  .
+     * @param   _option  option to withdraw from
+     * @param   _quantity  of stakes to withdraw.
+     * @param   _deadline  ime after which this early withdraw transaction will revert
+     */
+    function earlyWithdraw(
+        uint256 _challengeId,
+        bytes calldata _option,
+        uint256 _quantity,
+        uint256 _deadline
     ) external virtual;
 
     /**
@@ -129,22 +140,6 @@ abstract contract IChallengePoolHandler is IChallengePoolCommon {
      * @param   _challengeIds  .
      */
     function bulkWithdraw(uint256[] calldata _challengeIds) external virtual;
-    /**
-     * @notice  .
-     * @dev     early withdrawal allows player to get out of their stake. price of option calculated accordingly and applied
-     * @param   _challengeId  .
-     * @param   _option  option to withdraw from
-     * @param   _quantity  of stakes to withdraw.
-     * @param   _minPrice  minumum price user is willing to accept for selling their position.
-     * @param   _deadline  ime after which this early withdraw transaction will revert
-     */
-    function earlyWithdraw(
-        uint256 _challengeId,
-        bytes calldata _option,
-        uint256 _quantity,
-        uint256 _minPrice,
-        uint256 _deadline
-    ) external virtual;
 
     /**
      * @notice  .
