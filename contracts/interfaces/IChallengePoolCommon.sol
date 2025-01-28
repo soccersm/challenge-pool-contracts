@@ -55,4 +55,6 @@ abstract contract IChallengePoolCommon {
     error PlayerAlreadyDisputed();
     error PlayerAlreadyReleased();
     error PlayerDidNotDispute();
+    error PlayerLostDispute();
+    error DisputePeriod();
 }

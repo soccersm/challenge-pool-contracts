@@ -295,15 +295,9 @@ contract ChallengePoolHandler is
         }
         c.state = ChallengeState.closed;
         bytes memory result = HelpersLib.emptyBytes;
-        if (c.multi) {
+        if (!c.multi) {
             bool allCorrect = true;
             for (uint i = 0; i < c.events.length; i++) {
-                if (
-                    t.registry[c.events[i].topicId].state ==
-                    ITopicRegistry.TopicState.disabled
-                ) {
-                    revert InvalidEventTopic();
-                }
                 if (
                     c.events[i].maturity <
                     (block.timestamp + s.minMaturityPeriod)
@@ -317,18 +311,18 @@ contract ChallengePoolHandler is
                     )
                 ) {
                     allCorrect = false;
+                    break;
                 }
             }
             if (allCorrect) {
-                c.outcome = HelpersLib.yes;
                 result = HelpersLib.yes;
             } else {
-                c.outcome = HelpersLib.no;
                 result = HelpersLib.no;
             }
         } else {
-            c.outcome = LibPool._resolveEvent(t, c.events[0]);
+            result = LibPool._resolveEvent(t, c.events[0]);
         }
+        c.outcome = result;
         c.lastOutcomeSet = block.timestamp;
 
         emit EvaluateChallenge(
@@ -352,6 +346,9 @@ contract ChallengePoolHandler is
         }
         if (HelpersLib.compareBytes(HelpersLib.emptyBytes, c.outcome)) {
             revert InvalidOutcome();
+        }
+        if (block.timestamp - c.lastOutcomeSet < s.disputePeriod) {
+            revert DisputePeriod();
         }
         c.state = ChallengeState.closed;
         emit CloseChallenge(

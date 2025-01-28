@@ -33,10 +33,10 @@ struct CPStore {
     mapping(uint256 => mapping(address => IChallengePoolHandler.PlayerSupply)) playerSupply; // challengeId -> player > supply
     mapping(uint256 => mapping(bytes => IChallengePoolHandler.OptionSupply)) optionSupply; // challengeId > option > supply
     mapping(uint256 => IChallengePoolHandler.Supply) poolSupply; // challengeId -> supply
-    mapping(address => IChallengePoolManager.StakeToken) stakeTokens;
     mapping(uint256 => mapping(address => IChallengePoolDispute.Dispute)) playerDisputes; // challengeId -> disputer -> data dispute
     mapping(uint256 => mapping(bytes => uint256)) optionDisputes; // challengeId -> option -> stakes
     mapping(uint256 => uint256) poolDisputes; // challengeId -> stakes
+    mapping(address => IChallengePoolManager.StakeToken) stakeTokens;
     uint256 challengeId;
     uint256 stakeFee;
     uint256 earlyWithdrawFee;

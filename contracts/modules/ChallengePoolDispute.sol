@@ -22,6 +22,8 @@ import "./TopicRegistry.sol";
 
 import "../diamond/interfaces/SoccersmRoles.sol";
 
+import "../libraries/LibDispute.sol";
+
 contract ChallengePoolDispute is
     IChallengePoolDispute,
     SoccersmRoles,
@@ -81,6 +83,7 @@ contract ChallengePoolDispute is
         d.stake = s.disputeStake;
         if (!c.disputed) {
             c.disputed = true;
+            c.state = ChallengeState.disputed;
         }
         s.optionDisputes[_challengeId][_outcome] += s.disputeStake;
         s.poolDisputes[_challengeId] += s.disputeStake;
@@ -106,6 +109,9 @@ contract ChallengePoolDispute is
     {
         CPStore storage s = CPStorage.load();
         Challenge storage c = s.challenges[_challengeId];
+        if (HelpersLib.compareBytes(HelpersLib.emptyBytes, c.outcome)) {
+            revert InvalidOutcome();
+        }
         if (s.playerSupply[_challengeId][msg.sender].stakes == 0) {
             revert PlayerNotInPool();
         }
@@ -115,6 +121,9 @@ contract ChallengePoolDispute is
         }
         if (d.released) {
             revert PlayerAlreadyReleased();
+        }
+        if (!HelpersLib.compareBytes(c.outcome, d.dispute)) {
+            revert PlayerLostDispute();
         }
         d.released = true;
         LibTransfer._send(c.stakeToken, d.stake, msg.sender);
