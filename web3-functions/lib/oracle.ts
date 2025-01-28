@@ -5,6 +5,12 @@ import * as TopicRegistry from "./abis/TopicRegistry.json";
 import { getAssetPriceAt, getMatchesScore } from "./sources";
 
 const PROVIDE_DATA_METHOD = "provideData(string,bytes)";
+const coder = new AbiCoder();
+
+export function isNumeric(str: string) {
+  if (typeof str != "string") return false; // we only process strings!
+  return !isNaN(parseFloat(str)); // ...and ensure strings of whitespace fail
+}
 
 export async function getAssetRequests(
   oracelApi: string
@@ -37,7 +43,6 @@ export async function prepareAssetParams(
   apiKey: string
 ): Promise<CallParams[]> {
   const call: CallParams[] = [];
-  const coder = new AbiCoder();
   for (const r of requests) {
     const price = await getAssetPriceAt(
       dataUrl,
@@ -67,16 +72,22 @@ export async function prepareAssetParams(
 export async function prepareFootballParams(
   contract: string,
   requests: FootballRequests[],
-  dataUrl: string,
-  apiKey: string
+  dataUrl: string
 ): Promise<CallParams[]> {
   const call: CallParams[] = [];
   const matchIds: number[] = [];
   for (const r of requests) {
+    if (isNumeric(r.match_id)) {
+      matchIds.push(parseInt(r.match_id));
+    }
   }
   const scorelines = await getMatchesScore(dataUrl, matchIds);
   for (const s of scorelines) {
-    const params = ["FootBallCorrectScore"];
+    const footballParams = coder.encode(
+      ["string", "uint256", "uint256"],
+      [s.matchId.toString(), s.homeScore, s.awayScore]
+    );
+    const params = ["FootBallCorrectScore", footballParams];
     call.push({
       target: contract,
       abi: TopicRegistry,
