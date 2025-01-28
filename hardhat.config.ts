@@ -1,4 +1,5 @@
 import { HardhatUserConfig, vars } from "hardhat/config";
+import "@gelatonetwork/web3-functions-sdk/hardhat-plugin";
 import "@nomicfoundation/hardhat-toolbox";
 
 const DEPLOY_KEY = vars.get("DEPLOY_KEY");
@@ -14,6 +15,11 @@ const config: HardhatUserConfig = {
       },
       evmVersion: "london",
     },
+  },
+  w3f: {
+    rootDir: "./web3-functions",
+    debug: true,
+    networks: ["lisk", "liskTestnet"],
   },
   networks: {
     liskTestnet: {

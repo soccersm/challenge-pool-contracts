@@ -9,9 +9,14 @@
     "typescript": "^5.0.0"
   },
   "dependencies": {
+    "@gelatonetwork/automate-sdk": "^3.0.36",
+    "@gelatonetwork/web3-functions-sdk": "^2.4.4",
     "@openzeppelin/contracts": "^5.1.0",
     "@solidstate/contracts": "^0.0.61",
-    "hardhat": "^2.22.17"
+    "dotenv": "^16.4.7",
+    "hardhat": "^2.22.17",
+    "ky": "^1.7.4",
+    "thirdweb": "^5.86.6"
   },
   "scripts": {
     "compile": "hardhat compile",
@@ -19,6 +24,7 @@
     "coverage": "hardhat coverage",
     "test:gas": "REPORT_GAS=true hardhat test",
     "test:local:gas": "REPORT_GAS=true bun run test:local",
+    "lab": "bun crons/lab.ts",
     "deploys": "hardhat ignition deployments",
     "deploys:id": "hardhat ignition status",
     "deploy:all": "hardhat run scripts/deploy.ts --network",
