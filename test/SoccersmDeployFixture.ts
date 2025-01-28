@@ -1,6 +1,4 @@
-import {
-  loadFixture,
-} from "@nomicfoundation/hardhat-toolbox/network-helpers";
+import { loadFixture } from "@nomicfoundation/hardhat-toolbox/network-helpers";
 import { ethers, ignition } from "hardhat";
 import IgniteTestModule from "../ignition/modules/IgniteTest";
 
@@ -58,7 +56,7 @@ export async function deploySoccersm() {
     keeper,
     oneMil,
     oneGrand,
-    poolViewProxy
+    poolViewProxy,
   };
 }
 
@@ -66,4 +64,4 @@ describe("Soccersm", function () {
   it("Should Deploy", async function () {
     await loadFixture(deploySoccersm);
   });
-})
+});

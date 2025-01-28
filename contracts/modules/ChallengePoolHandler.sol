@@ -112,7 +112,6 @@ contract ChallengePoolHandler is
             s,
             _stakeToken,
             _events,
-            poolOptions,
             multi,
             _prediction,
             maturity,

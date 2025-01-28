@@ -15,7 +15,6 @@ library LibPool {
         CPStore storage s,
         address _stakeToken,
         IChallengePoolCommon.ChallengeEvent[] calldata _events,
-        bytes[] memory _poolOptions,
         bool _multi,
         bytes calldata _prediction,
         uint256 _maturity,
@@ -54,7 +53,6 @@ library LibPool {
             _basePrice,
             _stakeToken,
             _events,
-            _poolOptions,
             false,
             0
         );
