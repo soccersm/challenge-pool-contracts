@@ -119,7 +119,7 @@ abstract contract IChallengePoolHandler is IChallengePoolCommon {
      * @param   _challengeId  .
      * @param   _option  option to withdraw from
      * @param   _quantity  of stakes to withdraw.
-     * @param   _deadline  ime after which this early withdraw transaction will revert
+     * @param   _deadline  time after which this early withdraw transaction will revert
      */
     function earlyWithdraw(
         uint256 _challengeId,
