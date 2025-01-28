@@ -23,7 +23,11 @@ import {
   prepareCreateChallenge,
   yesNo,
 } from "./lib";
-import { getChallengeState, getPlayerOptionSupply } from "./test_helpers";
+import {
+  getChallenge,
+  getChallengeState,
+  getPlayerOptionSupply,
+} from "./test_helpers";
 import { keccak256 } from "thirdweb";
 
 describe("ChallengePool - Create Challenge", function () {
@@ -38,7 +42,6 @@ describe("ChallengePool - Create Challenge", function () {
       poolManagerProxy,
       keeper,
       paymaster,
-      owner,
     } = await loadFixture(deploySoccersm);
 
     const btcChallenge = btcEvent(
@@ -61,7 +64,20 @@ describe("ChallengePool - Create Challenge", function () {
       ...(preparedBTCChallenge as any)
     );
 
-    const challengeState = await getChallengeState(poolViewProxy, 0);
+    const challengeNoState = await getChallengeState(
+      poolViewProxy,
+      0,
+      baller.address,
+      ethers.keccak256(yesNo.no)
+    );
+    const challengeYesState = await getChallengeState(
+      poolViewProxy,
+      0,
+      baller.address,
+      ethers.keccak256(yesNo.yes)
+    );
+    console.log(challengeNoState, challengeYesState);
+
     const playerOptionSupply = await getPlayerOptionSupply(
       poolViewProxy,
       0,
