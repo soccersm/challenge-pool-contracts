@@ -4,7 +4,7 @@ import {
 } from "@nomicfoundation/hardhat-toolbox/network-helpers";
 
 import { expect } from "chai";
-import { ethers, ignition } from "hardhat";
+import { ethers } from "hardhat";
 import { deploySoccersm } from "./SoccersmDeployFixture";
 
 import {
@@ -15,16 +15,12 @@ import {
   multiCorrectScore,
   multiOutcome,
   multiTotalExact,
-  multiTotalScoreRange,
   soccersmEvent,
 } from "./mock";
 import {
   coder,
   encodeMultiOptionByTopic,
   prepareCreateChallenge,
-  TopicId,
-  YesNo,
-  yesNo,
 } from "./lib";
 
 describe("ChallengePool - Create Challenge", function () {

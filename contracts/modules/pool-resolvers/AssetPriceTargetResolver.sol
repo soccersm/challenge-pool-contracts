@@ -2,7 +2,6 @@
 pragma solidity ^0.8.28;
 
 import "./BaseResolver.sol";
-//import "hardhat/console.sol";
 contract AssetPriceTargetResolver is BaseResolver {
 
     function validateEvent(

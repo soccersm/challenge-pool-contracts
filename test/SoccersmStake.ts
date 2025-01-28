@@ -49,7 +49,6 @@ describe("ChallengePool - Stake Challenge", function () {
     expect(await poolManagerProxy.challengeId()).to.equals(1);
     //Challenge ID
     const challengeId = (await poolManagerProxy.challengeId()) - 1n;
-    console.log("ChallengeId: ", challengeId);
 
     const maxPrice = oneGrand * 2n;
     let predictionValue: string = "yes";
