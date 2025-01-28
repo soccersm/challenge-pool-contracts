@@ -25,66 +25,6 @@ contract ChallengePoolDispute is
     Helpers,
     ChallengePoolHelpers
 {
-    function evaluate(
-        uint256 _challengeId
-    )
-        external
-        override
-        validChallenge(_challengeId)
-        poolInState(_challengeId, ChallengeState.matured)
-    {
-        TRStore storage t = TRStorage.load();
-        CPStore storage s = CPStorage.load();
-        Challenge storage c = s.challenges[_challengeId];
-        if (HelpersLib.compareBytes(HelpersLib.emptyBytes, c.outcome)) {
-            revert InvalidOutcome();
-        }
-        c.state = ChallengeState.closed;
-        bytes memory result = HelpersLib.emptyBytes;
-        if (c.multi) {
-            bool allCorrect = true;
-            for (uint i = 0; i < c.events.length; i++) {
-                if (
-                    t.registry[c.events[i].topicId].state ==
-                    ITopicRegistry.TopicState.disabled
-                ) {
-                    revert InvalidEventTopic();
-                }
-                if (
-                    c.events[i].maturity <
-                    (block.timestamp + s.minMaturityPeriod)
-                ) {
-                    revert InvalidEventMaturity();
-                }
-                if (
-                    HelpersLib.compareBytes(
-                        HelpersLib.no,
-                        LibPool._resolveEvent(t, c.events[i])
-                    )
-                ) {
-                    allCorrect = false;
-                }
-            }
-            if (allCorrect) {
-                c.outcome = HelpersLib.yes;
-                result = HelpersLib.yes;
-            } else {
-                c.outcome = HelpersLib.no;
-                result = HelpersLib.no;
-            }
-        } else {
-            c.outcome = LibPool._resolveEvent(t, c.events[0]);
-        }
-        c.lastOutcomeSet = block.timestamp;
-
-        emit EvaluateChallenge(
-            _challengeId,
-            msg.sender,
-            ChallengeState.closed,
-            result
-        );
-    }
-
     function cancel(
         uint256 _challengeId
     ) external override onlySoccersmCouncil validChallenge(_challengeId) {
@@ -95,29 +35,6 @@ contract ChallengePoolDispute is
             _challengeId,
             msg.sender,
             ChallengeState.cancelled
-        );
-    }
-
-    function close(
-        uint256 _challengeId
-    ) external override validChallenge(_challengeId) {
-        CPStore storage s = CPStorage.load();
-        Challenge storage c = s.challenges[_challengeId];
-        if (
-            c.state != ChallengeState.settled ||
-            c.state != ChallengeState.evaluated
-        ) {
-            revert ActionNotAllowedForState(c.state);
-        }
-        if (HelpersLib.compareBytes(HelpersLib.emptyBytes, c.outcome)) {
-            revert InvalidOutcome();
-        }
-        c.state = ChallengeState.closed;
-        emit CloseChallenge(
-            _challengeId,
-            msg.sender,
-            ChallengeState.closed,
-            c.outcome
         );
     }
 

@@ -29,30 +29,12 @@ abstract contract IChallengePoolDispute is  IChallengePoolCommon {
         bytes result,
         uint256 amount
     );
-    event CloseChallenge(
-        uint256 challengeId,
-        address closer,
-        ChallengeState state,
-        bytes result
-    );
-    event EvaluateChallenge(
-        uint256 challengeId,
-        address evaluator,
-        ChallengeState state,
-        bytes result
-    );
     event CancelChallenge(
         uint256 challengeId,
         address canceller,
         ChallengeState state
     );
 
-    /**
-     * @notice  .
-     * @dev     evaluate pool once it's matured
-     * @param   _challengeId  .
-     */
-    function evaluate(uint256 _challengeId) external virtual;
     /**
      * @notice  .
      * @dev     anyone can call this to dispute the outcome.
@@ -80,10 +62,4 @@ abstract contract IChallengePoolDispute is  IChallengePoolCommon {
      * @param   _challengeId  .
      */
     function cancel(uint256 _challengeId) external virtual;
-    /**
-     * @notice  .
-     * @dev     close pool once it's evaluated or settled
-     * @param   _challengeId  .
-     */
-    function close(uint256 _challengeId) external virtual;
 }

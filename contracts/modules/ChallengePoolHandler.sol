@@ -43,10 +43,10 @@ contract ChallengePoolHandler is
         validPrediction(_prediction)
     {
         CPStore storage s = CPStorage.load();
-        if (_events.length == 0) {
+        if (_events.length < 1) {
             revert InvalidEventLength();
         }
-        if (_options.length > s.maxOptionsPerPool) {
+        if (_events.length > s.maxEventsPerPool) {
             revert InvalidOptionsLength();
         }
         if (_options.length > s.maxOptionsPerPool) {
@@ -57,51 +57,34 @@ contract ChallengePoolHandler is
         bool multi;
         if (_options.length == 0) {
             multi = false;
-            if (_events.length < 1) {
-                revert InvalidEventLength();
-            }
-            if (_events.length > s.maxEventsPerPool) {
-                revert InvalidEventLength();
-            }
             poolOptions = HelpersLib.yesNoOptions();
-            if (
-                !HelpersLib.compareBytes(_prediction, HelpersLib.yes) &&
-                !HelpersLib.compareBytes(_prediction, HelpersLib.no)
-            ) {
-                revert InvalidPrediction();
-            }
-            s.optionSupply[s.challengeId][HelpersLib.yes].exists = true;
-            s.optionSupply[s.challengeId][HelpersLib.no].exists = true;
         } else {
             multi = true;
             if (_options.length < 2) {
                 revert InvalidOptionsLength();
             }
-            if (_events.length != 1) {
+            if (_events.length > 1) {
                 revert InvalidEventLength();
             }
             poolOptions = _options;
             LibPool._validateOptions(t, _events[0], poolOptions);
-            bool predictionExists = false;
-            for (uint i = 0; i < _options.length; i++) {
-                if (
-                    HelpersLib.compareBytes(
-                        HelpersLib.emptyBytes,
-                        poolOptions[i]
-                    )
-                ) {
-                    revert InvalidPoolOption();
-                }
-                if (HelpersLib.compareBytes(_prediction, poolOptions[i])) {
-                    predictionExists = true;
-                }
-                s.optionSupply[s.challengeId][poolOptions[i]].exists = true;
-            }
-            if (!predictionExists) {
-                revert InvalidPrediction();
-            }
         }
-        uint256 maturity;
+        bool predictionExists = false;
+        for (uint i = 0; i < poolOptions.length; i++) {
+            if (
+                HelpersLib.compareBytes(HelpersLib.emptyBytes, poolOptions[i])
+            ) {
+                revert InvalidPoolOption();
+            }
+            if (HelpersLib.compareBytes(_prediction, poolOptions[i])) {
+                predictionExists = true;
+            }
+            s.optionSupply[s.challengeId][poolOptions[i]].exists = true;
+        }
+        if (!predictionExists) {
+            revert InvalidPrediction();
+        }
+        uint256 maturity = HelpersLib.largestInt;
         for (uint i = 0; i < _events.length; i++) {
             if (
                 t.registry[_events[i].topicId].state ==
@@ -112,37 +95,27 @@ contract ChallengePoolHandler is
             if (_events[i].maturity < (block.timestamp + s.minMaturityPeriod)) {
                 revert InvalidEventMaturity();
             }
-            if (maturity < _events[i].maturity) {
+            if (maturity > _events[i].maturity) {
                 maturity = _events[i].maturity;
             }
             LibPool._validateEvent(t, _events[i]);
         }
-        uint256 fee = LibPool._computeCreateFee(_basePrice);
+        uint256 fee = LibPrice._computeCreateFee(_basePrice);
         LibPool._recordFee(_stakeToken, fee);
-        uint256 totalPrice = _basePrice * _quantity;
-        s.poolSupply[s.challengeId] = Supply(_quantity, totalPrice);
-        s.optionSupply[s.challengeId][_prediction] = OptionSupply(
-            true,
-            _quantity,
-            totalPrice
-        );
-        s.playerOptionSupply[s.challengeId][msg.sender][
-            _prediction
-        ] = PlayerSupply(false, _quantity, totalPrice);
-        LibPool._depositOrPaymaster(_paymaster, _stakeToken, totalPrice + fee);
-        s.challenges[s.challengeId] = Challenge(
-            ChallengeState.open,
-            multi,
-            HelpersLib.emptyBytes,
-            block.timestamp,
-            maturity,
-            _basePrice,
+        uint256 totalAmount = _basePrice * _quantity;
+        LibPool._initPool(
+            s,
             _stakeToken,
             _events,
             poolOptions,
-            false,
-            0
+            multi,
+            _prediction,
+            maturity,
+            _basePrice,
+            _quantity,
+            totalAmount
         );
+        LibPool._depositOrPaymaster(_paymaster, _stakeToken, totalAmount + fee);
         emit NewChallenge(
             s.challengeId,
             msg.sender,
@@ -153,6 +126,7 @@ contract ChallengePoolHandler is
             _basePrice,
             fee,
             _quantity,
+            totalAmount,
             _prediction,
             _events,
             poolOptions,
@@ -184,12 +158,7 @@ contract ChallengePoolHandler is
         if (_deadline < block.timestamp) {
             revert DeadlineExceeded();
         }
-        uint256 currentPrice = LibPool._price(
-            _challengeId,
-            _prediction,
-            _quantity,
-            PoolAction.stake
-        );
+        uint256 currentPrice = s.challenges[_challengeId].basePrice;
         if (currentPrice > _maxPrice) {
             revert MaxPriceExceeded();
         }
@@ -197,18 +166,20 @@ contract ChallengePoolHandler is
             revert InvalidPrediction();
         }
         uint256 totalAmount = currentPrice * _quantity;
-        uint256 fee = LibPool._computeStakeFee(currentPrice);
-        PlayerSupply storage playerOptionSupply = s.playerOptionSupply[
-            _challengeId
-        ][msg.sender][_prediction];
-        playerOptionSupply.stakes += _quantity;
-        playerOptionSupply.tokens += totalAmount;
-        s.playerSupply[_challengeId][msg.sender].stakes += _quantity;
-        s.playerSupply[_challengeId][msg.sender].tokens += totalAmount;
-        s.optionSupply[_challengeId][_prediction].stakes += _quantity;
-        s.optionSupply[_challengeId][_prediction].tokens += totalAmount;
-        s.poolSupply[_challengeId].stakes += _quantity;
-        s.poolSupply[_challengeId].tokens += totalAmount;
+        uint256 fee = LibPrice._computeStakeFee(currentPrice);
+        uint256 rewardPoints = LibPrice._rewardPoints(
+            _quantity,
+            s.challenges[_challengeId].createdAt,
+            s.challenges[_challengeId].maturity
+        );
+        LibPool._incrementSupply(
+            s,
+            _challengeId,
+            _prediction,
+            _quantity,
+            totalAmount,
+            rewardPoints
+        );
         LibPool._recordFee(s.challenges[_challengeId].stakeToken, fee);
         LibPool._depositOrPaymaster(
             _paymaster,
@@ -220,6 +191,7 @@ contract ChallengePoolHandler is
             msg.sender,
             _prediction,
             _quantity,
+            currentPrice,
             totalAmount,
             fee
         );
@@ -245,34 +217,25 @@ contract ChallengePoolHandler is
         if (_deadline < block.timestamp) {
             revert DeadlineExceeded();
         }
-        uint256 currentPrice = LibPool._price(
-            _challengeId,
-            _prediction,
-            _quantity,
-            PoolAction.withdraw
-        );
-        if (currentPrice < _minPrice) {
-            revert BelowMinPrie();
-        }
+        uint256 currentPrice = s.challenges[_challengeId].basePrice;
         if (!s.optionSupply[_challengeId][_prediction].exists) {
             revert InvalidPrediction();
         }
         uint256 totalAmount = currentPrice * _quantity;
-        uint256 fee = LibPool._computeEarlyWithdrawFee(currentPrice);
-        PlayerSupply storage playerOptionSupply = s.playerOptionSupply[
-            _challengeId
-        ][msg.sender][_prediction];
-        if (playerOptionSupply.stakes < _quantity) {
-            revert InsufficientStakes(_quantity, playerOptionSupply.stakes);
-        }
-        playerOptionSupply.stakes -= _quantity;
-        playerOptionSupply.tokens -= totalAmount;
-        s.playerSupply[_challengeId][msg.sender].stakes -= _quantity;
-        s.playerSupply[_challengeId][msg.sender].tokens -= totalAmount;
-        s.optionSupply[_challengeId][_prediction].stakes -= _quantity;
-        s.optionSupply[_challengeId][_prediction].tokens -= totalAmount;
-        s.poolSupply[_challengeId].stakes -= _quantity;
-        s.poolSupply[_challengeId].tokens -= totalAmount;
+        uint256 fee = LibPrice._computeEarlyWithdrawFee(currentPrice);
+        uint256 rewardPoints = LibPrice._rewardPoints(
+            _quantity,
+            s.challenges[_challengeId].createdAt,
+            s.challenges[_challengeId].maturity
+        );
+        LibPool._decrementSupply(
+            s,
+            _challengeId,
+            _prediction,
+            _quantity,
+            totalAmount,
+            rewardPoints
+        );
         LibPool._recordFee(s.challenges[_challengeId].stakeToken, fee);
         LibTransfer._receive(s.challenges[_challengeId].stakeToken, fee);
 
@@ -286,6 +249,7 @@ contract ChallengePoolHandler is
             msg.sender,
             _prediction,
             _quantity,
+            currentPrice,
             totalAmount,
             fee
         );
@@ -294,87 +258,98 @@ contract ChallengePoolHandler is
     function withdraw(
         uint256 _challengeId
     ) external override validChallenge(_challengeId) {
-        ChallengeState state = CPStorage.load().challenges[_challengeId].state;
-
-        if (state == ChallengeState.closed) {
-            LibPool._withdrawWinnigs(_challengeId);
-        } else if (state == ChallengeState.cancelled) {
-            LibPool._withdrawAfterCancelled(_challengeId);
-        } else {
-            revert ActionNotAllowedForState(state);
-        }
+        LibPool._withdraw(_challengeId);
     }
 
     function bulkWithdraw(uint256[] calldata _challengeIds) external override {
         for (uint i = 0; i < _challengeIds.length; i++) {
-            LibPool._withdrawWinnigs(_challengeIds[i]);
+            if (_challengeIds[i] >= CPStorage.load().challengeId) {
+                revert IChallengePoolCommon.InvalidChallenge();
+            }
+            LibPool._withdraw(_challengeIds[i]);
         }
     }
 
-    function price(
-        uint256 _challengeId,
-        bytes calldata _option,
-        uint256 _quantity,
-        PoolAction _action
-    )
-        external
-        view
-        override
-        validChallenge(_challengeId)
-        poolInState(_challengeId, ChallengeState.open)
-        returns (uint256)
-    {
-        return LibPool._price(_challengeId, _option, _quantity, _action);
-    }
-
-    function getChallenge(
+    function evaluate(
         uint256 _challengeId
     )
         external
-        view
         override
         validChallenge(_challengeId)
-        returns (Challenge memory)
+        poolInState(_challengeId, ChallengeState.matured)
     {
-        return CPStorage.load().challenges[_challengeId];
+        TRStore storage t = TRStorage.load();
+        CPStore storage s = CPStorage.load();
+        Challenge storage c = s.challenges[_challengeId];
+        if (HelpersLib.compareBytes(HelpersLib.emptyBytes, c.outcome)) {
+            revert InvalidOutcome();
+        }
+        c.state = ChallengeState.closed;
+        bytes memory result = HelpersLib.emptyBytes;
+        if (c.multi) {
+            bool allCorrect = true;
+            for (uint i = 0; i < c.events.length; i++) {
+                if (
+                    t.registry[c.events[i].topicId].state ==
+                    ITopicRegistry.TopicState.disabled
+                ) {
+                    revert InvalidEventTopic();
+                }
+                if (
+                    c.events[i].maturity <
+                    (block.timestamp + s.minMaturityPeriod)
+                ) {
+                    revert InvalidEventMaturity();
+                }
+                if (
+                    HelpersLib.compareBytes(
+                        HelpersLib.no,
+                        LibPool._resolveEvent(t, c.events[i])
+                    )
+                ) {
+                    allCorrect = false;
+                }
+            }
+            if (allCorrect) {
+                c.outcome = HelpersLib.yes;
+                result = HelpersLib.yes;
+            } else {
+                c.outcome = HelpersLib.no;
+                result = HelpersLib.no;
+            }
+        } else {
+            c.outcome = LibPool._resolveEvent(t, c.events[0]);
+        }
+        c.lastOutcomeSet = block.timestamp;
+
+        emit EvaluateChallenge(
+            _challengeId,
+            msg.sender,
+            ChallengeState.closed,
+            result
+        );
     }
 
-    function earlyWithdrawFee(
-        uint256 _price
-    )
-        external
-        view
-        virtual
-        override
-        returns (uint256 fee, uint256 feePlusPrice)
-    {
-        fee = LibPool._computeEarlyWithdrawFee(_price);
-        feePlusPrice = _price + fee;
-    }
-
-    function createFee(
-        uint256 _price
-    )
-        external
-        view
-        virtual
-        override
-        returns (uint256 fee, uint256 feePlusPrice)
-    {
-        fee = LibPool._computeCreateFee(_price);
-        feePlusPrice = _price + fee;
-    }
-
-    function stakeFee(
-        uint256 _price
-    )
-        external
-        view
-        virtual
-        override
-        returns (uint256 fee, uint256 feePlusPrice)
-    {
-        fee = LibPool._computeStakeFee(_price);
-        feePlusPrice = _price + fee;
+    function close(
+        uint256 _challengeId
+    ) external override validChallenge(_challengeId) {
+        CPStore storage s = CPStorage.load();
+        Challenge storage c = s.challenges[_challengeId];
+        if (
+            c.state != ChallengeState.settled ||
+            c.state != ChallengeState.evaluated
+        ) {
+            revert ActionNotAllowedForState(c.state);
+        }
+        if (HelpersLib.compareBytes(HelpersLib.emptyBytes, c.outcome)) {
+            revert InvalidOutcome();
+        }
+        c.state = ChallengeState.closed;
+        emit CloseChallenge(
+            _challengeId,
+            msg.sender,
+            ChallengeState.closed,
+            c.outcome
+        );
     }
 }

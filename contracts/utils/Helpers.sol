@@ -24,6 +24,8 @@ library HelpersLib {
     string internal constant UNDER = "under";
     string internal constant IN = "in";
     string internal constant OUT = "out";
+    uint256 internal constant largestInt = 2 ** 256 - 1;
+    uint256 internal constant maxRewardPoint  = 10_000;
     // @dev computes fraction of [value] in [bps]
     // 100 bps is equivalent to 1%
     function basisPoint(
@@ -61,7 +63,7 @@ library HelpersLib {
     function yesNoOptions() internal pure returns (bytes[] memory) {
         bytes[] memory yesNo = new bytes[](2);
         yesNo[0] = yes;
-        yesNo[1]  = no;
+        yesNo[1] = no;
         return yesNo;
     }
 }

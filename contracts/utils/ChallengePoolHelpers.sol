@@ -3,7 +3,6 @@ pragma solidity ^0.8.28;
 import "../interfaces/IChallengePoolCommon.sol";
 import "../libraries/LibData.sol";
 import "../libraries/LibPool.sol";
-
 abstract contract ChallengePoolHelpers {
     modifier validChallenge(uint256 _challengeId) {
         if (_challengeId >= CPStorage.load().challengeId) {

@@ -15,18 +15,6 @@ library LibPool {
         CPStorage.load().stakeTokens[_token].accumulatedFee += _fee;
     }
 
-    function _computeWinnerShare(
-        uint256 _challengeId,
-        uint256 stakes
-    ) internal view returns (uint256) {
-        CPStore storage s = CPStorage.load();
-        IChallengePoolHandler.Challenge storage c = s.challenges[_challengeId];
-        uint256 winnerStakes = s.optionSupply[_challengeId][c.outcome].stakes;
-        uint256 winnerTokens = s.optionSupply[_challengeId][c.outcome].tokens;
-        uint256 looserTokens = s.poolSupply[_challengeId].tokens - winnerTokens;
-        return Math.mulDiv(looserTokens, stakes, winnerStakes);
-    }
-
     function _withdrawWinnigs(uint256 _challengeId) internal {
         CPStore storage s = CPStorage.load();
         IChallengePoolHandler.Challenge storage c = s.challenges[_challengeId];
@@ -45,7 +33,7 @@ library LibPool {
             revert IChallengePoolCommon.PlayerDidNotWinPool();
         }
         playerOptionSupply.withdrawn = true;
-        uint256 playerShare = _computeWinnerShare(
+        uint256 playerShare = LibPrice._computeWinnerShare(
             _challengeId,
             playerOptionSupply.stakes
         );
@@ -79,27 +67,120 @@ library LibPool {
         );
     }
 
-    function _computeStakeFee(
-        uint256 _stakePrice
-    ) internal view returns (uint256) {
-        return HelpersLib.basisPoint(_stakePrice, CPStorage.load().stakeFee);
+    function _withdraw(uint256 _challengeId) internal {
+        IChallengePoolCommon.ChallengeState state = CPStorage
+            .load()
+            .challenges[_challengeId]
+            .state;
+
+        if (state == IChallengePoolCommon.ChallengeState.closed) {
+            _withdrawWinnigs(_challengeId);
+        } else if (state == IChallengePoolCommon.ChallengeState.cancelled) {
+            _withdrawAfterCancelled(_challengeId);
+        } else {
+            revert IChallengePoolCommon.ActionNotAllowedForState(state);
+        }
     }
 
-    function _computeCreateFee(
-        uint256 _stakePrice
-    ) internal view returns (uint256) {
-        return
-            HelpersLib.basisPoint(_stakePrice, CPStorage.load().createPoolFee);
+    function _initPool(
+        CPStore storage s,
+        address _stakeToken,
+        IChallengePoolCommon.ChallengeEvent[] calldata _events,
+        bytes[] memory _poolOptions,
+        bool _multi,
+        bytes calldata _prediction,
+        uint256 _maturity,
+        uint256 _basePrice,
+        uint256 _quantity,
+        uint256 _totalAmount
+    ) internal {
+        uint256 rewardPoints = LibPrice._rewardPoints(
+            _quantity,
+            block.timestamp,
+            _maturity
+        );
+        s.playerOptionSupply[s.challengeId][msg.sender][
+            _prediction
+        ] = IChallengePoolHandler.PlayerSupply(
+            false,
+            _quantity,
+            _totalAmount,
+            rewardPoints
+        );
+        s.playerSupply[s.challengeId][msg.sender] = IChallengePoolHandler
+            .PlayerSupply(false, _quantity, _totalAmount, rewardPoints);
+        s.optionSupply[s.challengeId][_prediction] = IChallengePoolHandler
+            .OptionSupply(true, _quantity, _totalAmount, rewardPoints);
+        s.poolSupply[s.challengeId] = IChallengePoolHandler.Supply(
+            _quantity,
+            _totalAmount
+        );
+
+        s.challenges[s.challengeId] = IChallengePoolCommon.Challenge(
+            IChallengePoolCommon.ChallengeState.open,
+            _multi,
+            HelpersLib.emptyBytes,
+            block.timestamp,
+            _maturity,
+            _basePrice,
+            _stakeToken,
+            _events,
+            _poolOptions,
+            false,
+            0
+        );
     }
 
-    function _computeEarlyWithdrawFee(
-        uint256 _stakePrice
-    ) internal view returns (uint256) {
-        return
-            HelpersLib.basisPoint(
-                _stakePrice,
-                CPStorage.load().earlyWithdrawFee
+    function _incrementSupply(
+        CPStore storage s,
+        uint256 _challengeId,
+        bytes calldata _prediction,
+        uint256 _quantity,
+        uint256 _totalAmount,
+        uint256 _rewardPoints
+    ) internal {
+        IChallengePoolHandler.PlayerSupply storage playerOptionSupply = s
+            .playerOptionSupply[_challengeId][msg.sender][_prediction];
+        playerOptionSupply.stakes += _quantity;
+        playerOptionSupply.tokens += _totalAmount;
+        playerOptionSupply.rewards += _rewardPoints;
+        s.playerSupply[_challengeId][msg.sender].stakes += _quantity;
+        s.playerSupply[_challengeId][msg.sender].tokens += _totalAmount;
+        s.playerSupply[_challengeId][msg.sender].rewards += _rewardPoints;
+        s.optionSupply[_challengeId][_prediction].stakes += _quantity;
+        s.optionSupply[_challengeId][_prediction].tokens += _totalAmount;
+        s.optionSupply[_challengeId][_prediction].rewards += _rewardPoints;
+        s.poolSupply[_challengeId].stakes += _quantity;
+        s.poolSupply[_challengeId].tokens += _totalAmount;
+    }
+
+    function _decrementSupply(
+        CPStore storage s,
+        uint256 _challengeId,
+        bytes calldata _prediction,
+        uint256 _quantity,
+        uint256 _totalAmount,
+        uint256 _rewardPoints
+    ) internal {
+        IChallengePoolHandler.PlayerSupply storage playerOptionSupply = s
+            .playerOptionSupply[_challengeId][msg.sender][_prediction];
+        if (playerOptionSupply.stakes < _quantity) {
+            revert IChallengePoolCommon.InsufficientStakes(
+                _quantity,
+                playerOptionSupply.stakes
             );
+        }
+        playerOptionSupply.stakes -= _quantity;
+        playerOptionSupply.tokens -= _totalAmount;
+        playerOptionSupply.rewards -= _rewardPoints;
+        s.playerSupply[_challengeId][msg.sender].stakes -= _quantity;
+        s.playerSupply[_challengeId][msg.sender].tokens -= _totalAmount;
+        s.playerSupply[_challengeId][msg.sender].rewards -= _rewardPoints;
+        s.optionSupply[_challengeId][_prediction].stakes -= _quantity;
+        s.optionSupply[_challengeId][_prediction].tokens -= _totalAmount;
+        s.optionSupply[_challengeId][_prediction].rewards -= _rewardPoints;
+        s.poolSupply[_challengeId].stakes -= _quantity;
+        s.poolSupply[_challengeId].tokens -= _totalAmount;
     }
 
     function _validateEvent(
@@ -189,42 +270,5 @@ library LibPool {
         } else {
             LibTransfer._depositFromPaymaster(_paymaster, _token, _amount);
         }
-    }
-
-    function _price(
-        uint256 _challengeId,
-        bytes calldata _option,
-        uint256 _quantity,
-        IChallengePoolHandler.PoolAction _action
-    ) internal view returns (uint256) {
-        return _simplePrice(_challengeId, _option, _quantity, _action);
-    }
-
-    function _optionPrice(
-        uint256 _challengeId,
-        bytes calldata _option,
-        uint256 _quantity,
-        IChallengePoolHandler.PoolAction _action
-    ) internal view returns (uint256) {
-        CPStore storage s = CPStorage.load();
-        return
-            LibPrice.computeOptionPrice(
-                s.challenges[_challengeId].basePrice,
-                s.poolSupply[_challengeId].stakes,
-                s.optionSupply[_challengeId][_option].stakes,
-                s.challenges[_challengeId].maturity - block.timestamp,
-                _quantity,
-                _action
-            );
-    }
-
-    function _simplePrice(
-        uint256 _challengeId,
-        bytes calldata /*_option*/,
-        uint256 /*_quantity*/,
-        IChallengePoolHandler.PoolAction /*_action*/
-    ) internal view returns (uint256) {
-        CPStore storage s = CPStorage.load();
-        return LibPrice.simplePrice(s.challenges[_challengeId].basePrice);
     }
 }

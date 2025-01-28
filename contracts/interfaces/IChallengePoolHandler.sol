@@ -2,7 +2,6 @@
 pragma solidity ^0.8.28;
 import "./IChallengePoolCommon.sol";
 abstract contract IChallengePoolHandler is IChallengePoolCommon {
-    
     struct Supply {
         uint256 stakes;
         uint256 tokens;
@@ -11,11 +10,13 @@ abstract contract IChallengePoolHandler is IChallengePoolCommon {
         bool exists;
         uint256 stakes;
         uint256 tokens;
+        uint256 rewards;
     }
     struct PlayerSupply {
         bool withdrawn;
         uint256 stakes;
         uint256 tokens;
+        uint256 rewards;
     }
 
     event NewChallenge(
@@ -28,6 +29,7 @@ abstract contract IChallengePoolHandler is IChallengePoolCommon {
         uint256 basePrice,
         uint256 fee,
         uint256 quantity,
+        uint256 totalAmount,
         bytes prediction,
         ChallengeEvent[] events,
         bytes[] options,
@@ -40,7 +42,8 @@ abstract contract IChallengePoolHandler is IChallengePoolCommon {
         address participant,
         bytes option,
         uint256 stakes,
-        uint256 amount,
+        uint256 price,
+        uint256 totalAmount,
         uint256 fee
     );
     event WinningsWithdrawn(
@@ -54,8 +57,21 @@ abstract contract IChallengePoolHandler is IChallengePoolCommon {
         address participant,
         bytes option,
         uint256 stakes,
-        uint256 amount,
+        uint256 price,
+        uint256 totalAmount,
         uint256 fee
+    );
+    event CloseChallenge(
+        uint256 challengeId,
+        address closer,
+        ChallengeState state,
+        bytes result
+    );
+    event EvaluateChallenge(
+        uint256 challengeId,
+        address evaluator,
+        ChallengeState state,
+        bytes result
     );
 
     enum PoolAction {
@@ -100,6 +116,7 @@ abstract contract IChallengePoolHandler is IChallengePoolCommon {
         uint256 _deadline,
         address _paymaster
     ) external virtual;
+
     /**
      * @notice  .
      * @dev     withdraw winnings from pool, reverts if user lost
@@ -128,39 +145,17 @@ abstract contract IChallengePoolHandler is IChallengePoolCommon {
         uint256 _minPrice,
         uint256 _deadline
     ) external virtual;
+
     /**
      * @notice  .
-     * @dev     price calculation for a pool option
+     * @dev     evaluate pool once it's matured
      * @param   _challengeId  .
-     * @param   _option  .
-     * @param   _quantity  .
-     * @return  uint256  .
      */
-    function price(
-        uint256 _challengeId,
-        bytes calldata _option,
-        uint256 _quantity,
-        PoolAction _action
-    ) external view virtual returns (uint256);
+    function evaluate(uint256 _challengeId) external virtual;
     /**
      * @notice  .
-     * @dev     returns the Challenge struct.
-     * @param   _challengeId  id of the challenge to return.
-     * @return  Challenge  .
+     * @dev     close pool once it's evaluated or settled
+     * @param   _challengeId  .
      */
-    function getChallenge(
-        uint256 _challengeId
-    ) external view virtual returns (Challenge memory);
-
-    function earlyWithdrawFee(
-        uint256 _price
-    ) external view virtual returns (uint256 fee, uint256 feePlusPrice);
-
-    function createFee(
-        uint256 _price
-    ) external view virtual returns (uint256 fee, uint256 feePlusPrice);
-
-    function stakeFee(
-        uint256 _price
-    ) external view virtual returns (uint256 fee, uint256 feePlusPrice);
+    function close(uint256 _challengeId) external virtual;
 }

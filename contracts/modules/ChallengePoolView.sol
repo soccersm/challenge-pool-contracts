@@ -6,7 +6,9 @@ import "../interfaces/IChallengePoolHandler.sol";
 import "../interfaces/IChallengePoolDispute.sol";
 import "../libraries/LibData.sol";
 
-contract ChallengePoolView is IChallengePoolView {
+import "../utils/ChallengePoolHelpers.sol";
+
+contract ChallengePoolView is IChallengePoolView, ChallengePoolHelpers {
     function challenges(
         uint256 _challengeId
     ) external view override returns (IChallengePoolHandler.Challenge memory) {
@@ -75,5 +77,82 @@ contract ChallengePoolView is IChallengePoolView {
         uint256 _challengeId
     ) external view override returns (uint256) {
         return CPStorage.load().poolDisputes[_challengeId];
+    }
+
+    function dataRequest(
+        bytes calldata _requestId
+    ) external view override returns (IDataProvider.DataRequest memory) {
+        return DPStorage.load().dataRequest[_requestId];
+    }
+
+    function requestOptions(
+        bytes calldata _requestId,
+        bytes calldata _option
+    ) external view override returns (bool) {
+        return DPStorage.load().requestOptions[_requestId][_option];
+    }
+
+
+    function price(
+        uint256 _challengeId
+    )
+        external
+        view
+        override
+        validChallenge(_challengeId)
+        poolInState(_challengeId, IChallengePoolCommon.ChallengeState.open)
+        returns (uint256)
+    {
+        return CPStorage.load().challenges[_challengeId].basePrice;
+    }
+
+    function earlyWithdrawFee(
+        uint256 _price
+    )
+        external
+        view
+        override
+        returns (uint256 fee, uint256 feePlusPrice)
+    {
+        fee = LibPrice._computeEarlyWithdrawFee(_price);
+        feePlusPrice = _price + fee;
+    }
+
+    function createFee(
+        uint256 _price
+    )
+        external
+        view
+        override
+        returns (uint256 fee, uint256 feePlusPrice)
+    {
+        fee = LibPrice._computeCreateFee(_price);
+        feePlusPrice = _price + fee;
+    }
+
+    function stakeFee(
+        uint256 _price
+    )
+        external
+        view
+        override
+        returns (uint256 fee, uint256 feePlusPrice)
+    {
+        fee = LibPrice._computeStakeFee(_price);
+        feePlusPrice = _price + fee;
+    }
+
+    function earlyWithdrawPenalty(
+        uint256 _challengeId
+    )
+        external
+        view
+        override
+        validChallenge(_challengeId)
+        returns (uint256 penalty, uint256 priceMinusPenalty)
+    {
+        IChallengePoolCommon.Challenge storage c = CPStorage.load().challenges[_challengeId];
+        penalty = LibPrice._penalty(c.basePrice, c.createdAt, c.maturity);
+        priceMinusPenalty = c.basePrice - penalty;
     }
 }
