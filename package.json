@@ -11,8 +11,7 @@
   "dependencies": {
     "@openzeppelin/contracts": "^5.1.0",
     "@solidstate/contracts": "^0.0.61",
-    "hardhat": "^2.22.17",
-    "hardhat-storage-layout": "^0.1.7"
+    "hardhat": "^2.22.17"
   },
   "scripts": {
     "compile": "hardhat compile",
