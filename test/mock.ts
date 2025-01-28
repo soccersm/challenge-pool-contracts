@@ -1,10 +1,7 @@
-import { ethers } from "hardhat";
 import {
   AssetPriceBoundedEvent,
   AssetPriceTargetEvent,
-  coder,
   CreateChallenge,
-  encodeMultiOptionByTopic,
   EventOption,
   FootballCorrectScoreEvent,
   FootballOutcomeEvent,
@@ -16,7 +13,6 @@ import {
   MultiFootBallTotalScoreRangeEvent,
   StatementEvent,
   TopicId,
-  yesNo,
 } from "./lib";
 
 export function btcEvent(
