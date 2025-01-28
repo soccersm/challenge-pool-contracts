@@ -5,7 +5,7 @@ export async function getMatchesScore(
   dataUrl: string,
   matchIds: number[]
 ): Promise<MatchScoreLine[]> {
-  const url = `${dataUrl}/matches/statuses?matchIds=${matchIds.join(",")}`;
+  const url = `${dataUrl}/matches/scores?matchIds=${matchIds.join(",")}`;
 
   const resp = await ky
     .get(url, {

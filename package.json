@@ -24,7 +24,7 @@
     "coverage": "hardhat coverage",
     "test:gas": "REPORT_GAS=true hardhat test",
     "test:local:gas": "REPORT_GAS=true bun run test:local",
-    "lab": "bun web3-functions/lib/lab.ts",
+    "lab": "bun crons/lab.ts",
     "deploys": "hardhat ignition deployments",
     "deploys:id": "hardhat ignition status",
     "deploy:all": "hardhat run scripts/deploy.ts --network",

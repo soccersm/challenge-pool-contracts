@@ -18,7 +18,7 @@ const config: HardhatUserConfig = {
   },
   w3f: {
     rootDir: "./web3-functions",
-    debug: false,
+    debug: true,
     networks: ["lisk", "liskTestnet"],
   },
   networks: {
