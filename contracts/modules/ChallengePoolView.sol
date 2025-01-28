@@ -18,7 +18,7 @@ contract ChallengePoolView is IChallengePoolView, ChallengePoolHelpers {
     function playerOptionSupply(
         uint256 _challengeId,
         address _player,
-        bytes calldata _option
+        bytes32 _option
     )
         external
         view
@@ -43,7 +43,7 @@ contract ChallengePoolView is IChallengePoolView, ChallengePoolHelpers {
 
     function optionSupply(
         uint256 _challengeId,
-        bytes calldata _option
+        bytes32 _option
     )
         external
         view
@@ -68,7 +68,7 @@ contract ChallengePoolView is IChallengePoolView, ChallengePoolHelpers {
 
     function optionDisputes(
         uint256 _challengeId,
-        bytes calldata _option
+        bytes32 _option
     ) external view override returns (uint256) {
         return CPStorage.load().optionDisputes[_challengeId][_option];
     }
@@ -80,14 +80,14 @@ contract ChallengePoolView is IChallengePoolView, ChallengePoolHelpers {
     }
 
     function dataRequest(
-        bytes calldata _requestId
+        bytes32 _requestId
     ) external view override returns (IDataProvider.DataRequest memory) {
         return DPStorage.load().dataRequest[_requestId];
     }
 
     function requestOptions(
-        bytes calldata _requestId,
-        bytes calldata _option
+        bytes32 _requestId,
+        bytes32 _option
     ) external view override returns (bool) {
         return DPStorage.load().requestOptions[_requestId][_option];
     }

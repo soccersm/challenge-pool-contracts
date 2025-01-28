@@ -11,7 +11,7 @@ interface IChallengePoolView {
     function playerOptionSupply(
         uint256 _challengeId,
         address _player,
-        bytes calldata _option
+        bytes32 _option
     ) external view returns (IChallengePoolHandler.PlayerSupply memory);
     function playerSupply(
         uint256 _challengeId,
@@ -19,7 +19,7 @@ interface IChallengePoolView {
     ) external view returns (IChallengePoolHandler.PlayerSupply memory);
     function optionSupply(
         uint256 _challengeId,
-        bytes calldata _option
+        bytes32 _option
     ) external view returns (IChallengePoolHandler.OptionSupply memory);
     function poolSupply(
         uint256 _challengeId
@@ -30,16 +30,16 @@ interface IChallengePoolView {
     ) external view returns (IChallengePoolDispute.Dispute memory);
     function optionDisputes(
         uint256 _challengeId,
-        bytes calldata _option
+        bytes32 _option
     ) external view returns (uint256);
     function poolDisputes(uint256 _challengeId) external view returns (uint256);
 
     function dataRequest(
-        bytes calldata _requestId
+        bytes32 _requestId
     ) external view returns (IDataProvider.DataRequest memory);
     function requestOptions(
-        bytes calldata _requestId,
-        bytes calldata _option
+        bytes32 _requestId,
+        bytes32 _option
     ) external view returns (bool);
     /**
      * @notice  .

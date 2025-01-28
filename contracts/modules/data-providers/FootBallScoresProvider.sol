@@ -9,7 +9,7 @@ contract FootBallScoresProvider is BaseProvider {
     ) external override returns (bool) {
         string memory matchId = _decodeRequestedParams(_params);
 
-        bytes memory requestId = _requestId(matchId);
+        bytes32 requestId = _requestId(matchId);
 
         if (requestExists(requestId)) {
             return true;
@@ -33,7 +33,7 @@ contract FootBallScoresProvider is BaseProvider {
             uint256 awayScore
         ) = _decodeProvidedParams(_params);
 
-        bytes memory requestId = _requestId(matchId);
+        bytes32 requestId = _requestId(matchId);
 
         if (!requestExists(requestId)) {
             revert DataNotRequested();
@@ -57,8 +57,8 @@ contract FootBallScoresProvider is BaseProvider {
 
     function _requestId(
         string memory matchId
-    ) internal pure returns (bytes memory) {
-        return abi.encode(namespace(), matchId);
+    ) internal pure returns (bytes32) {
+        return keccak256(abi.encode(namespace(), matchId));
     }
 
     function _decodeRequestedParams(
@@ -75,7 +75,7 @@ contract FootBallScoresProvider is BaseProvider {
 
     function _requestIdFromParams(
         bytes calldata _params
-    ) internal pure virtual override returns (bytes memory) {
+    ) internal pure virtual override returns (bytes32) {
         return _requestId(_decodeRequestedParams(_params));
     }
 

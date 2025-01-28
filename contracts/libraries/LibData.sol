@@ -29,12 +29,12 @@ library TRStorage {
 
 struct CPStore {
     mapping(uint256 => IChallengePoolHandler.Challenge) challenges;
-    mapping(uint256 => mapping(address => mapping(bytes => IChallengePoolHandler.PlayerSupply))) playerOptionSupply; // challengeId -> player > option > supply
+    mapping(uint256 => mapping(address => mapping(bytes32 => IChallengePoolHandler.PlayerSupply))) playerOptionSupply; // challengeId -> player > option > supply
     mapping(uint256 => mapping(address => IChallengePoolHandler.PlayerSupply)) playerSupply; // challengeId -> player > supply
-    mapping(uint256 => mapping(bytes => IChallengePoolHandler.OptionSupply)) optionSupply; // challengeId > option > supply
+    mapping(uint256 => mapping(bytes32 => IChallengePoolHandler.OptionSupply)) optionSupply; // challengeId > option > supply
     mapping(uint256 => IChallengePoolHandler.Supply) poolSupply; // challengeId -> supply
     mapping(uint256 => mapping(address => IChallengePoolDispute.Dispute)) playerDisputes; // challengeId -> disputer -> data dispute
-    mapping(uint256 => mapping(bytes => uint256)) optionDisputes; // challengeId -> option -> stakes
+    mapping(uint256 => mapping(bytes32 => uint256)) optionDisputes; // challengeId -> option -> stakes
     mapping(uint256 => uint256) poolDisputes; // challengeId -> stakes
     mapping(address => IChallengePoolManager.StakeToken) stakeTokens;
     uint256 challengeId;
@@ -63,8 +63,8 @@ library CPStorage {
 }
 
 struct DPStore {
-    mapping(bytes => IDataProvider.DataRequest) dataRequest; // requestId -> data request
-    mapping(bytes => mapping(bytes => bool)) requestOptions; // requestId -> option -> bool
+    mapping(bytes32 => IDataProvider.DataRequest) dataRequest; // requestId -> data request
+    mapping(bytes32 => mapping(bytes32 => bool)) requestOptions; // requestId -> option -> bool
 }
 
 library DPStorage {

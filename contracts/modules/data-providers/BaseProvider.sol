@@ -14,9 +14,9 @@ abstract contract BaseProvider is IDataProvider {
     }
     function _requestIdFromParams(
         bytes calldata _params
-    ) internal pure virtual returns (bytes memory);
+    ) internal pure virtual returns (bytes32);
     function requestExists(
-        bytes memory requestId
+        bytes32 requestId
     ) internal view returns (bool) {
         DPStore storage d = DPStorage.load();
         bool requestEmpty = HelpersLib.compareBytes(
@@ -27,7 +27,7 @@ abstract contract BaseProvider is IDataProvider {
         return !requestEmpty && !isRegister;
     }
 
-    function dataExists(bytes memory requestId) internal view returns (bool) {
+    function dataExists(bytes32 requestId) internal view returns (bool) {
         DPStore storage d = DPStorage.load();
         return
             !HelpersLib.compareBytes(
@@ -37,7 +37,7 @@ abstract contract BaseProvider is IDataProvider {
     }
 
     function registerExists(
-        bytes memory requestId
+        bytes32 requestId
     ) internal view returns (bool) {
         DPStore storage d = DPStorage.load();
         return d.dataRequest[requestId].register;
@@ -57,7 +57,7 @@ abstract contract BaseProvider is IDataProvider {
     function getData(
         bytes calldata _params
     ) external view override returns (bytes memory _data) {
-        bytes memory requestId = _requestIdFromParams(_params);
+        bytes32 requestId = _requestIdFromParams(_params);
         if (!dataExists(requestId)) {
             revert DataNotProvided();
         }

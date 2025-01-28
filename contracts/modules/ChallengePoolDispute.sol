@@ -66,7 +66,7 @@ contract ChallengePoolDispute is
         }
         CPStore storage s = CPStorage.load();
         Challenge storage c = s.challenges[_challengeId];
-        if (!s.optionSupply[_challengeId][_outcome].exists) {
+        if (!s.optionSupply[_challengeId][keccak256(_outcome)].exists) {
             revert InvalidOutcome();
         }
         if (s.playerSupply[_challengeId][msg.sender].stakes == 0) {
@@ -85,7 +85,7 @@ contract ChallengePoolDispute is
             c.disputed = true;
             c.state = ChallengeState.disputed;
         }
-        s.optionDisputes[_challengeId][_outcome] += s.disputeStake;
+        s.optionDisputes[_challengeId][keccak256(_outcome)] += s.disputeStake;
         s.poolDisputes[_challengeId] += s.disputeStake;
         LibTransfer._receive(c.stakeToken, s.disputeStake);
         emit DisputeOutcome(
@@ -156,7 +156,7 @@ contract ChallengePoolDispute is
         c.state = ChallengeState.settled;
         c.outcome = _outcome;
         uint256 slashed = s.poolDisputes[_challengeId] -
-            s.optionDisputes[_challengeId][_outcome];
+            s.optionDisputes[_challengeId][keccak256(_outcome)];
         LibTransfer._send(c.stakeToken, slashed, s.feeAddress);
         emit SettleDispute(
             _challengeId,

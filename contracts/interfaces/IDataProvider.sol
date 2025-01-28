@@ -10,19 +10,19 @@ interface IDataProvider {
     event DataRequested(
         address  caller,
         string  namespace,
-        bytes requestId,
+        bytes32 requestId,
         bytes params
     );
     event DataProvided(
         address  caller,
         string  namespace,
-        bytes requestId,
+        bytes32 requestId,
         bytes params
     );
     event DataRegistered(
         address  caller,
         string  namespace,
-        bytes requestId,
+        bytes32 requestId,
         bytes params
     );
 

@@ -11,7 +11,7 @@ contract AssetPriceDataProvider is BaseProvider {
             _params
         );
 
-        bytes memory requestId = _requestId(assetSymbol, date);
+        bytes32 requestId = _requestId(assetSymbol, date);
 
         if (requestExists(requestId)) {
             return true;
@@ -38,7 +38,7 @@ contract AssetPriceDataProvider is BaseProvider {
             revert InvalidSubmissionDate(date);
         }
 
-        bytes memory requestId = _requestId(assetSymbol, date);
+        bytes32 requestId = _requestId(assetSymbol, date);
 
         if (!requestExists(requestId)) {
             revert DataNotRequested();
@@ -63,8 +63,8 @@ contract AssetPriceDataProvider is BaseProvider {
     function _requestId(
         string memory assetSymbol,
         uint256 date
-    ) internal pure returns (bytes memory) {
-        return abi.encode(namespace(), assetSymbol, date);
+    ) internal pure returns (bytes32) {
+        return keccak256(abi.encode(namespace(), assetSymbol, date));
     }
 
     function _decodeRequestedParams(
@@ -81,7 +81,7 @@ contract AssetPriceDataProvider is BaseProvider {
 
     function _requestIdFromParams(
         bytes calldata _params
-    ) internal pure virtual override returns (bytes memory) {
+    ) internal pure virtual override returns (bytes32) {
         (string memory assetSymbol, uint256 date) = _decodeRequestedParams(
             _params
         );

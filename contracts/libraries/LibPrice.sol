@@ -66,8 +66,8 @@ library LibPrice {
     ) internal view returns (uint256) {
         CPStore storage s = CPStorage.load();
         IChallengePoolHandler.Challenge storage c = s.challenges[_challengeId];
-        uint256 winnerStakes = s.optionSupply[_challengeId][c.outcome].stakes;
-        uint256 winnerTokens = s.optionSupply[_challengeId][c.outcome].tokens;
+        uint256 winnerStakes = s.optionSupply[_challengeId][keccak256(c.outcome)].stakes;
+        uint256 winnerTokens = s.optionSupply[_challengeId][keccak256(c.outcome)].tokens;
         uint256 looserTokens = s.poolSupply[_challengeId].tokens - winnerTokens;
         return Math.mulDiv(looserTokens, stakes, winnerStakes);
     }

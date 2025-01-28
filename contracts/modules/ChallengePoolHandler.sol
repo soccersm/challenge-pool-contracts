@@ -84,7 +84,7 @@ contract ChallengePoolHandler is
             if (HelpersLib.compareBytes(_prediction, poolOptions[i])) {
                 predictionExists = true;
             }
-            s.optionSupply[s.challengeId][poolOptions[i]].exists = true;
+            s.optionSupply[s.challengeId][keccak256(poolOptions[i])].exists = true;
         }
         if (!predictionExists) {
             revert InvalidPrediction();
@@ -164,7 +164,7 @@ contract ChallengePoolHandler is
 
         uint256 currentPrice = s.challenges[_challengeId].basePrice;
 
-        if (!s.optionSupply[_challengeId][_prediction].exists) {
+        if (!s.optionSupply[_challengeId][keccak256(_prediction)].exists) {
             revert InvalidPrediction();
         }
         uint256 totalAmount = currentPrice * _quantity;
@@ -220,7 +220,7 @@ contract ChallengePoolHandler is
             revert DeadlineExceeded();
         }
         uint256 currentPrice = s.challenges[_challengeId].basePrice;
-        if (!s.optionSupply[_challengeId][_prediction].exists) {
+        if (!s.optionSupply[_challengeId][keccak256(_prediction)].exists) {
             revert InvalidPrediction();
         }
         uint256 totalAmount = currentPrice * _quantity;

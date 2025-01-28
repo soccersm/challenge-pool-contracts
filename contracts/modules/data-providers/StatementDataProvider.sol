@@ -17,7 +17,7 @@ contract StatementDataProvider is BaseProvider {
             revert InvalidSubmissionDate(maturity);
         }
 
-        bytes memory requestId = _requestId(statementId, statement, maturity);
+        bytes32 requestId = _requestId(statementId, statement, maturity);
 
         if (!registerExists(requestId)) {
             revert DataNotRegistered();
@@ -29,7 +29,11 @@ contract StatementDataProvider is BaseProvider {
 
         DPStore storage d = DPStorage.load();
 
-        d.dataRequest[requestId] = DataRequest(_params, HelpersLib.emptyBytes, false);
+        d.dataRequest[requestId] = DataRequest(
+            _params,
+            HelpersLib.emptyBytes,
+            false
+        );
 
         emit DataRequested(msg.sender, namespace(), requestId, _params);
         return true;
@@ -50,7 +54,7 @@ contract StatementDataProvider is BaseProvider {
             revert InvalidSubmissionDate(maturity);
         }
 
-        bytes memory requestId = _requestId(statementId, statement, maturity);
+        bytes32 requestId = _requestId(statementId, statement, maturity);
 
         if (!requestExists(requestId)) {
             revert DataNotRequested();
@@ -78,7 +82,7 @@ contract StatementDataProvider is BaseProvider {
             revert InvalidSubmissionDate(maturity);
         }
 
-        bytes memory requestId = _requestId(statementId, statement, maturity);
+        bytes32 requestId = _requestId(statementId, statement, maturity);
 
         if (requestExists(requestId)) {
             revert DataAlreadyRegistered();
@@ -90,10 +94,14 @@ contract StatementDataProvider is BaseProvider {
 
         DPStore storage d = DPStorage.load();
 
-        d.dataRequest[requestId] = DataRequest(_params, HelpersLib.emptyBytes, true);
+        d.dataRequest[requestId] = DataRequest(
+            _params,
+            HelpersLib.emptyBytes,
+            true
+        );
 
         for (uint256 i = 0; i < options.length; i++) {
-            d.requestOptions[requestId][options[i]] = true;
+            d.requestOptions[requestId][keccak256(options[i])] = true;
         }
 
         emit DataRegistered(msg.sender, namespace(), requestId, _params);
@@ -103,13 +111,13 @@ contract StatementDataProvider is BaseProvider {
         bytes calldata _params,
         bytes[] calldata _options
     ) external view override returns (bool) {
-        bytes memory requestId = _requestIdFromParams(_params);
+        bytes32 requestId = _requestIdFromParams(_params);
         DPStore storage d = DPStorage.load();
         if (!registerExists(requestId)) {
             revert DataNotRegistered();
         }
         for (uint256 i = 0; i < _options.length; i++) {
-            if (!d.requestOptions[requestId][_options[i]]) {
+            if (!d.requestOptions[requestId][keccak256(_options[i])]) {
                 return false;
             }
         }
@@ -120,8 +128,11 @@ contract StatementDataProvider is BaseProvider {
         string memory statementId,
         string memory statement,
         uint256 maturity
-    ) internal pure returns (bytes memory) {
-        return abi.encode(namespace(), statementId, statement, maturity);
+    ) internal pure returns (bytes32) {
+        return
+            keccak256(
+                abi.encode(namespace(), statementId, statement, maturity)
+            );
     }
 
     function _decodeRequestedParams(
@@ -142,7 +153,7 @@ contract StatementDataProvider is BaseProvider {
 
     function _requestIdFromParams(
         bytes calldata _params
-    ) internal pure virtual override returns (bytes memory) {
+    ) internal pure virtual override returns (bytes32) {
         (
             string memory statementId,
             string memory statement,
