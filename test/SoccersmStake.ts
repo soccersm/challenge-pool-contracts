@@ -35,7 +35,7 @@ describe("ChallengePool - Stake Challenge", function () {
             baller,
             ballsToken,
             poolHandlerProxy,
-            registryProxy,
+            poolViewProxy,
             poolManagerProxy,
             keeper,
             paymaster,
@@ -57,7 +57,7 @@ describe("ChallengePool - Stake Challenge", function () {
             .approve(
               await poolHandlerProxy.getAddress(),
               (
-                await poolHandlerProxy.createFee(oneGrand)
+                await poolViewProxy.createFee(oneGrand)
               )[1]
             );
           await (poolHandlerProxy.connect(baller) as any).createChallenge(

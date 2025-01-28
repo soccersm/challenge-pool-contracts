@@ -35,6 +35,7 @@ describe("ChallengePool - Create Challenge", function () {
             ballsToken,
             poolHandlerProxy,
             registryProxy,
+            poolViewProxy,
             poolManagerProxy,
             keeper,
             paymaster,
@@ -55,7 +56,7 @@ describe("ChallengePool - Create Challenge", function () {
             .approve(
               await poolHandlerProxy.getAddress(),
               (
-                await poolHandlerProxy.createFee(oneGrand)
+                await poolViewProxy.createFee(oneGrand)
               )[1]
             );
           await (poolHandlerProxy.connect(baller) as any).createChallenge(
@@ -75,7 +76,7 @@ describe("ChallengePool - Create Challenge", function () {
             .approve(
               await poolHandlerProxy.getAddress(),
               (
-                await poolHandlerProxy.createFee(oneGrand)
+                await poolViewProxy.createFee(oneGrand)
               )[1]
             );
           await (poolHandlerProxy.connect(baller) as any).createChallenge(
@@ -95,7 +96,7 @@ describe("ChallengePool - Create Challenge", function () {
             .approve(
               await poolHandlerProxy.getAddress(),
               (
-                await poolHandlerProxy.createFee(oneGrand)
+                await poolViewProxy.createFee(oneGrand)
               )[1]
             );
           await (poolHandlerProxy.connect(baller) as any).createChallenge(
@@ -116,7 +117,7 @@ describe("ChallengePool - Create Challenge", function () {
             .approve(
               await poolHandlerProxy.getAddress(),
               (
-                await poolHandlerProxy.createFee(oneGrand)
+                await poolViewProxy.createFee(oneGrand)
               )[1]
             );
           await (poolHandlerProxy.connect(baller) as any).createChallenge(
@@ -137,7 +138,7 @@ describe("ChallengePool - Create Challenge", function () {
             .approve(
               await poolHandlerProxy.getAddress(),
               (
-                await poolHandlerProxy.createFee(oneGrand)
+                await poolViewProxy.createFee(oneGrand)
               )[1]
             );
           await (poolHandlerProxy.connect(baller) as any).createChallenge(
@@ -158,7 +159,7 @@ describe("ChallengePool - Create Challenge", function () {
             .approve(
               await poolHandlerProxy.getAddress(),
               (
-                await poolHandlerProxy.createFee(oneGrand)
+                await poolViewProxy.createFee(oneGrand)
               )[1]
             );
           await (poolHandlerProxy.connect(baller) as any).createChallenge(
@@ -179,7 +180,7 @@ describe("ChallengePool - Create Challenge", function () {
             .approve(
               await poolHandlerProxy.getAddress(),
               (
-                await poolHandlerProxy.createFee(oneGrand)
+                await poolViewProxy.createFee(oneGrand)
               )[1]
             );
           await (poolHandlerProxy.connect(baller) as any).createChallenge(
@@ -215,7 +216,7 @@ describe("ChallengePool - Create Challenge", function () {
             .approve(
               await poolHandlerProxy.getAddress(),
               (
-                await poolHandlerProxy.createFee(oneGrand)
+                await poolViewProxy.createFee(oneGrand)
               )[1]
             );
           await (poolHandlerProxy.connect(baller) as any).createChallenge(
@@ -266,7 +267,7 @@ describe("ChallengePool - Create Challenge", function () {
             .approve(
               await poolHandlerProxy.getAddress(),
               (
-                await poolHandlerProxy.createFee(oneGrand)
+                await poolViewProxy.createFee(oneGrand)
               )[1]
             );
           //Should revert
@@ -291,7 +292,7 @@ describe("ChallengePool - Create Challenge", function () {
             .approve(
               await poolHandlerProxy.getAddress(),
               (
-                await poolHandlerProxy.createFee(oneGrand)
+                await poolViewProxy.createFee(oneGrand)
               )[1]
             );
           //Should revert for unsupportedToken
@@ -318,7 +319,7 @@ describe("ChallengePool - Create Challenge", function () {
             .approve(
               await poolHandlerProxy.getAddress(),
               (
-                await poolHandlerProxy.createFee(oneGrand)
+                await poolViewProxy.createFee(oneGrand)
               )[1]
             );
           //Should revert for zero quantity/baseprice
@@ -345,7 +346,7 @@ describe("ChallengePool - Create Challenge", function () {
             .approve(
               await poolHandlerProxy.getAddress(),
               (
-                await poolHandlerProxy.createFee(oneGrand)
+                await poolViewProxy.createFee(oneGrand)
               )[1]
             );
          // Should revert for invalidStake, invalidPrediction
@@ -370,7 +371,7 @@ describe("ChallengePool - Create Challenge", function () {
             .approve(
               await poolHandlerProxy.getAddress(),
               (
-                await poolHandlerProxy.createFee(oneGrand)
+                await poolViewProxy.createFee(oneGrand)
               )[1]
             );
           //Should revert for zero event length
@@ -395,7 +396,7 @@ describe("ChallengePool - Create Challenge", function () {
             .approve(
               await poolHandlerProxy.getAddress(),
               (
-                await poolHandlerProxy.createFee(oneGrand)
+                await poolViewProxy.createFee(oneGrand)
               )[1]
             );
             //revert
@@ -420,7 +421,7 @@ describe("ChallengePool - Create Challenge", function () {
             .approve(
               await poolHandlerProxy.getAddress(),
               (
-                await poolHandlerProxy.createFee(oneGrand)
+                await poolViewProxy.createFee(oneGrand)
               )[1]
             );
             //revert on invalid maturity
@@ -449,7 +450,7 @@ describe("ChallengePool - Create Challenge", function () {
         //     .approve(
         //       await poolHandlerProxy.getAddress(),
         //       (
-        //         await poolHandlerProxy.createFee(oneGrand)
+        //         await poolViewProxy.createFee(oneGrand)
         //       )[1]
         //     );
         //     //revert on invalid topic id

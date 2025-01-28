@@ -58,6 +58,7 @@ export async function deploySoccersm() {
     keeper,
     oneMil,
     oneGrand,
+    poolViewProxy
   };
 }
 
