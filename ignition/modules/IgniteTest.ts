@@ -6,7 +6,7 @@ import {
   functionSelectors,
   FacetCutAction,
   INIT_SIG,
-} from "./lib";
+} from "../lib";
 
 const IgniteTestModule = buildModule("IgniteTestModule", (m) => {
   const owner = m.getAccount(0);

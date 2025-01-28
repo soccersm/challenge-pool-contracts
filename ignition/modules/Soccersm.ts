@@ -1,7 +1,12 @@
 // This setup uses Hardhat Ignition to manage smart contract deployments.
 // Learn more about it at https://hardhat.org/ignition
 import { buildModule } from "@nomicfoundation/hardhat-ignition/modules";
-import { functionSigsSelectors, functionSelectors, FacetCutAction, INIT_SIG } from "./lib";
+import {
+  functionSigsSelectors,
+  functionSelectors,
+  FacetCutAction,
+  INIT_SIG,
+} from "../lib";
 
 const SoccersmModule = buildModule("SoccersmModule", (m) => {
   const owner = m.getAccount(0);
@@ -34,15 +39,28 @@ const SoccersmModule = buildModule("SoccersmModule", (m) => {
   const ac = m.contract("AccessControlFacet");
   const acC = [ac, FacetCutAction.Add, Object.values(acS)];
 
-  m.call(cutProxy, "diamondCut", [[acC], aciInit.contract, aciInit.selector], {
-    id: "AccessControlDiamondCut",
-  });
+  const psS = functionSelectors("PausableFacet");
+  const ps = m.contract("PausableFacet");
+  const psC = [ps, FacetCutAction.Add, Object.values(psS)];
+
+  m.call(
+    cutProxy,
+    "diamondCut",
+    [[acC, psC], aciInit.contract, aciInit.selector],
+    {
+      id: "AccessControlDiamondCut",
+    }
+  );
 
   const acProxy = m.contractAt("AccessControlFacet", soccersm, {
     id: "SoccersmAccessControl",
   });
 
-  return { soccersm, cutProxy, acProxy };
+  const psProxy = m.contractAt("PausableFacet", soccersm, {
+    id: "SoccersmPausable",
+  });
+
+  return { soccersm, cutProxy, acProxy, psProxy };
 });
 
 export default SoccersmModule;

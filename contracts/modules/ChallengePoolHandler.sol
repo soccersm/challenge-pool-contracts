@@ -3,6 +3,8 @@ pragma solidity ^0.8.28;
 
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "@solidstate/contracts/security/pausable/PausableInternal.sol";
+import "@solidstate/contracts/security/reentrancy_guard/ReentrancyGuard.sol";
 
 import "../libraries/LibData.sol";
 import "../interfaces/IChallengePoolHandler.sol";
@@ -22,7 +24,9 @@ contract ChallengePoolHandler is
     IChallengePoolHandler,
     SoccersmRoles,
     Helpers,
-    ChallengePoolHelpers
+    ChallengePoolHelpers,
+    PausableInternal,
+    ReentrancyGuard
 {
     function createChallenge(
         ChallengeEvent[] calldata _events,
@@ -35,6 +39,7 @@ contract ChallengePoolHandler is
     )
         external
         override
+        whenNotPaused
         nonZero(_quantity)
         nonZero(_basePrice)
         positiveAddress(_stakeToken)
@@ -149,6 +154,7 @@ contract ChallengePoolHandler is
     )
         external
         override
+        whenNotPaused
         validChallenge(_challengeId)
         validPrediction(_prediction)
         nonZero(_quantity)
@@ -201,6 +207,8 @@ contract ChallengePoolHandler is
     )
         external
         override
+        whenNotPaused
+        nonReentrant
         validChallenge(_challengeId)
         validPrediction(_prediction)
         nonZero(_quantity)
@@ -251,7 +259,13 @@ contract ChallengePoolHandler is
 
     function withdraw(
         uint256 _challengeId
-    ) external override validChallenge(_challengeId) {
+    )
+        external
+        override
+        whenNotPaused
+        nonReentrant
+        validChallenge(_challengeId)
+    {
         LibPool._withdraw(_challengeId);
     }
 
@@ -269,6 +283,7 @@ contract ChallengePoolHandler is
     )
         external
         override
+        whenNotPaused
         validChallenge(_challengeId)
         poolInState(_challengeId, ChallengeState.matured)
     {
@@ -326,7 +341,7 @@ contract ChallengePoolHandler is
 
     function close(
         uint256 _challengeId
-    ) external override validChallenge(_challengeId) {
+    ) external override whenNotPaused validChallenge(_challengeId) {
         CPStore storage s = CPStorage.load();
         Challenge storage c = s.challenges[_challengeId];
         if (

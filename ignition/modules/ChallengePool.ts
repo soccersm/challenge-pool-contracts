@@ -6,7 +6,7 @@ import {
   functionSelectors,
   FacetCutAction,
   INIT_SIG,
-} from "./lib";
+} from "../lib";
 import Soccersm from "./Soccersm";
 
 const ChallengePoolModule = buildModule("ChallengePoolModule", (m) => {

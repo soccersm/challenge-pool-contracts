@@ -4,6 +4,9 @@ pragma solidity ^0.8.28;
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
+import "@solidstate/contracts/security/pausable/PausableInternal.sol";
+import "@solidstate/contracts/security/reentrancy_guard/ReentrancyGuard.sol";
+
 import "../libraries/LibData.sol";
 import "../interfaces/IChallengePoolDispute.sol";
 import "../libraries/LibPrice.sol";
@@ -23,11 +26,19 @@ contract ChallengePoolDispute is
     IChallengePoolDispute,
     SoccersmRoles,
     Helpers,
-    ChallengePoolHelpers
+    ChallengePoolHelpers,
+    PausableInternal,
+    ReentrancyGuard
 {
     function cancel(
         uint256 _challengeId
-    ) external override onlySoccersmCouncil validChallenge(_challengeId) {
+    )
+        external
+        override
+        whenNotPaused
+        onlySoccersmCouncil
+        validChallenge(_challengeId)
+    {
         CPStore storage s = CPStorage.load();
         Challenge storage c = s.challenges[_challengeId];
         c.state = ChallengeState.cancelled;
@@ -44,6 +55,7 @@ contract ChallengePoolDispute is
     )
         external
         override
+        whenNotPaused
         validChallenge(_challengeId)
         poolInState(_challengeId, ChallengeState.evaluated)
     {
@@ -87,6 +99,8 @@ contract ChallengePoolDispute is
     )
         external
         override
+        whenNotPaused
+        nonReentrant
         validChallenge(_challengeId)
         poolInState(_challengeId, ChallengeState.closed)
     {
@@ -119,6 +133,8 @@ contract ChallengePoolDispute is
     )
         external
         override
+        whenNotPaused
+        nonReentrant
         onlySoccersmCouncil
         validChallenge(_challengeId)
         poolInState(_challengeId, ChallengeState.disputed)

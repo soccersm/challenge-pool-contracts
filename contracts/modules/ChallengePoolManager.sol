@@ -3,13 +3,20 @@ pragma solidity ^0.8.28;
 
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+
+import "@solidstate/contracts/security/reentrancy_guard/ReentrancyGuard.sol";
 import "../libraries/LibData.sol";
 import "../libraries/LibTransfer.sol";
 import "../interfaces/IChallengePoolManager.sol";
 import "../utils/Helpers.sol";
 import "../utils/Errors.sol";
 import "../diamond/interfaces/SoccersmRoles.sol";
-contract ChallengePoolManager is IChallengePoolManager, SoccersmRoles, Helpers {
+contract ChallengePoolManager is
+    IChallengePoolManager,
+    SoccersmRoles,
+    Helpers,
+    ReentrancyGuard
+{
     function setFeeAddress(
         address _feeAddress
     ) external override onlyPoolManager positiveAddress(_feeAddress) {
@@ -128,7 +135,9 @@ contract ChallengePoolManager is IChallengePoolManager, SoccersmRoles, Helpers {
         emit SetDisputeStake(msg.sender, oldDisputeStake, _disputeStake);
     }
 
-    function withdrawFee(address _stakeToken) external override onlyAdmin {
+    function withdrawFee(
+        address _stakeToken
+    ) external override nonReentrant onlyAdmin {
         CPStore storage c = CPStorage.load();
         StakeToken storage st = c.stakeTokens[_stakeToken];
         require(st.accumulatedFee > 0, "no fee to extra");
