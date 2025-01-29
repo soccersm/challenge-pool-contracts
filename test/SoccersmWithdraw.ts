@@ -14,7 +14,7 @@ import {
   encodeMultiOptionByTopic,
   prepareStatementProvision,
 } from "./lib";
-import { getChallenge } from "./test_helpers";
+import { getChallenge, getChallengeState } from "./test_helpers";
 
 describe("ChallengePool - Withdraw", function () {
   it("Should [withdraw]", async function () {
@@ -98,21 +98,31 @@ describe("ChallengePool - Withdraw", function () {
     //console.log("GH maturity: ", gh.challenge.events[0].maturity);
 
     const challenges = await getChallenge(poolViewProxy, 0);
-    console.log("Challenges: ", challenges);
+    // console.log("Challenges: ", challenges);
     await time.increaseTo(gh.challenge.events[0].maturity);
     // const evaluation = await (poolHandlerProxy.connect(owner) as any).evaluate(0); // reverting
     const provideDataParams = prepareStatementProvision(
       gh.statementId,
       gh.statement,
       gh.maturity,
-      gh.options[0] as string
+      prediction
     );
     await registryProxy.provideData(...provideDataParams);
 
     await poolHandlerProxy.evaluate(0);
-    console.log("Challenges: ", await getChallenge(poolViewProxy, 0));
+    await expect(poolHandlerProxy.close(0)).revertedWithCustomError(
+      poolHandlerProxy,
+      "DisputePeriod"
+    );
     await time.increase(60 * 60);
     await poolHandlerProxy.close(0);
-    console.log("Challenges: ", await getChallenge(poolViewProxy, 0));
+
+    const challengeState = await getChallengeState(
+      poolViewProxy,
+      0,
+      baller.address,
+      ethers.keccak256(ethers.toUtf8Bytes(prediction))
+    );
+    console.log(challengeState);
   });
 });
