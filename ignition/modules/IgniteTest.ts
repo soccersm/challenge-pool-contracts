@@ -39,12 +39,20 @@ const IgniteTestModule = buildModule("IgniteTestModule", (m) => {
   const ac = m.contract("AccessControlFacet");
   const acC = [ac, FacetCutAction.Add, Object.values(acS)];
 
-  m.call(cutProxy, "diamondCut", [[acC], aciInit.contract, aciInit.selector], {
+  const psS = functionSelectors("PausableFacet");
+  const ps = m.contract("PausableFacet");
+  const psC = [ps, FacetCutAction.Add, Object.values(psS)];
+
+  m.call(cutProxy, "diamondCut", [[acC, psC], aciInit.contract, aciInit.selector], {
     id: "AccessControlDiamondCut",
   });
 
   const acProxy = m.contractAt("AccessControlFacet", soccersm, {
     id: "SoccersmAccessControl",
+  });
+
+  const psProxy = m.contractAt("PausableFacet", soccersm, {
+    id: "SoccersmPausable",
   });
 
   const trS = functionSelectors("TopicRegistry");
@@ -169,6 +177,7 @@ const IgniteTestModule = buildModule("IgniteTestModule", (m) => {
     soccersm,
     cutProxy,
     acProxy,
+    psProxy,
     registryProxy,
     poolViewProxy,
     poolHandlerProxy,

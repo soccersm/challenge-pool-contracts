@@ -84,7 +84,9 @@ contract ChallengePoolHandler is
             if (HelpersLib.compareBytes(_prediction, poolOptions[i])) {
                 predictionExists = true;
             }
-            s.optionSupply[s.challengeId][keccak256(poolOptions[i])].exists = true;
+            s
+            .optionSupply[s.challengeId][keccak256(poolOptions[i])]
+                .exists = true;
         }
         if (!predictionExists) {
             revert InvalidPrediction();
@@ -168,7 +170,7 @@ contract ChallengePoolHandler is
         }
         uint256 totalAmount = currentPrice * _quantity;
         uint256 fee = LibPrice._computeStakeFee(currentPrice);
-        uint256 rewardPoints = LibPrice._rewardPoints(
+        uint256 rewardPoints = LibPrice._stakeRewardPoints(
             _quantity,
             s.challenges[_challengeId].createdAt,
             s.challenges[_challengeId].maturity
@@ -194,7 +196,8 @@ contract ChallengePoolHandler is
             _quantity,
             currentPrice,
             totalAmount,
-            fee
+            fee,
+            rewardPoints
         );
     }
 
@@ -218,16 +221,32 @@ contract ChallengePoolHandler is
         if (_deadline < block.timestamp) {
             revert DeadlineExceeded();
         }
-        uint256 currentPrice = s.challenges[_challengeId].basePrice;
         if (!s.optionSupply[_challengeId][keccak256(_prediction)].exists) {
             revert InvalidPrediction();
         }
-        uint256 totalAmount = currentPrice * _quantity;
-        uint256 fee = LibPrice._computeEarlyWithdrawFee(currentPrice);
-        uint256 rewardPoints = LibPrice._rewardPoints(
-            _quantity,
+        IChallengePoolHandler.PlayerSupply storage playerOptionSupply = s
+            .playerOptionSupply[_challengeId][msg.sender][
+                keccak256(_prediction)
+            ];
+        if (playerOptionSupply.stakes < _quantity) {
+            revert IChallengePoolCommon.InsufficientStakes(
+                _quantity,
+                playerOptionSupply.stakes
+            );
+        }
+        uint256 basePrice = s.challenges[_challengeId].basePrice;
+        uint256 penalty = LibPrice._penalty(
+            basePrice,
             s.challenges[_challengeId].createdAt,
             s.challenges[_challengeId].maturity
+        );
+        uint256 currentPrice = basePrice - penalty;
+        uint256 totalAmount = basePrice * _quantity;
+        uint256 fee = LibPrice._computeEarlyWithdrawFee(basePrice);
+        uint256 rewardPoints = LibPrice._earlyWithdrawRewardPoints(
+            playerOptionSupply.rewards,
+            playerOptionSupply.stakes,
+            _quantity
         );
         LibPool._decrementSupply(
             s,
@@ -251,8 +270,10 @@ contract ChallengePoolHandler is
             _prediction,
             _quantity,
             currentPrice,
+            penalty,
             totalAmount,
-            fee
+            fee,
+            rewardPoints
         );
     }
 

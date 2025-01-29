@@ -22,7 +22,7 @@ library LibPool {
         uint256 _quantity,
         uint256 _totalAmount
     ) internal {
-        uint256 rewardPoints = LibPrice._rewardPoints(
+        uint256 rewardPoints = LibPrice._stakeRewardPoints(
             _quantity,
             block.timestamp,
             _maturity
@@ -37,8 +37,14 @@ library LibPool {
         );
         s.playerSupply[s.challengeId][msg.sender] = IChallengePoolHandler
             .PlayerSupply(false, _quantity, _totalAmount, rewardPoints);
-        s.optionSupply[s.challengeId][keccak256(_prediction)] = IChallengePoolHandler
-            .OptionSupply(true, _quantity, _totalAmount, rewardPoints);
+        s.optionSupply[s.challengeId][
+            keccak256(_prediction)
+        ] = IChallengePoolHandler.OptionSupply(
+            true,
+            _quantity,
+            _totalAmount,
+            rewardPoints
+        );
         s.poolSupply[s.challengeId] = IChallengePoolHandler.Supply(
             _quantity,
             _totalAmount
@@ -67,16 +73,23 @@ library LibPool {
         uint256 _rewardPoints
     ) internal {
         IChallengePoolHandler.PlayerSupply storage playerOptionSupply = s
-            .playerOptionSupply[_challengeId][msg.sender][keccak256(_prediction)];
+            .playerOptionSupply[_challengeId][msg.sender][
+                keccak256(_prediction)
+            ];
         playerOptionSupply.stakes += _quantity;
         playerOptionSupply.tokens += _totalAmount;
         playerOptionSupply.rewards += _rewardPoints;
         s.playerSupply[_challengeId][msg.sender].stakes += _quantity;
         s.playerSupply[_challengeId][msg.sender].tokens += _totalAmount;
         s.playerSupply[_challengeId][msg.sender].rewards += _rewardPoints;
-        s.optionSupply[_challengeId][keccak256(_prediction)].stakes += _quantity;
-        s.optionSupply[_challengeId][keccak256(_prediction)].tokens += _totalAmount;
-        s.optionSupply[_challengeId][keccak256(_prediction)].rewards += _rewardPoints;
+        s
+        .optionSupply[_challengeId][keccak256(_prediction)].stakes += _quantity;
+        s
+        .optionSupply[_challengeId][keccak256(_prediction)]
+            .tokens += _totalAmount;
+        s
+        .optionSupply[_challengeId][keccak256(_prediction)]
+            .rewards += _rewardPoints;
         s.poolSupply[_challengeId].stakes += _quantity;
         s.poolSupply[_challengeId].tokens += _totalAmount;
     }
@@ -90,22 +103,23 @@ library LibPool {
         uint256 _rewardPoints
     ) internal {
         IChallengePoolHandler.PlayerSupply storage playerOptionSupply = s
-            .playerOptionSupply[_challengeId][msg.sender][keccak256(_prediction)];
-        if (playerOptionSupply.stakes < _quantity) {
-            revert IChallengePoolCommon.InsufficientStakes(
-                _quantity,
-                playerOptionSupply.stakes
-            );
-        }
+            .playerOptionSupply[_challengeId][msg.sender][
+                keccak256(_prediction)
+            ];
         playerOptionSupply.stakes -= _quantity;
         playerOptionSupply.tokens -= _totalAmount;
         playerOptionSupply.rewards -= _rewardPoints;
         s.playerSupply[_challengeId][msg.sender].stakes -= _quantity;
         s.playerSupply[_challengeId][msg.sender].tokens -= _totalAmount;
         s.playerSupply[_challengeId][msg.sender].rewards -= _rewardPoints;
-        s.optionSupply[_challengeId][keccak256(_prediction)].stakes -= _quantity;
-        s.optionSupply[_challengeId][keccak256(_prediction)].tokens -= _totalAmount;
-        s.optionSupply[_challengeId][keccak256(_prediction)].rewards -= _rewardPoints;
+        s
+        .optionSupply[_challengeId][keccak256(_prediction)].stakes -= _quantity;
+        s
+        .optionSupply[_challengeId][keccak256(_prediction)]
+            .tokens -= _totalAmount;
+        s
+        .optionSupply[_challengeId][keccak256(_prediction)]
+            .rewards -= _rewardPoints;
         s.poolSupply[_challengeId].stakes -= _quantity;
         s.poolSupply[_challengeId].tokens -= _totalAmount;
     }
@@ -211,7 +225,7 @@ library LibPool {
         playerOptionSupply.withdrawn = true;
         uint256 playerShare = LibPrice._computeWinnerShare(
             _challengeId,
-            playerOptionSupply.stakes
+            playerOptionSupply.rewards
         );
         uint256 totalAmount = playerShare + playerOptionSupply.tokens;
         LibTransfer._send(c.stakeToken, totalAmount, msg.sender);
