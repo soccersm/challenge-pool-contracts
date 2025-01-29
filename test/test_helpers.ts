@@ -150,4 +150,4 @@ export async function getChallengeState(
     optionDispute,
     poolDispute
   };
-}
+};

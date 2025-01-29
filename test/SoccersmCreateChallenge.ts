@@ -29,6 +29,7 @@ import {
   getPlayerOptionSupply,
 } from "./test_helpers";
 import { keccak256 } from "thirdweb";
+import { bigint } from "hardhat/internal/core/params/argumentTypes";
 
 describe("ChallengePool - Create Challenge", function () {
   it("Should [Create]", async function () {
