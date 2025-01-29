@@ -1,3 +1,4 @@
+import { ChallengePoolViewInterface } from './../typechain-types/contracts/modules/ChallengePoolView';
 import {
   time,
   loadFixture,
@@ -166,5 +167,15 @@ describe("ChallengePool - Stake Challenge", function () {
     const strikerTotalAmount = oneGrand * BigInt(quantity);
     expect(strikerPlayerSupply.tokens).to.equals(strikerTotalAmount);
 
+    //Create and Stake: _recordFee
+    const allFees = await poolViewProxy.getAccumulatedFee(ballsToken.getAddress());
+    console.log("All BallsToken Fees: ", allFees);
+
+    const ballerCreateFees = await poolViewProxy.createFee(oneGrand);
+    const ballerStakeFees = await poolViewProxy.stakeFee(oneGrand);
+    const strikerStakeFees = await poolViewProxy.stakeFee(oneGrand);
+    const totalAccuFees = ballerCreateFees[0] + ballerStakeFees[0] + strikerStakeFees[0];
+    console.log("Total Accumulated Fees: ", totalAccuFees);
+    expect(allFees).to.equals(totalAccuFees);
   });
 });
