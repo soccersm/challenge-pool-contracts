@@ -110,6 +110,11 @@ contract ChallengePoolHandler is
         uint256 fee = LibPrice._computeCreateFee(_basePrice);
         LibPool._recordFee(_stakeToken, fee);
         uint256 totalAmount = _basePrice * _quantity;
+        uint256 rewardPoints = LibPrice._stakeRewardPoints(
+            _quantity,
+            block.timestamp,
+            maturity
+        );
         LibPool._initPool(
             s,
             _stakeToken,
@@ -119,7 +124,8 @@ contract ChallengePoolHandler is
             maturity,
             _basePrice,
             _quantity,
-            totalAmount
+            totalAmount,
+            rewardPoints
         );
         LibTransfer._depositOrPaymaster(
             _paymaster,
@@ -137,6 +143,7 @@ contract ChallengePoolHandler is
             fee,
             _quantity,
             totalAmount,
+            rewardPoints,
             _prediction,
             _events,
             poolOptions,

@@ -20,30 +20,26 @@ library LibPool {
         uint256 _maturity,
         uint256 _basePrice,
         uint256 _quantity,
-        uint256 _totalAmount
+        uint256 _totalAmount,
+        uint256 _rewardPoints
     ) internal {
-        uint256 rewardPoints = LibPrice._stakeRewardPoints(
-            _quantity,
-            block.timestamp,
-            _maturity
-        );
         s.playerOptionSupply[s.challengeId][msg.sender][
             keccak256(_prediction)
         ] = IChallengePoolHandler.PlayerSupply(
             false,
             _quantity,
             _totalAmount,
-            rewardPoints
+            _rewardPoints
         );
         s.playerSupply[s.challengeId][msg.sender] = IChallengePoolHandler
-            .PlayerSupply(false, _quantity, _totalAmount, rewardPoints);
+            .PlayerSupply(false, _quantity, _totalAmount, _rewardPoints);
         s.optionSupply[s.challengeId][
             keccak256(_prediction)
         ] = IChallengePoolHandler.OptionSupply(
             true,
             _quantity,
             _totalAmount,
-            rewardPoints
+            _rewardPoints
         );
         s.poolSupply[s.challengeId] = IChallengePoolHandler.Supply(
             _quantity,

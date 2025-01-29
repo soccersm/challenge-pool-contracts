@@ -30,6 +30,7 @@ abstract contract IChallengePoolHandler is IChallengePoolCommon {
         uint256 fee,
         uint256 quantity,
         uint256 totalAmount,
+        uint256 rewards,
         bytes prediction,
         ChallengeEvent[] events,
         bytes[] options,

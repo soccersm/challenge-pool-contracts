@@ -3,7 +3,6 @@ import SoccersmModule from "../ignition/modules/Soccersm";
 import ChallengePoolModule from "../ignition/modules/ChallengePool";
 import DataProvidersModule from "../ignition/modules/DataProviders";
 import PoolResolversModule from "../ignition/modules/PoolResolvers";
-import AirdropPaymasterModule from "../ignition/modules/AirdropPaymaster";
 import CreateTopicsModule from "../ignition/modules/CreateTopics";
 
 async function main() {
