@@ -33,19 +33,7 @@ describe("ChallengePool - Withdraw", function () {
       poolManagerProxy,
     } = await loadFixture(deploySoccersm);
     //Setup: Create and Stake a challenge
-    //set deadline of 1hour 30secs
 
-    //register
-    // await registryProxy.registerEvent(
-    //       btcChallenge.challenge.events[0].topicId,
-    //       coder.encode(
-    //         ["uint256"],
-    //         [
-    //
-    //           btcChallenge.challenge.events[0].maturity,
-    //         ]
-    //       )
-    //     )
     const gh = ghanaElectionEvent(
           await ballsToken.getAddress(),
           1,
