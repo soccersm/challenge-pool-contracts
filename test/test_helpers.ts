@@ -61,11 +61,11 @@ export async function getPlayerSupply(
 export async function getOptionSupply(
   poolViewProxy: any,
   challengeId: number,
-  player: string
+  option: string
 ) {
   const [exists, stakes, tokens, rewards] = await poolViewProxy.optionSupply(
     BigInt(challengeId),
-    player
+    option
   );
   return {
     exists,
