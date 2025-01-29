@@ -9,9 +9,12 @@ import { deploySoccersm } from "./SoccersmDeployFixture";
 
 import {
   btcEvent,
+  ghanaElectionEvent,
 } from "./mock";
 import {
   prepareCreateChallenge,
+  coder,
+  encodeMultiOptionByTopic
 } from "./lib";
 import { getChallenge } from "./test_helpers";
 
@@ -21,7 +24,9 @@ describe("ChallengePool - Withdraw", function () {
       registryProxy,
       oneGrand,
       oneMil,
+      owner,
       baller,
+      striker,
       ballsToken,
       poolHandlerProxy,
       poolViewProxy,
@@ -29,64 +34,87 @@ describe("ChallengePool - Withdraw", function () {
     } = await loadFixture(deploySoccersm);
     //Setup: Create and Stake a challenge
     //set deadline of 1hour 30secs
-    const btcDeadline = (await time.latest()) + (60 * 60) + 30;
-    const btcChallenge = btcEvent(
-      await ballsToken.getAddress(),
-      1,
-      oneGrand,
-      ethers.ZeroAddress,
-      btcDeadline
-    );
-    const preparedBTCChallenge = prepareCreateChallenge(btcChallenge.challenge);
-    console.log("Prepared BTC Challenge: ", preparedBTCChallenge);
-    await ballsToken
-      .connect(baller)
-      .approve(
-        await poolHandlerProxy.getAddress(),
-        (
-          await poolViewProxy.createFee(oneGrand)
-        )[1]
-      );
-    await (poolHandlerProxy.connect(baller) as any).createChallenge(
-      ...(preparedBTCChallenge as any)
-    );
 
     //register
+    // await registryProxy.registerEvent(
+    //       btcChallenge.challenge.events[0].topicId,
+    //       coder.encode(
+    //         ["uint256"],
+    //         [
+    //
+    //           btcChallenge.challenge.events[0].maturity,
+    //         ]
+    //       )
+    //     )
+    const gh = ghanaElectionEvent(
+          await ballsToken.getAddress(),
+          1,
+          oneGrand,
+          ethers.ZeroAddress,
+        );
     
+        await registryProxy.registerEvent(
+          gh.topicId,
+          coder.encode(
+            ["string", "string", "uint256", "bytes[]"],
+            [
+              gh.statementId,
+              gh.statement,
+              gh.maturity,
+              gh.options.map((o) => encodeMultiOptionByTopic(gh.topicId, o)),
+            ]
+          )
+        );
+
+      const preparedMultiStementChallenge = prepareCreateChallenge(gh.challenge);
+
+      await ballsToken
+        .connect(baller)
+        .approve(
+          await poolHandlerProxy.getAddress(),
+          (
+            await poolViewProxy.createFee(oneGrand)
+          )[1]
+        );
+      await (poolHandlerProxy.connect(baller) as any).createChallenge(
+        ...(preparedMultiStementChallenge as any)
+      );
 
     const challengeId = (await poolManagerProxy.challengeId()) - 1n;
-
-    const prediction = ethers.AbiCoder.defaultAbiCoder().encode(
-      ["string"],
-      ["yes"]
-    );
-
-    const stakeParams = {
-      _challengeId: challengeId,
-      _prediction: prediction,
-      _quantity: 1,
-      _deadline: (await time.latest()) + 1000,
-      _paymaster: ethers.ZeroAddress,
-    };
 
     await ballsToken
       .connect(baller)
       .approve(await poolHandlerProxy.getAddress(), oneMil);
-    //should stake
-    await (poolHandlerProxy.connect(baller) as any).stake(
-      stakeParams._challengeId,
-      stakeParams._prediction,
-      stakeParams._quantity,
-      stakeParams._paymaster
+
+    const prediction = coder.encode(
+        ["string"],
+        ["Mahama"]
     );
+    //striker can stake
+    await ballsToken.connect(striker).approve(await poolHandlerProxy.getAddress(), oneMil);
+    await (poolHandlerProxy.connect(striker) as any).stake(
+      0,
+      coder.encode(["string"],["Bawumia"]),
+      1,
+      ethers.ZeroAddress
+    )
+
+    //baller can stake again
+    await (poolHandlerProxy.connect(baller) as any).stake(
+      0,
+      prediction,
+      1,
+      ethers.ZeroAddress
+    )
 
     //Setup: initiate withdraw:
     //[Evaluate], [Close]
     // Confirm winners have been paid
-    await time.increaseTo(btcDeadline + 1);
+    //console.log("GH maturity: ", gh.challenge.events[0].maturity);
+    
     const challenges = await getChallenge(poolViewProxy, 0);
+    await time.increaseTo(gh.challenge.events[0].maturity);
     console.log("Challenges: ", challenges);
-    // const evaluation = await poolHandlerProxy.evaluate(challengeId);
-    // console.log("Evaluation: ", evaluation);
+    // const evaluation = await (poolHandlerProxy.connect(owner) as any).evaluate(0); // reverting
   });
 });
