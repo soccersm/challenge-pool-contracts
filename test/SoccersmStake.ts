@@ -1,4 +1,3 @@
-import { ChallengePoolViewInterface } from './../typechain-types/contracts/modules/ChallengePoolView';
 import {
   time,
   loadFixture,
@@ -17,8 +16,7 @@ import {
   encodeMultiOptionByTopic,
   prepareCreateChallenge,
 } from "./lib";
-import { getChallenge, getChallengeState, getOptionSupply, getPlayerOptionSupply, getPlayerSupply, getPoolSupply } from "./test_helpers";
-import { bigint } from "hardhat/internal/core/params/argumentTypes";
+import { getChallengeState, getOptionSupply, getPlayerOptionSupply, getPlayerSupply, getPoolSupply } from "./test_helpers";
 
 describe("ChallengePool - Stake Challenge", function () {
   it("Should [Stake]", async function () {

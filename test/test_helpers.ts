@@ -8,6 +8,7 @@ export async function getChallenge(poolViewProxy: any, challengeId: number) {
     basePrice,
     stakeToken,
     events,
+    options,
     disputed,
     lastOutcomeSet,
   ] = await poolViewProxy.challenges(BigInt(challengeId));
@@ -20,6 +21,7 @@ export async function getChallenge(poolViewProxy: any, challengeId: number) {
     basePrice,
     stakeToken,
     events,
+    options,
     disputed,
     lastOutcomeSet,
   };
@@ -75,13 +77,8 @@ export async function getOptionSupply(
   };
 }
 
-export async function getPoolSupply(
-  poolViewProxy: any,
-  challengeId: number,
-) {
-  const [stakes, tokens] = await poolViewProxy.poolSupply(
-    BigInt(challengeId),
-  );
+export async function getPoolSupply(poolViewProxy: any, challengeId: number) {
+  const [stakes, tokens] = await poolViewProxy.poolSupply(BigInt(challengeId));
   return {
     stakes,
     tokens,
@@ -127,18 +124,34 @@ export async function getChallengeState(
   player: string,
   option: string
 ) {
-  const challenge = getChallenge(poolViewProxy, challengeId);
-  const playerOptionSupply = getPlayerOptionSupply(
+  const challenge = await getChallenge(poolViewProxy, challengeId);
+  const playerOptionSupply = await getPlayerOptionSupply(
     poolViewProxy,
     challengeId,
     player,
     option
   );
-  const playerSupply = await getPlayerSupply(poolViewProxy, challengeId, player);
-  const optionSupply = await getOptionSupply(poolViewProxy, challengeId, option);
+  const playerSupply = await getPlayerSupply(
+    poolViewProxy,
+    challengeId,
+    player
+  );
+  const optionSupply = await getOptionSupply(
+    poolViewProxy,
+    challengeId,
+    option
+  );
   const poolSupply = await getPoolSupply(poolViewProxy, challengeId);
-  const playerDispute = await getPlayerDisputes(poolViewProxy, challengeId, player);
-  const optionDispute = await getOptionDisputes(poolViewProxy, challengeId, option);
+  const playerDispute = await getPlayerDisputes(
+    poolViewProxy,
+    challengeId,
+    player
+  );
+  const optionDispute = await getOptionDisputes(
+    poolViewProxy,
+    challengeId,
+    option
+  );
   const poolDispute = await getPoolDisputes(poolViewProxy, challengeId);
   return {
     challenge,
@@ -148,6 +161,6 @@ export async function getChallengeState(
     poolSupply,
     playerDispute,
     optionDispute,
-    poolDispute
+    poolDispute,
   };
-};
+}

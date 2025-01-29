@@ -406,3 +406,21 @@ export function prepareAssetPriceProvision(
   );
   return ["AssetPriceBounded", assetParams];
 }
+
+export function prepareStatementProvision(
+  statementId: string,
+  statement: string,
+  maturity: number,
+  answer: string
+): [string, string] {
+  const statementParams = coder.encode(
+    ["string", "string", "uint256", "bytes"],
+    [
+      statementId,
+      statement,
+      BigInt(maturity),
+      answer,
+    ]
+  );
+  return ["Statement", statementParams];
+}

@@ -22,6 +22,7 @@ abstract contract IChallengePoolCommon {
         uint256 basePrice;
         address stakeToken;
         ChallengeEvent[] events;
+        bytes[] options;
         bool disputed;
         uint256 lastOutcomeSet;
     }

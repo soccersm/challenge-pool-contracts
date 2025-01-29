@@ -7,16 +7,14 @@ import { expect } from "chai";
 import { ethers, network } from "hardhat";
 import { deploySoccersm } from "./SoccersmDeployFixture";
 
-import {
-  btcEvent,
-  ghanaElectionEvent,
-} from "./mock";
+import { btcEvent, ghanaElectionEvent } from "./mock";
 import {
   prepareCreateChallenge,
   coder,
-  encodeMultiOptionByTopic
+  encodeMultiOptionByTopic,
+  prepareStatementProvision,
 } from "./lib";
-import { getChallenge } from "./test_helpers";
+import { getChallenge, getChallengeState } from "./test_helpers";
 
 describe("ChallengePool - Withdraw", function () {
   it("Should [withdraw]", async function () {
@@ -35,38 +33,38 @@ describe("ChallengePool - Withdraw", function () {
     //Setup: Create and Stake a challenge
 
     const gh = ghanaElectionEvent(
-          await ballsToken.getAddress(),
-          1,
-          oneGrand,
-          ethers.ZeroAddress,
-        );
-    
-        await registryProxy.registerEvent(
-          gh.topicId,
-          coder.encode(
-            ["string", "string", "uint256", "bytes[]"],
-            [
-              gh.statementId,
-              gh.statement,
-              gh.maturity,
-              gh.options.map((o) => encodeMultiOptionByTopic(gh.topicId, o)),
-            ]
-          )
-        );
+      await ballsToken.getAddress(),
+      1,
+      oneGrand,
+      ethers.ZeroAddress
+    );
 
-      const preparedMultiStementChallenge = prepareCreateChallenge(gh.challenge);
+    await registryProxy.registerEvent(
+      gh.topicId,
+      coder.encode(
+        ["string", "string", "uint256", "bytes[]"],
+        [
+          gh.statementId,
+          gh.statement,
+          gh.maturity,
+          gh.options.map((o) => encodeMultiOptionByTopic(gh.topicId, o)),
+        ]
+      )
+    );
 
-      await ballsToken
-        .connect(baller)
-        .approve(
-          await poolHandlerProxy.getAddress(),
-          (
-            await poolViewProxy.createFee(oneGrand)
-          )[1]
-        );
-      await (poolHandlerProxy.connect(baller) as any).createChallenge(
-        ...(preparedMultiStementChallenge as any)
+    const preparedMultiStementChallenge = prepareCreateChallenge(gh.challenge);
+
+    await ballsToken
+      .connect(baller)
+      .approve(
+        await poolHandlerProxy.getAddress(),
+        (
+          await poolViewProxy.createFee(oneGrand)
+        )[1]
       );
+    await (poolHandlerProxy.connect(baller) as any).createChallenge(
+      ...(preparedMultiStementChallenge as any)
+    );
 
     const challengeId = (await poolManagerProxy.challengeId()) - 1n;
 
@@ -74,18 +72,17 @@ describe("ChallengePool - Withdraw", function () {
       .connect(baller)
       .approve(await poolHandlerProxy.getAddress(), oneMil);
 
-    const prediction = coder.encode(
-        ["string"],
-        ["Mahama"]
-    );
+    const prediction = coder.encode(["string"], ["Mahama"]);
     //striker can stake
-    await ballsToken.connect(striker).approve(await poolHandlerProxy.getAddress(), oneMil);
+    await ballsToken
+      .connect(striker)
+      .approve(await poolHandlerProxy.getAddress(), oneMil);
     await (poolHandlerProxy.connect(striker) as any).stake(
       0,
-      coder.encode(["string"],["Bawumia"]),
+      coder.encode(["string"], ["Bawumia"]),
       1,
       ethers.ZeroAddress
-    )
+    );
 
     //baller can stake again
     await (poolHandlerProxy.connect(baller) as any).stake(
@@ -93,16 +90,43 @@ describe("ChallengePool - Withdraw", function () {
       prediction,
       1,
       ethers.ZeroAddress
-    )
+    );
 
     //Setup: initiate withdraw:
     //[Evaluate], [Close]
     // Confirm winners have been paid
     //console.log("GH maturity: ", gh.challenge.events[0].maturity);
-    
-    const challenges = await getChallenge(poolViewProxy, 0);
+
+    // const challenges = await getChallenge(poolViewProxy, 0);
+    // console.log("Challenges: ", challenges);
     await time.increaseTo(gh.challenge.events[0].maturity);
-    console.log("Challenges: ", challenges);
     // const evaluation = await (poolHandlerProxy.connect(owner) as any).evaluate(0); // reverting
+    const provideDataParams = prepareStatementProvision(
+      gh.statementId,
+      gh.statement,
+      gh.maturity,
+      prediction
+    );
+    await registryProxy.provideData(...provideDataParams);
+
+    await poolHandlerProxy.evaluate(0);
+    await expect(poolHandlerProxy.close(0)).revertedWithCustomError(
+      poolHandlerProxy,
+      "DisputePeriod"
+    );
+    await time.increase(60 * 60);
+    await poolHandlerProxy.close(0);
+    await (poolHandlerProxy.connect(baller) as any).withdraw(0);
+
+    const challengeState = await getChallengeState(
+      poolViewProxy,
+      0,
+      baller.address,
+      ethers.keccak256(prediction)
+    );
+    console.log(challengeState);
+    console.log(coder.decode(["string"], challengeState.challenge.outcome));
+
+    expect(challengeState.challenge.outcome).to.equal(prediction);
   });
 });

@@ -3,6 +3,8 @@ pragma solidity ^0.8.28;
 
 import "./BaseProvider.sol";
 
+import "hardhat/console.sol";
+
 contract StatementDataProvider is BaseProvider {
     function requestData(
         bytes calldata _params
@@ -66,7 +68,11 @@ contract StatementDataProvider is BaseProvider {
 
         DPStore storage d = DPStorage.load();
 
-        d.dataRequest[requestId].provided = abi.encode(answer);
+        if (!d.requestOptions[requestId][keccak256(answer)]) {
+            revert InvalidResult();
+        }
+
+        d.dataRequest[requestId].provided = answer;
 
         emit DataProvided(msg.sender, namespace(), requestId, _params);
     }

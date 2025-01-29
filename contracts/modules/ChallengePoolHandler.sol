@@ -20,6 +20,8 @@ import "./TopicRegistry.sol";
 import "../diamond/interfaces/SoccersmRoles.sol";
 import "../utils/ChallengePoolHelpers.sol";
 
+import "hardhat/console.sol";
+
 contract ChallengePoolHandler is
     IChallengePoolHandler,
     SoccersmRoles,
@@ -110,48 +112,24 @@ contract ChallengePoolHandler is
         uint256 fee = LibPrice._computeCreateFee(_basePrice);
         LibPool._recordFee(_stakeToken, fee);
         uint256 totalAmount = _basePrice * _quantity;
-        uint256 rewardPoints = LibPrice._stakeRewardPoints(
-            _quantity,
-            block.timestamp,
-            maturity
-        );
+
         LibPool._initPool(
-            s,
             _stakeToken,
             _events,
+            poolOptions,
             multi,
             _prediction,
             maturity,
             _basePrice,
             _quantity,
             totalAmount,
-            rewardPoints
+            fee
         );
         LibTransfer._depositOrPaymaster(
             _paymaster,
             _stakeToken,
             totalAmount + fee
         );
-        emit NewChallenge(
-            s.challengeId,
-            msg.sender,
-            block.timestamp,
-            maturity,
-            ChallengeState.open,
-            HelpersLib.emptyBytes,
-            _basePrice,
-            fee,
-            _quantity,
-            totalAmount,
-            rewardPoints,
-            _prediction,
-            _events,
-            poolOptions,
-            _stakeToken,
-            _paymaster,
-            multi
-        );
-        s.challengeId += 1;
     }
 
     function stake(
@@ -318,7 +296,7 @@ contract ChallengePoolHandler is
         TRStore storage t = TRStorage.load();
         CPStore storage s = CPStorage.load();
         Challenge storage c = s.challenges[_challengeId];
-        c.state = ChallengeState.closed;
+        c.state = ChallengeState.evaluated;
         bytes memory result = HelpersLib.emptyBytes;
         if (!c.multi) {
             bool allCorrect = true;
@@ -332,7 +310,7 @@ contract ChallengePoolHandler is
                 if (
                     HelpersLib.compareBytes(
                         HelpersLib.no,
-                        LibPool._resolveEvent(t, c.events[i])
+                        LibPool._resolveEvent(t, c.events[i], c.options)
                     )
                 ) {
                     allCorrect = false;
@@ -345,15 +323,16 @@ contract ChallengePoolHandler is
                 result = HelpersLib.no;
             }
         } else {
-            result = LibPool._resolveEvent(t, c.events[0]);
+            result = LibPool._resolveEvent(t, c.events[0], c.options);
         }
+        console.log(string(result));
         c.outcome = result;
         c.lastOutcomeSet = block.timestamp;
 
         emit EvaluateChallenge(
             _challengeId,
             msg.sender,
-            ChallengeState.closed,
+            ChallengeState.evaluated,
             result
         );
     }
@@ -367,7 +346,7 @@ contract ChallengePoolHandler is
             revert InvalidOutcome();
         }
         if (
-            c.state != ChallengeState.settled ||
+            c.state != ChallengeState.settled &&
             c.state != ChallengeState.evaluated
         ) {
             revert ActionNotAllowedForState(c.state);
