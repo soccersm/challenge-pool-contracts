@@ -13,7 +13,7 @@ contract ChallengePoolInit {
         s.maxEventsPerPool = 100;
         s.minMaturityPeriod = 1 hours;
         s.feeAddress = msg.sender;
-        s.disputePeriod = 3 hours;
+        s.disputePeriod = 1 hours;
         s.disputeStake = 5e18;
     }
 }

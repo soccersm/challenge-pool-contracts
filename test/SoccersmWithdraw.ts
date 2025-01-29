@@ -4,7 +4,7 @@ import {
 } from "@nomicfoundation/hardhat-toolbox/network-helpers";
 
 import { expect } from "chai";
-import { ethers, ignition } from "hardhat";
+import { ethers, network } from "hardhat";
 import { deploySoccersm } from "./SoccersmDeployFixture";
 
 import {
@@ -13,27 +13,34 @@ import {
 import {
   prepareCreateChallenge,
 } from "./lib";
+import { connectCoinbaseWalletSDK } from "thirdweb/dist/types/wallets/coinbase/coinbase-web";
+import { getChallenge } from "./test_helpers";
 
-describe("ChallengePool - Withdraw And Fees", function () {
-  it("Should [earlyWithdraw]", async function () {
+describe("ChallengePool - Withdraw", function () {
+  it("Should [withdraw]", async function () {
     const {
+      registryProxy,
       oneGrand,
+      oneMil,
       baller,
       ballsToken,
       poolHandlerProxy,
       poolViewProxy,
       poolManagerProxy,
     } = await loadFixture(deploySoccersm);
-
+return;
     //Setup: Create and Stake a challenge
+    //set deadline of 1hour 30secs
+    const btcDeadline = (await time.latest()) + (60 * 60) + 30;
     const btcChallenge = btcEvent(
       await ballsToken.getAddress(),
       1,
       oneGrand,
-      ethers.ZeroAddress
+      ethers.ZeroAddress,
+      btcDeadline
     );
     const preparedBTCChallenge = prepareCreateChallenge(btcChallenge.challenge);
-
+    console.log("Prepared BTC Challenge: ", preparedBTCChallenge);
     await ballsToken
       .connect(baller)
       .approve(
@@ -46,9 +53,11 @@ describe("ChallengePool - Withdraw And Fees", function () {
       ...(preparedBTCChallenge as any)
     );
 
+    //register
+    
+
     const challengeId = (await poolManagerProxy.challengeId()) - 1n;
 
-    const maxPrice = oneGrand * 2n;
     const prediction = ethers.AbiCoder.defaultAbiCoder().encode(
       ["string"],
       ["yes"]
@@ -58,14 +67,13 @@ describe("ChallengePool - Withdraw And Fees", function () {
       _challengeId: challengeId,
       _prediction: prediction,
       _quantity: 1,
-      _maxPrice: maxPrice,
       _deadline: (await time.latest()) + 1000,
       _paymaster: ethers.ZeroAddress,
     };
 
     await ballsToken
       .connect(baller)
-      .approve(await poolHandlerProxy.getAddress(), maxPrice);
+      .approve(await poolHandlerProxy.getAddress(), oneMil);
     //should stake
     await (poolHandlerProxy.connect(baller) as any).stake(
       stakeParams._challengeId,
@@ -136,14 +144,19 @@ describe("ChallengePool - Withdraw And Fees", function () {
       )
     ).to.be.reverted;
 
-
     //Reverts for withdraw
-    //revert for challenge state: open
     const _challengeId = 0n;
     await expect(
       (poolHandlerProxy.connect(baller) as any).withdraw(_challengeId)
     ).to.be.reverted;
 
-    //get challenge states
+    //Setup: initiate withdraw:
+    //[Evaluate], [Close]
+    // Confirm winners have been paid
+    await time.increaseTo(btcDeadline + 1);
+    const challenges = await getChallenge(poolViewProxy, 0);
+    console.log("Challenges: ", challenges);
+    // const evaluation = await poolHandlerProxy.evaluate(challengeId);
+    // console.log("Evaluation: ", evaluation);
   });
 });

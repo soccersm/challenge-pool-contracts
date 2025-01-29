@@ -30,6 +30,7 @@ abstract contract IChallengePoolHandler is IChallengePoolCommon {
         uint256 fee,
         uint256 quantity,
         uint256 totalAmount,
+        uint256 rewards,
         bytes prediction,
         ChallengeEvent[] events,
         bytes[] options,
@@ -44,13 +45,8 @@ abstract contract IChallengePoolHandler is IChallengePoolCommon {
         uint256 stakes,
         uint256 price,
         uint256 totalAmount,
-        uint256 fee
-    );
-    event WinningsWithdrawn(
-        uint256 challengeId,
-        address participant,
-        uint256 amountWon,
-        uint256 amountWithdrawn
+        uint256 fee,
+        uint256 rewards
     );
     event Withdraw(
         uint256 challengeId,
@@ -58,14 +54,10 @@ abstract contract IChallengePoolHandler is IChallengePoolCommon {
         bytes option,
         uint256 stakes,
         uint256 price,
+        uint256 penalty,
         uint256 totalAmount,
-        uint256 fee
-    );
-    event CloseChallenge(
-        uint256 challengeId,
-        address closer,
-        ChallengeState state,
-        bytes result
+        uint256 fee,
+        uint256 rewards
     );
     event EvaluateChallenge(
         uint256 challengeId,
@@ -73,11 +65,19 @@ abstract contract IChallengePoolHandler is IChallengePoolCommon {
         ChallengeState state,
         bytes result
     );
+    event CloseChallenge(
+        uint256 challengeId,
+        address closer,
+        ChallengeState state,
+        bytes result
+    );
 
-    enum PoolAction {
-        stake,
-        withdraw
-    }
+    event WinningsWithdrawn(
+        uint256 challengeId,
+        address participant,
+        uint256 amountWon,
+        uint256 amountWithdrawn
+    );
     /**
      * @notice  .
      * @dev     create a new challenge
