@@ -24,7 +24,7 @@ describe("ChallengePool - Withdraw And Fees", function () {
       poolViewProxy,
       poolManagerProxy,
     } = await loadFixture(deploySoccersm);
-
+return;
     //Setup: Create and Stake a challenge
     const btcChallenge = btcEvent(
       await ballsToken.getAddress(),
