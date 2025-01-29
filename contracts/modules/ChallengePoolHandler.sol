@@ -318,9 +318,6 @@ contract ChallengePoolHandler is
         TRStore storage t = TRStorage.load();
         CPStore storage s = CPStorage.load();
         Challenge storage c = s.challenges[_challengeId];
-        if (HelpersLib.compareBytes(HelpersLib.emptyBytes, c.outcome)) {
-            revert InvalidOutcome();
-        }
         c.state = ChallengeState.closed;
         bytes memory result = HelpersLib.emptyBytes;
         if (!c.multi) {
@@ -366,14 +363,14 @@ contract ChallengePoolHandler is
     ) external override whenNotPaused validChallenge(_challengeId) {
         CPStore storage s = CPStorage.load();
         Challenge storage c = s.challenges[_challengeId];
+        if (HelpersLib.compareBytes(HelpersLib.emptyBytes, c.outcome)) {
+            revert InvalidOutcome();
+        }
         if (
             c.state != ChallengeState.settled ||
             c.state != ChallengeState.evaluated
         ) {
             revert ActionNotAllowedForState(c.state);
-        }
-        if (HelpersLib.compareBytes(HelpersLib.emptyBytes, c.outcome)) {
-            revert InvalidOutcome();
         }
         if (block.timestamp - c.lastOutcomeSet < s.disputePeriod) {
             revert DisputePeriod();

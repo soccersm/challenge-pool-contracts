@@ -154,6 +154,7 @@ contract ChallengePoolDispute is
         Challenge storage c = s.challenges[_challengeId];
         c.state = ChallengeState.settled;
         c.outcome = _outcome;
+        c.lastOutcomeSet = block.timestamp;
         uint256 slashed = s.poolDisputes[_challengeId] -
             s.optionDisputes[_challengeId][keccak256(_outcome)];
         LibTransfer._send(c.stakeToken, slashed, s.feeAddress);
