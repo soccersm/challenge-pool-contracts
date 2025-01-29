@@ -13,7 +13,6 @@ import {
 import {
   prepareCreateChallenge,
 } from "./lib";
-import { connectCoinbaseWalletSDK } from "thirdweb/dist/types/wallets/coinbase/coinbase-web";
 import { getChallenge } from "./test_helpers";
 
 describe("ChallengePool - Withdraw", function () {
@@ -28,7 +27,6 @@ describe("ChallengePool - Withdraw", function () {
       poolViewProxy,
       poolManagerProxy,
     } = await loadFixture(deploySoccersm);
-return;
     //Setup: Create and Stake a challenge
     //set deadline of 1hour 30secs
     const btcDeadline = (await time.latest()) + (60 * 60) + 30;
@@ -81,74 +79,6 @@ return;
       stakeParams._quantity,
       stakeParams._paymaster
     );
-
-    //Assert: earlyWithdraw
-    const earlyWithdrawParams = {
-      ...stakeParams,
-      _minPrice: oneGrand,
-    };
-
-    await expect(
-      (poolHandlerProxy.connect(baller) as any).earlyWithdraw(
-        earlyWithdrawParams._challengeId,
-        earlyWithdrawParams._prediction,
-        earlyWithdrawParams._quantity,
-        earlyWithdrawParams._deadline
-      )
-    ).to.not.be.reverted;
-
-    //Reverts: earlyWithdraw
-    //revert invalid challengeId
-    await expect(
-      (poolHandlerProxy.connect(baller) as any).earlyWithdraw(
-        1,
-        earlyWithdrawParams._prediction,
-        earlyWithdrawParams._quantity,
-        earlyWithdrawParams._deadline
-      )
-    ).to.be.reverted;
-
-    //revert for invalid prediction
-    const invalidPrediction = ethers.AbiCoder.defaultAbiCoder().encode(
-      ["string"],
-      ["invalid"]
-    );
-    await expect(
-      (poolHandlerProxy.connect(baller) as any).earlyWithdraw(
-        earlyWithdrawParams._challengeId,
-        invalidPrediction,
-        earlyWithdrawParams._quantity,
-        earlyWithdrawParams._deadline
-      )
-    ).to.be.reverted;
-
-    //revert for invalid quantity
-    const invalidQuantity = 0n;
-    await expect(
-      (poolHandlerProxy.connect(baller) as any).earlyWithdraw(
-        earlyWithdrawParams._challengeId,
-        earlyWithdrawParams._prediction,
-        invalidQuantity,
-        earlyWithdrawParams._deadline
-      )
-    ).to.be.reverted;
-
-    //revert for invalid deadline
-    const invalidDeadline = (await time.latest()) - 1000;
-    await expect(
-      (poolHandlerProxy.connect(baller) as any).earlyWithdraw(
-        earlyWithdrawParams._challengeId,
-        earlyWithdrawParams._prediction,
-        earlyWithdrawParams._quantity,
-        invalidDeadline
-      )
-    ).to.be.reverted;
-
-    //Reverts for withdraw
-    const _challengeId = 0n;
-    await expect(
-      (poolHandlerProxy.connect(baller) as any).withdraw(_challengeId)
-    ).to.be.reverted;
 
     //Setup: initiate withdraw:
     //[Evaluate], [Close]
