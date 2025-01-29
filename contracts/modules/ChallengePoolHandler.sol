@@ -217,64 +217,65 @@ contract ChallengePoolHandler is
         nonZero(_deadline)
         poolInState(_challengeId, ChallengeState.open)
     {
-        CPStore storage s = CPStorage.load();
-        if (_deadline < block.timestamp) {
-            revert DeadlineExceeded();
-        }
-        if (!s.optionSupply[_challengeId][keccak256(_prediction)].exists) {
-            revert InvalidPrediction();
-        }
-        IChallengePoolHandler.PlayerSupply storage playerOptionSupply = s
-            .playerOptionSupply[_challengeId][msg.sender][
-                keccak256(_prediction)
-            ];
-        if (playerOptionSupply.stakes < _quantity) {
-            revert IChallengePoolCommon.InsufficientStakes(
-                _quantity,
-                playerOptionSupply.stakes
-            );
-        }
-        uint256 basePrice = s.challenges[_challengeId].basePrice;
-        uint256 penalty = LibPrice._penalty(
-            basePrice,
-            s.challenges[_challengeId].createdAt,
-            s.challenges[_challengeId].maturity
-        );
-        uint256 currentPrice = basePrice - penalty;
-        uint256 totalAmount = basePrice * _quantity;
-        uint256 fee = LibPrice._computeEarlyWithdrawFee(basePrice);
-        uint256 rewardPoints = LibPrice._earlyWithdrawRewardPoints(
-            playerOptionSupply.rewards,
-            playerOptionSupply.stakes,
-            _quantity
-        );
-        LibPool._decrementSupply(
-            s,
-            _challengeId,
-            _prediction,
-            _quantity,
-            totalAmount,
-            rewardPoints
-        );
-        LibPool._recordFee(s.challenges[_challengeId].stakeToken, fee);
-        LibTransfer._receive(s.challenges[_challengeId].stakeToken, fee);
+        revert NotImplemented();
+        // CPStore storage s = CPStorage.load();
+        // if (_deadline < block.timestamp) {
+        //     revert DeadlineExceeded();
+        // }
+        // if (!s.optionSupply[_challengeId][keccak256(_prediction)].exists) {
+        //     revert InvalidPrediction();
+        // }
+        // IChallengePoolHandler.PlayerSupply storage playerOptionSupply = s
+        //     .playerOptionSupply[_challengeId][msg.sender][
+        //         keccak256(_prediction)
+        //     ];
+        // if (playerOptionSupply.stakes < _quantity) {
+        //     revert IChallengePoolCommon.InsufficientStakes(
+        //         _quantity,
+        //         playerOptionSupply.stakes
+        //     );
+        // }
+        // uint256 basePrice = s.challenges[_challengeId].basePrice;
+        // uint256 penalty = LibPrice._penalty(
+        //     basePrice,
+        //     s.challenges[_challengeId].createdAt,
+        //     s.challenges[_challengeId].maturity
+        // );
+        // uint256 currentPrice = basePrice - penalty;
+        // uint256 totalAmount = basePrice * _quantity;
+        // uint256 fee = LibPrice._computeEarlyWithdrawFee(basePrice);
+        // uint256 rewardPoints = LibPrice._earlyWithdrawRewardPoints(
+        //     playerOptionSupply.rewards,
+        //     playerOptionSupply.stakes,
+        //     _quantity
+        // );
+        // LibPool._decrementSupply(
+        //     s,
+        //     _challengeId,
+        //     _prediction,
+        //     _quantity,
+        //     totalAmount,
+        //     rewardPoints
+        // );
+        // LibPool._recordFee(s.challenges[_challengeId].stakeToken, fee);
+        // LibTransfer._receive(s.challenges[_challengeId].stakeToken, fee);
 
-        LibTransfer._send(
-            s.challenges[_challengeId].stakeToken,
-            totalAmount,
-            msg.sender
-        );
-        emit Withdraw(
-            _challengeId,
-            msg.sender,
-            _prediction,
-            _quantity,
-            currentPrice,
-            penalty,
-            totalAmount,
-            fee,
-            rewardPoints
-        );
+        // LibTransfer._send(
+        //     s.challenges[_challengeId].stakeToken,
+        //     totalAmount,
+        //     msg.sender
+        // );
+        // emit Withdraw(
+        //     _challengeId,
+        //     msg.sender,
+        //     _prediction,
+        //     _quantity,
+        //     currentPrice,
+        //     penalty,
+        //     totalAmount,
+        //     fee,
+        //     rewardPoints
+        // );
     }
 
     function withdraw(
