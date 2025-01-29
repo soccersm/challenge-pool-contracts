@@ -84,7 +84,9 @@ contract ChallengePoolHandler is
             if (HelpersLib.compareBytes(_prediction, poolOptions[i])) {
                 predictionExists = true;
             }
-            s.optionSupply[s.challengeId][keccak256(poolOptions[i])].exists = true;
+            s
+            .optionSupply[s.challengeId][keccak256(poolOptions[i])]
+                .exists = true;
         }
         if (!predictionExists) {
             revert InvalidPrediction();
@@ -108,6 +110,11 @@ contract ChallengePoolHandler is
         uint256 fee = LibPrice._computeCreateFee(_basePrice);
         LibPool._recordFee(_stakeToken, fee);
         uint256 totalAmount = _basePrice * _quantity;
+        uint256 rewardPoints = LibPrice._stakeRewardPoints(
+            _quantity,
+            block.timestamp,
+            maturity
+        );
         LibPool._initPool(
             s,
             _stakeToken,
@@ -117,7 +124,8 @@ contract ChallengePoolHandler is
             maturity,
             _basePrice,
             _quantity,
-            totalAmount
+            totalAmount,
+            rewardPoints
         );
         LibTransfer._depositOrPaymaster(
             _paymaster,
@@ -135,6 +143,7 @@ contract ChallengePoolHandler is
             fee,
             _quantity,
             totalAmount,
+            rewardPoints,
             _prediction,
             _events,
             poolOptions,
@@ -168,7 +177,7 @@ contract ChallengePoolHandler is
         }
         uint256 totalAmount = currentPrice * _quantity;
         uint256 fee = LibPrice._computeStakeFee(currentPrice);
-        uint256 rewardPoints = LibPrice._rewardPoints(
+        uint256 rewardPoints = LibPrice._stakeRewardPoints(
             _quantity,
             s.challenges[_challengeId].createdAt,
             s.challenges[_challengeId].maturity
@@ -194,7 +203,8 @@ contract ChallengePoolHandler is
             _quantity,
             currentPrice,
             totalAmount,
-            fee
+            fee,
+            rewardPoints
         );
     }
 
@@ -214,46 +224,65 @@ contract ChallengePoolHandler is
         nonZero(_deadline)
         poolInState(_challengeId, ChallengeState.open)
     {
-        CPStore storage s = CPStorage.load();
-        if (_deadline < block.timestamp) {
-            revert DeadlineExceeded();
-        }
-        uint256 currentPrice = s.challenges[_challengeId].basePrice;
-        if (!s.optionSupply[_challengeId][keccak256(_prediction)].exists) {
-            revert InvalidPrediction();
-        }
-        uint256 totalAmount = currentPrice * _quantity;
-        uint256 fee = LibPrice._computeEarlyWithdrawFee(currentPrice);
-        uint256 rewardPoints = LibPrice._rewardPoints(
-            _quantity,
-            s.challenges[_challengeId].createdAt,
-            s.challenges[_challengeId].maturity
-        );
-        LibPool._decrementSupply(
-            s,
-            _challengeId,
-            _prediction,
-            _quantity,
-            totalAmount,
-            rewardPoints
-        );
-        LibPool._recordFee(s.challenges[_challengeId].stakeToken, fee);
-        LibTransfer._receive(s.challenges[_challengeId].stakeToken, fee);
+        revert NotImplemented();
+        // CPStore storage s = CPStorage.load();
+        // if (_deadline < block.timestamp) {
+        //     revert DeadlineExceeded();
+        // }
+        // if (!s.optionSupply[_challengeId][keccak256(_prediction)].exists) {
+        //     revert InvalidPrediction();
+        // }
+        // IChallengePoolHandler.PlayerSupply storage playerOptionSupply = s
+        //     .playerOptionSupply[_challengeId][msg.sender][
+        //         keccak256(_prediction)
+        //     ];
+        // if (playerOptionSupply.stakes < _quantity) {
+        //     revert IChallengePoolCommon.InsufficientStakes(
+        //         _quantity,
+        //         playerOptionSupply.stakes
+        //     );
+        // }
+        // uint256 basePrice = s.challenges[_challengeId].basePrice;
+        // uint256 penalty = LibPrice._penalty(
+        //     basePrice,
+        //     s.challenges[_challengeId].createdAt,
+        //     s.challenges[_challengeId].maturity
+        // );
+        // uint256 currentPrice = basePrice - penalty;
+        // uint256 totalAmount = basePrice * _quantity;
+        // uint256 fee = LibPrice._computeEarlyWithdrawFee(basePrice);
+        // uint256 rewardPoints = LibPrice._earlyWithdrawRewardPoints(
+        //     playerOptionSupply.rewards,
+        //     playerOptionSupply.stakes,
+        //     _quantity
+        // );
+        // LibPool._decrementSupply(
+        //     s,
+        //     _challengeId,
+        //     _prediction,
+        //     _quantity,
+        //     totalAmount,
+        //     rewardPoints
+        // );
+        // LibPool._recordFee(s.challenges[_challengeId].stakeToken, fee);
+        // LibTransfer._receive(s.challenges[_challengeId].stakeToken, fee);
 
-        LibTransfer._send(
-            s.challenges[_challengeId].stakeToken,
-            totalAmount,
-            msg.sender
-        );
-        emit Withdraw(
-            _challengeId,
-            msg.sender,
-            _prediction,
-            _quantity,
-            currentPrice,
-            totalAmount,
-            fee
-        );
+        // LibTransfer._send(
+        //     s.challenges[_challengeId].stakeToken,
+        //     totalAmount,
+        //     msg.sender
+        // );
+        // emit Withdraw(
+        //     _challengeId,
+        //     msg.sender,
+        //     _prediction,
+        //     _quantity,
+        //     currentPrice,
+        //     penalty,
+        //     totalAmount,
+        //     fee,
+        //     rewardPoints
+        // );
     }
 
     function withdraw(
@@ -289,9 +318,6 @@ contract ChallengePoolHandler is
         TRStore storage t = TRStorage.load();
         CPStore storage s = CPStorage.load();
         Challenge storage c = s.challenges[_challengeId];
-        if (HelpersLib.compareBytes(HelpersLib.emptyBytes, c.outcome)) {
-            revert InvalidOutcome();
-        }
         c.state = ChallengeState.closed;
         bytes memory result = HelpersLib.emptyBytes;
         if (!c.multi) {
@@ -337,14 +363,14 @@ contract ChallengePoolHandler is
     ) external override whenNotPaused validChallenge(_challengeId) {
         CPStore storage s = CPStorage.load();
         Challenge storage c = s.challenges[_challengeId];
+        if (HelpersLib.compareBytes(HelpersLib.emptyBytes, c.outcome)) {
+            revert InvalidOutcome();
+        }
         if (
             c.state != ChallengeState.settled ||
             c.state != ChallengeState.evaluated
         ) {
             revert ActionNotAllowedForState(c.state);
-        }
-        if (HelpersLib.compareBytes(HelpersLib.emptyBytes, c.outcome)) {
-            revert InvalidOutcome();
         }
         if (block.timestamp - c.lastOutcomeSet < s.disputePeriod) {
             revert DisputePeriod();

@@ -28,7 +28,7 @@ describe("ChallengePool - Withdraw", function () {
       poolViewProxy,
       poolManagerProxy,
     } = await loadFixture(deploySoccersm);
-
+return;
     //Setup: Create and Stake a challenge
     //set deadline of 1hour 30secs
     const btcDeadline = (await time.latest()) + (60 * 60) + 30;

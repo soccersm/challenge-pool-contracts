@@ -28,7 +28,7 @@ library LibPrice {
             );
     }
 
-    function _rewardPoints(
+    function _stakeRewardPoints(
         uint256 _stakes,
         uint256 _createdAt,
         uint256 _maturity
@@ -42,6 +42,14 @@ library LibPrice {
                 _maturity - block.timestamp,
                 _maturity - _createdAt
             ) * _stakes;
+    }
+
+    function _earlyWithdrawRewardPoints(
+        uint256 _totalPoints,
+        uint256 _totalStakes,
+        uint256 _stakes
+    ) internal pure returns (uint256) {
+        return _totalPoints - Math.mulDiv(_totalPoints, _stakes, _totalStakes);
     }
 
     function _penalty(
@@ -62,13 +70,15 @@ library LibPrice {
 
     function _computeWinnerShare(
         uint256 _challengeId,
-        uint256 stakes
+        uint256 _rewards
     ) internal view returns (uint256) {
         CPStore storage s = CPStorage.load();
         IChallengePoolHandler.Challenge storage c = s.challenges[_challengeId];
-        uint256 winnerStakes = s.optionSupply[_challengeId][keccak256(c.outcome)].stakes;
-        uint256 winnerTokens = s.optionSupply[_challengeId][keccak256(c.outcome)].tokens;
+        uint256 winnerRewards = s
+        .optionSupply[_challengeId][keccak256(c.outcome)].rewards;
+        uint256 winnerTokens = s
+        .optionSupply[_challengeId][keccak256(c.outcome)].tokens;
         uint256 looserTokens = s.poolSupply[_challengeId].tokens - winnerTokens;
-        return Math.mulDiv(looserTokens, stakes, winnerStakes);
+        return Math.mulDiv(looserTokens, _rewards, winnerRewards);
     }
 }
