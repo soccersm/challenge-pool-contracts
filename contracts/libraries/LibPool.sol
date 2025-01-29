@@ -12,34 +12,40 @@ import "../utils/Helpers.sol";
 
 library LibPool {
     function _initPool(
-        CPStore storage s,
         address _stakeToken,
         IChallengePoolCommon.ChallengeEvent[] calldata _events,
+        bytes[] memory _options,
         bool _multi,
         bytes calldata _prediction,
         uint256 _maturity,
         uint256 _basePrice,
         uint256 _quantity,
         uint256 _totalAmount,
-        uint256 _rewardPoints
+        uint256 _fee
     ) internal {
+        CPStore storage s = CPStorage.load();
+        uint256 rewardPoints = LibPrice._stakeRewardPoints(
+            _quantity,
+            block.timestamp,
+            _maturity
+        );
         s.playerOptionSupply[s.challengeId][msg.sender][
             keccak256(_prediction)
         ] = IChallengePoolHandler.PlayerSupply(
             false,
             _quantity,
             _totalAmount,
-            _rewardPoints
+            rewardPoints
         );
         s.playerSupply[s.challengeId][msg.sender] = IChallengePoolHandler
-            .PlayerSupply(false, _quantity, _totalAmount, _rewardPoints);
+            .PlayerSupply(false, _quantity, _totalAmount, rewardPoints);
         s.optionSupply[s.challengeId][
             keccak256(_prediction)
         ] = IChallengePoolHandler.OptionSupply(
             true,
             _quantity,
             _totalAmount,
-            _rewardPoints
+            rewardPoints
         );
         s.poolSupply[s.challengeId] = IChallengePoolHandler.Supply(
             _quantity,
@@ -55,9 +61,29 @@ library LibPool {
             _basePrice,
             _stakeToken,
             _events,
+            _options,
             false,
             0
         );
+        emit IChallengePoolHandler.NewChallenge(
+            s.challengeId,
+            msg.sender,
+            block.timestamp,
+            _maturity,
+            IChallengePoolCommon.ChallengeState.open,
+            HelpersLib.emptyBytes,
+            _basePrice,
+            _fee,
+            _quantity,
+            _totalAmount,
+            rewardPoints,
+            _prediction,
+            _events,
+            _options,
+            _stakeToken,
+            _multi
+        );
+        s.challengeId += 1;
     }
 
     function _incrementSupply(
@@ -144,7 +170,8 @@ library LibPool {
 
     function _resolveEvent(
         TRStore storage t,
-        IChallengePoolHandler.ChallengeEvent memory _event
+        IChallengePoolHandler.ChallengeEvent memory _event,
+        bytes[] memory _options
     ) internal returns (bytes memory) {
         IPoolResolver resolver = t.registry[_event.topicId].poolResolver;
         IDataProvider provider = t.registry[_event.topicId].dataProvider;
@@ -152,7 +179,8 @@ library LibPool {
             abi.encodeWithSelector(
                 IPoolResolver.resolveEvent.selector,
                 provider,
-                _event
+                _event,
+                _options
             )
         );
         if (!success) {

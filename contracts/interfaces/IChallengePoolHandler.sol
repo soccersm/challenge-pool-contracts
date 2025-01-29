@@ -35,7 +35,6 @@ abstract contract IChallengePoolHandler is IChallengePoolCommon {
         ChallengeEvent[] events,
         bytes[] options,
         address stakeToken,
-        address paymaster,
         bool multi
     );
     event Stake(
