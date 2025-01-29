@@ -382,3 +382,27 @@ export function prepareFootballCorrectScoreEventParam(
     maturity: BigInt(ev.maturity),
   };
 }
+
+export function prepareFootballScoreProvision(
+  matchId: string,
+  homeScore: number,
+  awayScore: number
+): [string, string] {
+  const footballParams = coder.encode(
+    ["string", "uint256", "uint256"],
+    [matchId, BigInt(homeScore), BigInt(awayScore)]
+  );
+  return ["FootBallCorrectScore", footballParams];
+}
+
+export function prepareAssetPriceProvision(
+  assetSymbol: string,
+  maturity: number,
+  price: number
+): [string, string] {
+  const assetParams = coder.encode(
+    ["string", "uint256", "uint256"],
+    [assetSymbol, BigInt(maturity), BigInt(price)]
+  );
+  return ["AssetPriceBounded", assetParams];
+}
