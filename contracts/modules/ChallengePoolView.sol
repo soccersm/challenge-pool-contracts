@@ -140,8 +140,7 @@ contract ChallengePoolView is IChallengePoolView, ChallengePoolHelpers {
     {
         fee = LibPrice._computeStakeFee(_price);
         feePlusPrice = _price + fee;
-    }
-
+    } 
     function earlyWithdrawPenalty(
         uint256 _challengeId
     )
@@ -155,4 +154,14 @@ contract ChallengePoolView is IChallengePoolView, ChallengePoolHelpers {
         penalty = LibPrice._penalty(c.basePrice, c.createdAt, c.maturity);
         priceMinusPenalty = c.basePrice - penalty;
     }
+
+    function getAccumulatedFee(
+        address _token
+    ) 
+    external view 
+    returns (uint256) {
+    return CPStorage.load().stakeTokens[_token].accumulatedFee;
 }
+}
+
+
