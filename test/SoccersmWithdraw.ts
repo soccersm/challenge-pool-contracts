@@ -97,7 +97,7 @@ describe("ChallengePool - Withdraw", function () {
     // Confirm winners have been paid
     //console.log("GH maturity: ", gh.challenge.events[0].maturity);
 
-    const challenges = await getChallenge(poolViewProxy, 0);
+    // const challenges = await getChallenge(poolViewProxy, 0);
     // console.log("Challenges: ", challenges);
     await time.increaseTo(gh.challenge.events[0].maturity);
     // const evaluation = await (poolHandlerProxy.connect(owner) as any).evaluate(0); // reverting
@@ -116,13 +116,17 @@ describe("ChallengePool - Withdraw", function () {
     );
     await time.increase(60 * 60);
     await poolHandlerProxy.close(0);
+    await (poolHandlerProxy.connect(baller) as any).withdraw(0);
 
     const challengeState = await getChallengeState(
       poolViewProxy,
       0,
       baller.address,
-      ethers.keccak256(ethers.toUtf8Bytes(prediction))
+      ethers.keccak256(prediction)
     );
     console.log(challengeState);
+    console.log(coder.decode(["string"], challengeState.challenge.outcome));
+
+    expect(challengeState.challenge.outcome).to.equal(prediction);
   });
 });

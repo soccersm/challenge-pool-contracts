@@ -20,6 +20,8 @@ import "./TopicRegistry.sol";
 import "../diamond/interfaces/SoccersmRoles.sol";
 import "../utils/ChallengePoolHelpers.sol";
 
+import "hardhat/console.sol";
+
 contract ChallengePoolHandler is
     IChallengePoolHandler,
     SoccersmRoles,
@@ -323,6 +325,7 @@ contract ChallengePoolHandler is
         } else {
             result = LibPool._resolveEvent(t, c.events[0], c.options);
         }
+        console.log(string(result));
         c.outcome = result;
         c.lastOutcomeSet = block.timestamp;
 

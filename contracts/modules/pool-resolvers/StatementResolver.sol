@@ -3,8 +3,6 @@ pragma solidity ^0.8.28;
 
 import "./BaseResolver.sol";
 
-import "hardhat/console.sol";
-
 contract StatementResolver is BaseResolver {
     function validateEvent(
         IDataProvider dataProvider,
@@ -18,7 +16,6 @@ contract StatementResolver is BaseResolver {
         IChallengePoolHandler.ChallengeEvent calldata _event,
         bytes[] calldata /*_options*/
     ) external override returns (bytes memory) {
-        console.log("StatementResolver.resolveEvent");
         return _getData(dataProvider, _event.params);
     }
 

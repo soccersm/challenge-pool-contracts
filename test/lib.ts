@@ -419,7 +419,7 @@ export function prepareStatementProvision(
       statementId,
       statement,
       BigInt(maturity),
-      encodeMultiOptionByTopic(TopicId.Statement, answer),
+      answer,
     ]
   );
   return ["Statement", statementParams];

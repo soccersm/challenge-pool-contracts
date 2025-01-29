@@ -8,6 +8,7 @@ export async function getChallenge(poolViewProxy: any, challengeId: number) {
     basePrice,
     stakeToken,
     events,
+    options,
     disputed,
     lastOutcomeSet,
   ] = await poolViewProxy.challenges(BigInt(challengeId));
@@ -20,6 +21,7 @@ export async function getChallenge(poolViewProxy: any, challengeId: number) {
     basePrice,
     stakeToken,
     events,
+    options,
     disputed,
     lastOutcomeSet,
   };
@@ -122,8 +124,8 @@ export async function getChallengeState(
   player: string,
   option: string
 ) {
-  const challenge = getChallenge(poolViewProxy, challengeId);
-  const playerOptionSupply = getPlayerOptionSupply(
+  const challenge = await getChallenge(poolViewProxy, challengeId);
+  const playerOptionSupply = await getPlayerOptionSupply(
     poolViewProxy,
     challengeId,
     player,
