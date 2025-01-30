@@ -169,8 +169,10 @@ export function computeWinnerShare(
   winningOptionRewards: any,
   winningOptionTokens: any,
   totalPoolTokens: any,
-  winnerRewards: any
+  winnerRewards: any,
+  cancelled = false
 ): BigInt {
+  if (cancelled) return BigInt(0);
   const totalLoosersTokens: any = totalPoolTokens - winningOptionTokens;
   const tokensPerReward: any = totalLoosersTokens / winningOptionRewards;
   return (winnerRewards * tokensPerReward) as any as BigInt;

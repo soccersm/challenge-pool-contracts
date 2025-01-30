@@ -16,7 +16,6 @@ import "../libraries/LibPool.sol";
 import "../utils/Helpers.sol";
 
 import "../utils/ChallengePoolHelpers.sol";
-import "../utils/Errors.sol";
 
 import "./TopicRegistry.sol";
 

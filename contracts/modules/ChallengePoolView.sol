@@ -157,16 +157,16 @@ contract ChallengePoolView is IChallengePoolView, ChallengePoolHelpers {
         if (HelpersLib.compareBytes(HelpersLib.emptyBytes, c.outcome)) {
             revert IChallengePoolCommon.InvalidOutcome();
         }
-        IChallengePoolHandler.PlayerSupply storage playerOptionSupply = s
+        IChallengePoolHandler.PlayerSupply storage playerOption = s
             .playerOptionSupply[_challengeId][_player][keccak256(c.outcome)];
         if (c.state == IChallengePoolCommon.ChallengeState.closed) {
             return
                 LibPrice._computeWinnerShare(
                     _challengeId,
-                    playerOptionSupply.rewards
+                    playerOption.rewards
                 );
         } else if (c.state == IChallengePoolCommon.ChallengeState.cancelled) {
-            return playerOptionSupply.tokens;
+            return 0;
         } else {
             revert IChallengePoolCommon.ActionNotAllowedForState(c.state);
         }

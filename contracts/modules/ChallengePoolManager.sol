@@ -9,7 +9,6 @@ import "../libraries/LibData.sol";
 import "../libraries/LibTransfer.sol";
 import "../interfaces/IChallengePoolManager.sol";
 import "../utils/Helpers.sol";
-import "../utils/Errors.sol";
 import "../diamond/interfaces/SoccersmRoles.sol";
 contract ChallengePoolManager is
     IChallengePoolManager,
@@ -102,7 +101,7 @@ contract ChallengePoolManager is
     ) external override onlyPoolManager positiveAddress(_stakeToken) {
         CPStore storage c = CPStorage.load();
         require(
-            c.stakeTokens[_stakeToken].active == false,
+            !c.stakeTokens[_stakeToken].active,
             "stake token is active"
         );
         c.stakeTokens[_stakeToken] = StakeToken(_stakeToken, 0, true);
@@ -114,7 +113,7 @@ contract ChallengePoolManager is
     ) external override onlyPoolManager positiveAddress(_stakeToken) {
         CPStore storage c = CPStorage.load();
         StakeToken storage st = c.stakeTokens[_stakeToken];
-        require(st.active == true, "stake token is not active");
+        require(st.active, "stake token is not active");
         st.active = false;
         emit StakeTokenRemoved(msg.sender, _stakeToken, false);
     }
