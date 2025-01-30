@@ -9,7 +9,7 @@ import {
 } from "../test/lib";
 
 async function main() {
-  const registry = await ethers.getContractAt(
+  const pool = await ethers.getContractAt(
     "IChallengePoolHandler",
     process.env.SOCCERSM_CONTRACT!
   );
@@ -29,13 +29,15 @@ async function main() {
       events: [statement],
       options: opts,
       stakeToken: process.env.BALLS_TOKEN!,
-      prediction: opts[0],
+      prediction: s.prediction,
       quantity: 10,
       basePrice: BigInt(10e18),
       paymaster: ethers.ZeroAddress,
     };
     const params = prepareCreateChallenge(challenge);
-    const tx = await registry.createChallenge(...(params as any));
+    console.log(params);
+    
+    const tx = await pool.createChallenge(...(params as any));
     await tx.wait();
     console.log(`Just created challenge for statement with id ${s.id}`);
   }

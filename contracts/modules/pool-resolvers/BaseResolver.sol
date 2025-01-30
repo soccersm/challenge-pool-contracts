@@ -33,7 +33,7 @@ abstract contract BaseResolver is IPoolResolver {
         if (!success) {
             revert DelegateCallFailed("BaseResolver._getData");
         }
-        return result;
+        return abi.decode(result, (bytes));
     }
 
     function _hasData(

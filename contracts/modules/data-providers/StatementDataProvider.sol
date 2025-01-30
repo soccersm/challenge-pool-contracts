@@ -73,6 +73,8 @@ contract StatementDataProvider is BaseProvider {
         }
 
         d.dataRequest[requestId].provided = answer;
+console.log("_provideData", string(d.dataRequest[requestId].provided));
+        console.logBytes(d.dataRequest[requestId].provided);
 
         emit DataProvided(msg.sender, namespace(), requestId, _params);
     }

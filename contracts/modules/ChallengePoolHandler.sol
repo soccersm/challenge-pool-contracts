@@ -325,7 +325,8 @@ contract ChallengePoolHandler is
         } else {
             result = LibPool._resolveEvent(t, c.events[0], c.options);
         }
-        console.log(string(result));
+        console.log("evaluate", string(result));
+        console.logBytes(result);
         c.outcome = result;
         c.lastOutcomeSet = block.timestamp;
 

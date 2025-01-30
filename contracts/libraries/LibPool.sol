@@ -186,7 +186,7 @@ library LibPool {
         if (!success) {
             revert DelegateCallFailed("LibPool._resolveEvent");
         }
-        return result;
+        return abi.decode(result, (bytes));
     }
 
     function _validateOptions(
