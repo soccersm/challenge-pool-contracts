@@ -28,7 +28,7 @@ async function main() {
     const challenge: CreateChallenge = {
       events: [statement],
       options: opts,
-      stakeToken: process.env.BALLS_TOKEN!,
+      stakeToken: process.env.STAKE_TOKEN!,
       prediction: s.prediction,
       quantity: 1,
       basePrice: BigInt(3e18),
