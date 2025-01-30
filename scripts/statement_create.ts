@@ -30,8 +30,8 @@ async function main() {
       options: opts,
       stakeToken: process.env.BALLS_TOKEN!,
       prediction: s.prediction,
-      quantity: 10,
-      basePrice: BigInt(10e18),
+      quantity: 1,
+      basePrice: BigInt(3e18),
       paymaster: ethers.ZeroAddress,
     };
     const params = prepareCreateChallenge(challenge);

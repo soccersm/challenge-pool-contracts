@@ -158,22 +158,23 @@ export const statements: Statement[] = [
     maturity: 1761955200,
     prediction: 'no'
   },
-  // {
-  //   id: "SpaceXLaunches2025",
-  //   statement: "How many SpaceX launches by end of 2025?",
-  //   options: [
-  //     "Less than 20",
-  //     "21 - 39",
-  //     "40 - 59",
-  //     "60 - 79",
-  //     "80 -99",
-  //     "100 or more",
-  //   ],
-  //   topics: "space technology spacex",
-  //   image:
-  //     "https://res.cloudinary.com/djyedjeuc/image/upload/v1738154990/SPACE_X_uomned.png",
-  //   maturity: 1764460800,
-  // },
+  {
+    id: "SpaceXLaunches2025",
+    statement: "How many SpaceX launches by end of 2025?",
+    options: [
+      "Less than 20",
+      "21 - 39",
+      "40 - 59",
+      "60 - 79",
+      "80 -99",
+      "100 or more",
+    ],
+    topics: "space technology spacex",
+    image:
+      "https://res.cloudinary.com/djyedjeuc/image/upload/v1738154990/SPACE_X_uomned.png",
+    maturity: 1764460800,
+    prediction: '40 - 59'
+  },
   {
     id: "MicroBTC2025",
     statement:
