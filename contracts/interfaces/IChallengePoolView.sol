@@ -64,4 +64,8 @@ interface IChallengePoolView {
     function stakeFee(
         uint256 _price
     ) external view returns (uint256 fee, uint256 feePlusPrice);
+    function winnerShare(
+        uint256 _challengeId,
+        address _player
+    ) external view returns (uint256);
 }

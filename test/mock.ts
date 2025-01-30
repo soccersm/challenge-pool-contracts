@@ -24,6 +24,7 @@ export function btcEvent(
 ): {
   challenge: CreateChallenge;
   maturity: number;
+  assetSymbol: string;
 } {
   const maturity = deadline ?? Math.floor(Date.now() / 1000) + 60 * 60 * 24;
 
@@ -48,7 +49,7 @@ export function btcEvent(
     events: [assetPriceBound, assetPriceTarget],
     options: [],
     stakeToken,
-    prediction: "yes",
+    prediction: "no",
     quantity,
     basePrice,
     paymaster,
@@ -57,6 +58,7 @@ export function btcEvent(
   return {
     challenge: btcChallenge,
     maturity,
+    assetSymbol: "BTC",
   };
 }
 
@@ -69,6 +71,7 @@ export function matchEvent(
 ): {
   challenge: CreateChallenge;
   maturity: number;
+  matchId: string;
 } {
   const maturity = deadline ?? Math.floor(Date.now() / 1000) + 60 * 60 * 24;
 
@@ -107,6 +110,7 @@ export function matchEvent(
   return {
     challenge: matchChallenge,
     maturity,
+    matchId: "abc",
   };
 }
 
@@ -120,6 +124,7 @@ export function ethPriceRange(
   challenge: CreateChallenge;
   maturity: number;
   options: EventOption[];
+  assetSymbol: string;
 } {
   const maturity = deadline ?? Math.floor(Date.now() / 1000) + 60 * 60 * 24;
 
@@ -149,6 +154,7 @@ export function ethPriceRange(
     challenge: ethPriceRangeChallenge,
     maturity,
     options: opts,
+    assetSymbol: "ETH",
   };
 }
 
@@ -162,6 +168,7 @@ export function multiCorrectScore(
   challenge: CreateChallenge;
   maturity: number;
   options: EventOption[];
+  matchId: string;
 } {
   const maturity = deadline ?? Math.floor(Date.now() / 1000) + 60 * 60 * 24;
 
@@ -191,6 +198,7 @@ export function multiCorrectScore(
     challenge: multiCorrectScoreChallenge,
     maturity,
     options: opts,
+    matchId: "xyz",
   };
 }
 
@@ -204,6 +212,7 @@ export function multiOutcome(
   challenge: CreateChallenge;
   maturity: number;
   options: EventOption[];
+  matchId: string;
 } {
   const maturity = deadline ?? Math.floor(Date.now() / 1000) + 60 * 60 * 24;
 
@@ -229,6 +238,7 @@ export function multiOutcome(
     challenge: multiFootBallOutcomeChallenge,
     maturity,
     options: opts,
+    matchId: "mno",
   };
 }
 
@@ -242,6 +252,7 @@ export function multiTotalExact(
   challenge: CreateChallenge;
   maturity: number;
   options: EventOption[];
+  matchId: string;
 } {
   const maturity = deadline ?? Math.floor(Date.now() / 1000) + 60 * 60 * 24;
 
@@ -267,6 +278,7 @@ export function multiTotalExact(
     challenge: multiFootBallTotalExactChallenge,
     maturity,
     options: opts,
+    matchId: "mno",
   };
 }
 
@@ -280,6 +292,7 @@ export function multiTotalScoreRange(
   challenge: CreateChallenge;
   maturity: number;
   options: EventOption[];
+  matchId: string;
 } {
   const maturity = deadline ?? Math.floor(Date.now() / 1000) + 60 * 60 * 24;
 
@@ -309,6 +322,7 @@ export function multiTotalScoreRange(
     challenge: multiFootBallTotalScoreRangeChallenge,
     maturity,
     options: opts,
+    matchId: "mno",
   };
 }
 

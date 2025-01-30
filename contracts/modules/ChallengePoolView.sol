@@ -6,6 +6,8 @@ import "../interfaces/IChallengePoolHandler.sol";
 import "../interfaces/IChallengePoolDispute.sol";
 import "../libraries/LibData.sol";
 
+import "../libraries/LibPrice.sol";
+
 import "../utils/ChallengePoolHelpers.sol";
 
 contract ChallengePoolView is IChallengePoolView, ChallengePoolHelpers {
@@ -92,7 +94,6 @@ contract ChallengePoolView is IChallengePoolView, ChallengePoolHelpers {
         return DPStorage.load().requestOptions[_requestId][_option];
     }
 
-
     function price(
         uint256 _challengeId
     )
@@ -108,39 +109,25 @@ contract ChallengePoolView is IChallengePoolView, ChallengePoolHelpers {
 
     function earlyWithdrawFee(
         uint256 _price
-    )
-        external
-        view
-        override
-        returns (uint256 fee, uint256 feePlusPrice)
-    {
+    ) external view override returns (uint256 fee, uint256 feePlusPrice) {
         fee = LibPrice._computeEarlyWithdrawFee(_price);
         feePlusPrice = _price + fee;
     }
 
     function createFee(
         uint256 _price
-    )
-        external
-        view
-        override
-        returns (uint256 fee, uint256 feePlusPrice)
-    {
+    ) external view override returns (uint256 fee, uint256 feePlusPrice) {
         fee = LibPrice._computeCreateFee(_price);
         feePlusPrice = _price + fee;
     }
 
     function stakeFee(
         uint256 _price
-    )
-        external
-        view
-        override
-        returns (uint256 fee, uint256 feePlusPrice)
-    {
+    ) external view override returns (uint256 fee, uint256 feePlusPrice) {
         fee = LibPrice._computeStakeFee(_price);
         feePlusPrice = _price + fee;
-    } 
+    }
+
     function earlyWithdrawPenalty(
         uint256 _challengeId
     )
@@ -150,18 +137,38 @@ contract ChallengePoolView is IChallengePoolView, ChallengePoolHelpers {
         validChallenge(_challengeId)
         returns (uint256 penalty, uint256 priceMinusPenalty)
     {
-        IChallengePoolCommon.Challenge storage c = CPStorage.load().challenges[_challengeId];
+        IChallengePoolCommon.Challenge storage c = CPStorage.load().challenges[
+            _challengeId
+        ];
         penalty = LibPrice._penalty(c.basePrice, c.createdAt, c.maturity);
         priceMinusPenalty = c.basePrice - penalty;
     }
 
-    function getAccumulatedFee(
-        address _token
-    ) 
-    external view 
-    returns (uint256) {
-    return CPStorage.load().stakeTokens[_token].accumulatedFee;
-}
-}
+    function getAccumulatedFee(address _token) external view returns (uint256) {
+        return CPStorage.load().stakeTokens[_token].accumulatedFee;
+    }
 
-
+    function winnerShare(
+        uint256 _challengeId,
+        address _player
+    ) external view override returns (uint256) {
+        CPStore storage s = CPStorage.load();
+        IChallengePoolHandler.Challenge storage c = s.challenges[_challengeId];
+        if (HelpersLib.compareBytes(HelpersLib.emptyBytes, c.outcome)) {
+            revert IChallengePoolCommon.InvalidOutcome();
+        }
+        IChallengePoolHandler.PlayerSupply storage playerOptionSupply = s
+            .playerOptionSupply[_challengeId][_player][keccak256(c.outcome)];
+        if (c.state == IChallengePoolCommon.ChallengeState.closed) {
+            return
+                LibPrice._computeWinnerShare(
+                    _challengeId,
+                    playerOptionSupply.rewards
+                );
+        } else if (c.state == IChallengePoolCommon.ChallengeState.cancelled) {
+            return playerOptionSupply.tokens;
+        } else {
+            revert IChallengePoolCommon.ActionNotAllowedForState(c.state);
+        }
+    }
+}

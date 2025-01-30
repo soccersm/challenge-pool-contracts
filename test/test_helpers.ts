@@ -164,3 +164,14 @@ export async function getChallengeState(
     poolDispute,
   };
 }
+
+export function computeWinnerShare(
+  winningOptionRewards: any,
+  winningOptionTokens: any,
+  totalPoolTokens: any,
+  winnerRewards: any
+): BigInt {
+  const totalLoosersTokens: any = totalPoolTokens - winningOptionTokens;
+  const tokensPerReward: any = totalLoosersTokens / winningOptionRewards;
+  return (winnerRewards * tokensPerReward) as any as BigInt;
+}
