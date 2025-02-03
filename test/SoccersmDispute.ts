@@ -134,7 +134,8 @@ describe("ChallengePool - Dispute", function () {
         await poolHandlerProxy.evaluate(0);
 
         //striker disputes
-        expect (await (poolDisputeProxy.connect(striker) as any).dispute(0, loosingPrediction1)).to.not.be.reverted;
+        await expect((poolDisputeProxy.connect(striker) as any).dispute(0, loosingPrediction1)).to.not.be.reverted;
+
         const strikerChallengeState =  await getChallengeState(poolViewProxy, 0, await striker.getAddress(), ethers.keccak256(loosingPrediction1));
         const strikerDispute = await getPlayerDisputes(poolViewProxy, 0, await striker.getAddress());
         
@@ -224,13 +225,6 @@ describe("ChallengePool - Dispute", function () {
           .connect(keeper)
           .approve(await poolHandlerProxy.getAddress(), oneMil);
     
-        await (poolHandlerProxy.connect(keeper) as any).stake(
-          0,
-          winningPrediction,
-          2,
-          ethers.ZeroAddress
-        );
-    
         await time.increaseTo(ch.maturity);
         const provideDataParams = prepareAssetPriceProvision(
           ch.assetSymbol,
@@ -238,10 +232,23 @@ describe("ChallengePool - Dispute", function () {
           assetPrice
         );
         await registryProxy.provideData(...provideDataParams);
-    
+
+        //revert for not evaluated
+        await expect((poolDisputeProxy.connect(striker) as any).dispute(0, loosingPrediction1)).to.be.reverted;
+
+        //evaluate
         await poolHandlerProxy.evaluate(0);
 
-        //revert keeper disputes
-        expect (await (poolDisputeProxy.connect(keeper) as any).dispute(0, loosingPrediction1)).to.be.reverted;
+        //revert keeper disputes(no stakes)
+        await expect((poolDisputeProxy.connect(keeper) as any).dispute(0, loosingPrediction1)).to.be.reverted;
+
+        //revert for invalid outcome
+        const invalidOutcome = coder.encode(["string"], ["invalid"]);
+         await expect((poolDisputeProxy.connect(keeper) as any).dispute(0, invalidOutcome)).to.be.reverted;
+
+        //revert for past time for dispute(1hour)
+        await time.increase(60 * 60);
+        await expect((poolDisputeProxy.connect(striker) as any).dispute(0, loosingPrediction1)).to.be.reverted;
+
   });
 });
