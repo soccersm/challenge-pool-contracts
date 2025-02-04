@@ -569,4 +569,129 @@ describe("ChallengePool - Dispute", function () {
         //striker releaseDispute
         await expect((poolDisputeProxy.connect(striker)as any).releaseDispute(0)).to.not.be.reverted;
   });
+
+   it("Should [revert releaseDispute with Invalid Conditions]", async function () {
+    const {
+      oneGrand,
+      oneMil,
+      owner,
+      baller,
+      striker,
+      ballsToken,
+      poolHandlerProxy,
+      registryProxy,
+      poolViewProxy,
+      poolDisputeProxy,
+      poolManagerProxy,
+      keeper,
+      paymaster,
+    } = await loadFixture(deploySoccersm);
+
+    // Dispute: Setup
+      /* create challenge
+      stake challenge
+      mature challenge
+      dispute
+      settle 
+      close
+      releaseDispute with invalid conditions
+      */
+
+    // create challenge
+    const ch = btcEvent(
+          await ballsToken.getAddress(),
+          1,
+          oneGrand,
+          ethers.ZeroAddress
+        );
+    
+        const winningPrediction = yesNo.no;
+        const loosingPrediction1 = yesNo.yes;
+        const assetPrice = 110000 * ASSET_PRICES_MULTIPLIER;
+    
+        const preparedMultiStementChallenge = prepareCreateChallenge(ch.challenge);
+    
+        await ballsToken
+          .connect(baller)
+          .approve(
+            await poolHandlerProxy.getAddress(),
+            (
+              await poolViewProxy.createFee(oneGrand)
+            )[1]
+          );
+        await (poolHandlerProxy.connect(baller) as any).createChallenge(
+          ...(preparedMultiStementChallenge as any)
+        );
+        expect(await poolManagerProxy.challengeId()).to.equal(1);
+
+        await ballsToken
+          .connect(baller)
+          .approve(await poolHandlerProxy.getAddress(), oneMil);
+    
+        //striker can stake
+        await ballsToken
+          .connect(striker)
+          .approve(await poolHandlerProxy.getAddress(), oneMil);
+        await (poolHandlerProxy.connect(striker) as any).stake(
+          0,
+          loosingPrediction1,
+          2,
+          ethers.ZeroAddress
+        );
+    
+        await ballsToken.approve(await poolHandlerProxy.getAddress(), oneMil);
+
+        //baller can stake again
+        await (poolHandlerProxy.connect(baller) as any).stake(
+          0,
+          winningPrediction,
+          1,
+          ethers.ZeroAddress
+        );
+    
+        await ballsToken.transfer(keeper, oneMil);
+        await ballsToken
+          .connect(keeper)
+          .approve(await poolHandlerProxy.getAddress(), oneMil);
+    
+        await time.increaseTo(ch.maturity);
+        const provideDataParams = prepareAssetPriceProvision(
+          ch.assetSymbol,
+          ch.maturity,
+          assetPrice
+        );
+        await registryProxy.provideData(...provideDataParams);
+    
+        //evaluate
+        await poolHandlerProxy.evaluate(0);
+
+        //striker dispute
+        await expect((poolDisputeProxy.connect(striker) as any).dispute(0, loosingPrediction1)).to.not.be.reverted;
+
+        //Settle
+        await expect((poolDisputeProxy.settle(0, winningPrediction))).to.not.be.reverted;
+
+        //revert with pool not closed
+        await expect((poolDisputeProxy.connect(striker)as any).releaseDispute(0)).be.revertedWithCustomError(poolDisputeProxy, "ActionNotAllowedForState");
+
+        //close: revert with dispute period
+        await expect((poolHandlerProxy.close(0))).to.be.revertedWithCustomError(poolHandlerProxy, "DisputePeriod");
+
+        await time.increase(60 * 60);
+
+        //revert with not closed state
+        await expect((poolDisputeProxy.connect(striker)as any).releaseDispute(0)).to.be.reverted;
+
+        //close
+        await expect((poolHandlerProxy.close(0))).to.not.be.reverted;
+
+        //revert with player not in pool
+        await expect((poolDisputeProxy.connect(keeper)as any).releaseDispute(0)).be.revertedWithCustomError(poolDisputeProxy, "PlayerNotInPool");
+
+        //revert with player did not dispute
+        await expect((poolDisputeProxy.connect(baller)as any).releaseDispute(0)).be.revertedWithCustomError(poolDisputeProxy, "PlayerDidNotDispute");
+
+        //revert with striker lost dispute 
+        await expect((poolDisputeProxy.connect(striker)as any).releaseDispute(0)).be.revertedWithCustomError(poolDisputeProxy, "PlayerLostDispute");
+  });
 });
