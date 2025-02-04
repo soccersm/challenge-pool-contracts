@@ -1,10 +1,11 @@
+import { keccak256, toUtf8Bytes } from 'ethers';
 import {
   time,
   loadFixture,
 } from "@nomicfoundation/hardhat-toolbox/network-helpers";
 
 import { expect } from "chai";
-import { ethers } from "hardhat";
+import { ethers} from "hardhat";
 import { deploySoccersm } from "./SoccersmDeployFixture";
 
 import {
@@ -142,7 +143,7 @@ describe("ChallengePool - Dispute", function () {
         expect(strikerDispute.dispute).to.equal(strikerChallengeState.playerDispute.dispute);
         expect(strikerDispute.released).to.equal(strikerChallengeState.playerDispute.released);
         expect(strikerDispute.stakes).to.equal(strikerChallengeState.playerDispute.stakes);
-        
+
   });
   it("Should [Revert Invalid Dispute Conditions]", async function () {
     const {
@@ -379,6 +380,8 @@ describe("ChallengePool - Dispute", function () {
       */
 
     // create challenge
+  
+    const SOCCERSM_COUNCIL = keccak256(toUtf8Bytes("SOCCERSM_COUNCIL"));
     const ch = btcEvent(
           await ballsToken.getAddress(),
           1,
@@ -459,8 +462,8 @@ describe("ChallengePool - Dispute", function () {
         // const invalidOutcome = coder.encode(["string"], ["invalid"]);
         // await expect((poolDisputeProxy.settle(0, invalidOutcome))).to.be.reverted; //not reverting
 
-        //reverts for settle: non-council
-        await expect(((poolDisputeProxy.connect(keeper) as any).settle(1, loosingPrediction1))).to.be.reverted;
+        //reverts for settle: not soccersmCouncil
+        await expect(((poolDisputeProxy.connect(keeper) as any).settle(1, loosingPrediction1))).to.be.revertedWith(`AccessControl: account ${keeper.address.toLowerCase()} is missing role ${SOCCERSM_COUNCIL}`);
   });
 
    it("Should [releaseDispute]", async function () {
@@ -681,7 +684,7 @@ describe("ChallengePool - Dispute", function () {
         await time.increase(60 * 60);
 
         //revert with not closed state
-        await expect((poolDisputeProxy.connect(striker)as any).releaseDispute(0)).to.be.reverted;
+        await expect((poolDisputeProxy.connect(striker)as any).releaseDispute(0)).to.be.revertedWithCustomError(poolDisputeProxy, "ActionNotAllowedForState");
 
         //close
         await expect((poolHandlerProxy.close(0))).to.not.be.reverted;
@@ -719,6 +722,7 @@ describe("ChallengePool - Dispute", function () {
       */
 
     // create challenge
+     const SOCCERSM_COUNCIL = keccak256(toUtf8Bytes("SOCCERSM_COUNCIL"));
     const ch = btcEvent(
           await ballsToken.getAddress(),
           1,
@@ -796,7 +800,7 @@ describe("ChallengePool - Dispute", function () {
         await expect((poolDisputeProxy.cancel(0))).to.not.be.reverted;
 
         //revert for not soccersmCouncil
-        await expect(((poolDisputeProxy.connect(baller) as any).cancel(0))).to.be.reverted;
+        await expect(((poolDisputeProxy.connect(baller) as any).cancel(0))).to.be.revertedWith(`AccessControl: account ${baller.address.toLowerCase()} is missing role ${SOCCERSM_COUNCIL}`);
 
         //revert for invalid challengeId
         await expect((poolDisputeProxy.cancel(1))).to.be.revertedWithCustomError(poolDisputeProxy, "InvalidChallenge");
