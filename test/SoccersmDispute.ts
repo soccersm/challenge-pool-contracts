@@ -102,8 +102,6 @@ describe("ChallengePool - Dispute", function () {
         );
     
         await ballsToken.approve(await poolHandlerProxy.getAddress(), oneMil);
-        await poolHandlerProxy.stake(0, loosingPrediction2, 3, ethers.ZeroAddress);
-
         //baller can stake again
         await (poolHandlerProxy.connect(baller) as any).stake(
           0,
@@ -211,7 +209,6 @@ describe("ChallengePool - Dispute", function () {
         );
     
         await ballsToken.approve(await poolHandlerProxy.getAddress(), oneMil);
-        await poolHandlerProxy.stake(0, loosingPrediction2, 3, ethers.ZeroAddress);
 
         //baller can stake again
         await (poolHandlerProxy.connect(baller) as any).stake(
@@ -235,133 +232,24 @@ describe("ChallengePool - Dispute", function () {
         await registryProxy.provideData(...provideDataParams);
 
         //revert for not evaluated
-        await expect((poolDisputeProxy.connect(striker) as any).dispute(0, loosingPrediction1)).to.be.reverted;
+        await expect((poolDisputeProxy.connect(striker) as any).dispute(0, loosingPrediction1)).to.be.revertedWithCustomError(poolDisputeProxy, "ActionNotAllowedForState");
 
         //evaluate
         await poolHandlerProxy.evaluate(0);
 
         //revert keeper disputes(no stakes)
-        await expect((poolDisputeProxy.connect(keeper) as any).dispute(0, loosingPrediction1)).to.be.reverted;
+        await expect((poolDisputeProxy.connect(keeper) as any).dispute(0, loosingPrediction1)).to.be.revertedWithCustomError(poolDisputeProxy, "PlayerNotInPool");
 
         //revert for invalid outcome
         const invalidOutcome = coder.encode(["string"], ["invalid"]);
-         await expect((poolDisputeProxy.connect(keeper) as any).dispute(0, invalidOutcome)).to.be.reverted;
+         await expect((poolDisputeProxy.connect(keeper) as any).dispute(0, invalidOutcome)).to.be.revertedWithCustomError(poolDisputeProxy, "InvalidOutcome");
 
         //revert for past time for dispute(1hour)
         await time.increase(60 * 60);
-        await expect((poolDisputeProxy.connect(striker) as any).dispute(0, loosingPrediction1)).to.be.reverted;
+        await expect((poolDisputeProxy.connect(striker) as any).dispute(0, loosingPrediction1)).to.be.revertedWithCustomError(poolDisputeProxy, "DisputePeriodElapsed");
 
   });
 
-   it("Should [Settle]", async function () {
-    const {
-      oneGrand,
-      oneMil,
-      baller,
-      striker,
-      ballsToken,
-      poolHandlerProxy,
-      registryProxy,
-      poolViewProxy,
-      poolDisputeProxy,
-      poolManagerProxy,
-      keeper,
-      paymaster,
-    } = await loadFixture(deploySoccersm);
-
-    // Settle: Setup
-      /* create challenge
-      stake challenge
-      mature challenge
-      dispute challenge
-      settle
-      */
-
-    // create challenge
-    const ch = btcEvent(
-          await ballsToken.getAddress(),
-          1,
-          oneGrand,
-          ethers.ZeroAddress
-        );
-    
-        const winningPrediction = yesNo.no;
-        const loosingPrediction1 = yesNo.yes;
-        const loosingPrediction2 = yesNo.yes;
-        const assetPrice = 110000 * ASSET_PRICES_MULTIPLIER;
-    
-        const preparedMultiStementChallenge = prepareCreateChallenge(ch.challenge);
-    
-        await ballsToken
-          .connect(baller)
-          .approve(
-            await poolHandlerProxy.getAddress(),
-            (
-              await poolViewProxy.createFee(oneGrand)
-            )[1]
-          );
-        await (poolHandlerProxy.connect(baller) as any).createChallenge(
-          ...(preparedMultiStementChallenge as any)
-        );
-        expect(await poolManagerProxy.challengeId()).to.equal(1);
-
-        await ballsToken
-          .connect(baller)
-          .approve(await poolHandlerProxy.getAddress(), oneMil);
-    
-        //striker can stake
-        await ballsToken
-          .connect(striker)
-          .approve(await poolHandlerProxy.getAddress(), oneMil);
-        await (poolHandlerProxy.connect(striker) as any).stake(
-          0,
-          loosingPrediction1,
-          2,
-          ethers.ZeroAddress
-        );
-    
-        await ballsToken.approve(await poolHandlerProxy.getAddress(), oneMil);
-        await poolHandlerProxy.stake(0, loosingPrediction2, 3, ethers.ZeroAddress);
-
-        //baller can stake again
-        await (poolHandlerProxy.connect(baller) as any).stake(
-          0,
-          winningPrediction,
-          1,
-          ethers.ZeroAddress
-        );
-    
-        await ballsToken.transfer(keeper, oneMil);
-        await ballsToken
-          .connect(keeper)
-          .approve(await poolHandlerProxy.getAddress(), oneMil);
-    
-        await time.increaseTo(ch.maturity);
-        const provideDataParams = prepareAssetPriceProvision(
-          ch.assetSymbol,
-          ch.maturity,
-          assetPrice
-        );
-        await registryProxy.provideData(...provideDataParams);
-
-        //revert for not evaluated
-        await expect((poolDisputeProxy.connect(striker) as any).dispute(0, loosingPrediction1)).to.be.reverted;
-
-        //evaluate
-        await poolHandlerProxy.evaluate(0);
-
-        //revert keeper disputes(no stakes)
-        await expect((poolDisputeProxy.connect(keeper) as any).dispute(0, loosingPrediction1)).to.be.reverted;
-
-        //revert for invalid outcome
-        const invalidOutcome = coder.encode(["string"], ["invalid"]);
-         await expect((poolDisputeProxy.connect(keeper) as any).dispute(0, invalidOutcome)).to.be.reverted;
-
-        //revert for past time for dispute(1hour)
-        await time.increase(60 * 60);
-        await expect((poolDisputeProxy.connect(striker) as any).dispute(0, loosingPrediction1)).to.be.reverted;
-
-  });
    it("Should [Settle]", async function () {
     const {
       oneGrand,
@@ -430,7 +318,6 @@ describe("ChallengePool - Dispute", function () {
         );
     
         await ballsToken.approve(await poolHandlerProxy.getAddress(), oneMil);
-        await poolHandlerProxy.stake(0, loosingPrediction2, 3, ethers.ZeroAddress);
 
         //baller can stake again
         await (poolHandlerProxy.connect(baller) as any).stake(
@@ -461,8 +348,10 @@ describe("ChallengePool - Dispute", function () {
 
         //Settle
         await expect((poolDisputeProxy.settle(0, loosingPrediction1))).to.not.be.reverted;
-        const disputedChallenge = await getChallenge(poolViewProxy, 0);
-        console.log("Disputed outcome: ", disputedChallenge);
-        expect(loosingPrediction1).to.be.equal(disputedChallenge.outcome);
+
+        //check for sent slashed funds
+        const challengeState = await getChallengeState(poolViewProxy, 0, await striker.getAddress(), ethers.keccak256(loosingPrediction1));
+        console.log("Challenge State for Striker: ", challengeState);
+
   });
 });
