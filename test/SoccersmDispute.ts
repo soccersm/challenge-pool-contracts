@@ -694,4 +694,110 @@ describe("ChallengePool - Dispute", function () {
         //revert with striker lost dispute 
         await expect((poolDisputeProxy.connect(striker)as any).releaseDispute(0)).be.revertedWithCustomError(poolDisputeProxy, "PlayerLostDispute");
   });
+   it("Should [cancel]", async function () {
+    const {
+      oneGrand,
+      oneMil,
+      baller,
+      striker,
+      ballsToken,
+      poolHandlerProxy,
+      registryProxy,
+      poolViewProxy,
+      poolDisputeProxy,
+      poolManagerProxy,
+      keeper,
+      paymaster,
+    } = await loadFixture(deploySoccersm);
+
+    // Dispute: Setup
+      /* create challenge
+      stake challenge
+      mature challenge
+      Can cancel at any other state
+      */
+
+    // create challenge
+    const ch = btcEvent(
+          await ballsToken.getAddress(),
+          1,
+          oneGrand,
+          ethers.ZeroAddress
+        );
+    
+        const winningPrediction = yesNo.no;
+        const loosingPrediction1 = yesNo.yes;
+        const assetPrice = 110000 * ASSET_PRICES_MULTIPLIER;
+    
+        const preparedMultiStementChallenge = prepareCreateChallenge(ch.challenge);
+    
+        await ballsToken
+          .connect(baller)
+          .approve(
+            await poolHandlerProxy.getAddress(),
+            (
+              await poolViewProxy.createFee(oneGrand)
+            )[1]
+          );
+        await (poolHandlerProxy.connect(baller) as any).createChallenge(
+          ...(preparedMultiStementChallenge as any)
+        );
+        expect(await poolManagerProxy.challengeId()).to.equal(1);
+
+        await ballsToken
+          .connect(baller)
+          .approve(await poolHandlerProxy.getAddress(), oneMil);
+    
+        //striker can stake
+        await ballsToken
+          .connect(striker)
+          .approve(await poolHandlerProxy.getAddress(), oneMil);
+        await (poolHandlerProxy.connect(striker) as any).stake(
+          0,
+          loosingPrediction1,
+          2,
+          ethers.ZeroAddress
+        );
+    
+        await ballsToken.approve(await poolHandlerProxy.getAddress(), oneMil);
+
+        //baller can stake again
+        await (poolHandlerProxy.connect(baller) as any).stake(
+          0,
+          winningPrediction,
+          1,
+          ethers.ZeroAddress
+        );
+    
+        await ballsToken.transfer(keeper, oneMil);
+        await ballsToken
+          .connect(keeper)
+          .approve(await poolHandlerProxy.getAddress(), oneMil);
+    
+        await time.increaseTo(ch.maturity);
+        const provideDataParams = prepareAssetPriceProvision(
+          ch.assetSymbol,
+          ch.maturity,
+          assetPrice
+        );
+        await registryProxy.provideData(...provideDataParams);
+    
+        //evaluate
+        await poolHandlerProxy.evaluate(0);
+
+        //striker dispute
+        await expect((poolDisputeProxy.connect(striker) as any).dispute(0, loosingPrediction1)).to.not.be.reverted;
+
+        //Settle
+        await expect((poolDisputeProxy.settle(0, winningPrediction))).to.not.be.reverted;
+
+        //can cancel after Settle or any state
+        await expect((poolDisputeProxy.cancel(0))).to.not.be.reverted;
+
+        //revert for not soccersmCouncil
+        await expect(((poolDisputeProxy.connect(baller) as any).cancel(0))).to.be.reverted;
+
+        //revert for invalid challengeId
+        await expect((poolDisputeProxy.cancel(1))).to.be.revertedWithCustomError(poolDisputeProxy, "InvalidChallenge");
+  });
 });
