@@ -142,6 +142,7 @@ describe("ChallengePool - Dispute", function () {
         expect(strikerDispute.dispute).to.equal(strikerChallengeState.playerDispute.dispute);
         expect(strikerDispute.released).to.equal(strikerChallengeState.playerDispute.released);
         expect(strikerDispute.stakes).to.equal(strikerChallengeState.playerDispute.stakes);
+        
   });
   it("Should [Revert Invalid Dispute Conditions]", async function () {
     const {
