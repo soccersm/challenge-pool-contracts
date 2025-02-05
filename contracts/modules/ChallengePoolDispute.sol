@@ -21,7 +21,6 @@ import "./TopicRegistry.sol";
 
 import "../diamond/interfaces/SoccersmRoles.sol";
 
-
 contract ChallengePoolDispute is
     IChallengePoolDispute,
     SoccersmRoles,
