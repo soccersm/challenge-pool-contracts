@@ -173,6 +173,7 @@ export function computeWinnerShare(
   cancelled = false
 ): BigInt {
   if (cancelled) return BigInt(0);
+  if (winningOptionRewards == 0) return BigInt(0);
   const totalLoosersTokens: any = totalPoolTokens - winningOptionTokens;
   const tokensPerReward: any = totalLoosersTokens / winningOptionRewards;
   return (winnerRewards * tokensPerReward) as any as BigInt;

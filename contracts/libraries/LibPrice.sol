@@ -76,6 +76,9 @@ library LibPrice {
         IChallengePoolHandler.Challenge storage c = s.challenges[_challengeId];
         uint256 winningOptionRewards = s
         .optionSupply[_challengeId][keccak256(c.outcome)].rewards;
+        if (winningOptionRewards == 0) {
+            return 0;
+        }
         uint256 winningOptionTokens = s
         .optionSupply[_challengeId][keccak256(c.outcome)].tokens;
         uint256 totalLoosersTokens = s.poolSupply[_challengeId].tokens -

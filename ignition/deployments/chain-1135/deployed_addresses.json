@@ -34,5 +34,8 @@
   "PoolResolversModule#MultiFootBallOutcomeResolver": "0xCf6a14832843A0b8121cA3b19fa675E5fC8F4113",
   "PoolResolversModule#MultiFootBallTotalExactResolver": "0x21655BbF8276030a7FD52005A9232fA3914f6aE1",
   "PoolResolversModule#MultiFootBallTotalScoreRangeResolver": "0x730ba10F3746730831Aa0A6f3953Be72cD88D736",
-  "PoolResolversModule#StatementResolver": "0x254b2DCfFBe02584AA785322bd49e8b521cBBb4d"
+  "PoolResolversModule#StatementResolver": "0x254b2DCfFBe02584AA785322bd49e8b521cBBb4d",
+  "ChallengePoolHandler_computeWinnerShareUpdateModule#SoccersmChallengePoolHandler": "0x56d3719CcB48124d7CeE71F70B3e0bAa860E7FB6",
+  "ChallengePoolHandler_computeWinnerShareUpdateModule#ChallengePoolHandler": "0xA58F444c7c5371a094879b0472a6E9eE1CD7d6B5",
+  "ChallengePoolHandler_computeWinnerShareUpdateModule#ChallengePoolUpdateInit": "0x4a65767233695d601Be836Cb945828388AbECfeA"
 }
