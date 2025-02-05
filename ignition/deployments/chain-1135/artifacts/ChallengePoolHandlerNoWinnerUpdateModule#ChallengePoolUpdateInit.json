@@ -1,0 +1,18 @@
+{
+  "_format": "hh-sol-artifact-1",
+  "contractName": "ChallengePoolUpdateInit",
+  "sourceName": "contracts/inits/ChallengePoolUpdateInit.sol",
+  "abi": [
+    {
+      "inputs": [],
+      "name": "init",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    }
+  ],
+  "bytecode": "0x60808060405234601357608a908160198239f35b600080fdfe6004361015600c57600080fd5b60003560e01c63e1c7392a14602057600080fd5b34604f5760007ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffc360112604f57005b600080fdfea264697066735822122036e8064c5b496907bbd3d1e6e6d2d26202cd24cde70b8f3aea24f2aa733fa03164736f6c634300081c0033",
+  "deployedBytecode": "0x6004361015600c57600080fd5b60003560e01c63e1c7392a14602057600080fd5b34604f5760007ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffc360112604f57005b600080fdfea264697066735822122036e8064c5b496907bbd3d1e6e6d2d26202cd24cde70b8f3aea24f2aa733fa03164736f6c634300081c0033",
+  "linkReferences": {},
+  "deployedLinkReferences": {}
+}

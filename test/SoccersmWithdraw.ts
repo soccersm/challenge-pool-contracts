@@ -16,6 +16,7 @@ import {
   multiCorrectScore,
   multiOutcome,
   multiTotalExact,
+  soccersmEvent,
 } from "./mock";
 import {
   prepareCreateChallenge,
@@ -1580,6 +1581,213 @@ describe("ChallengePool - Withdraw", function () {
     ).revertedWithCustomError(poolHandlerProxy, "PlayerDidNotWinPool");
   });
 
+  it("No Winner", async function () {
+    const {
+      registryProxy,
+      oneGrand,
+      oneMil,
+      baller,
+      striker,
+      keeper,
+      ballsToken,
+      poolHandlerProxy,
+      poolViewProxy,
+      poolDisputeProxy,
+    } = await loadFixture(deploySoccersm);
+    //Setup: Create and Stake a challenge
+
+    const ch = soccersmEvent(
+      await ballsToken.getAddress(),
+      1,
+      oneGrand,
+      ethers.ZeroAddress
+    );
+
+    const winningPrediction = yesNo.no;
+    const loosingPrediction = yesNo.yes;
+
+    const quaterMature = ch.maturity - 60 * 60 * 16;
+    const halfMature = ch.maturity - 60 * 60 * 12;
+
+    await registryProxy.registerEvent(
+      ch.topicId,
+      coder.encode(
+        ["string", "string", "uint256", "bytes[]"],
+        [
+          ch.statementId,
+          ch.statement,
+          ch.maturity,
+          ch.options.map((o) => encodeMultiOptionByTopic(ch.topicId, o)),
+        ]
+      )
+    );
+
+    const preparedMultiStementChallenge = prepareCreateChallenge(ch.challenge);
+
+    await ballsToken
+      .connect(baller)
+      .approve(
+        await poolHandlerProxy.getAddress(),
+        (
+          await poolViewProxy.createFee(oneGrand)
+        )[1]
+      );
+    await (poolHandlerProxy.connect(baller) as any).createChallenge(
+      ...(preparedMultiStementChallenge as any)
+    );
+
+    await ballsToken
+      .connect(baller)
+      .approve(await poolHandlerProxy.getAddress(), oneMil);
+
+    //striker can stake
+    await ballsToken
+      .connect(striker)
+      .approve(await poolHandlerProxy.getAddress(), oneMil);
+    await (poolHandlerProxy.connect(striker) as any).stake(
+      0,
+      winningPrediction,
+      2,
+      ethers.ZeroAddress
+    );
+
+    await ballsToken.approve(await poolHandlerProxy.getAddress(), oneMil);
+    await poolHandlerProxy.stake(0, winningPrediction, 3, ethers.ZeroAddress);
+    //baller can stake again
+    await time.increaseTo(BigInt(quaterMature));
+    await (poolHandlerProxy.connect(baller) as any).stake(
+      0,
+      winningPrediction,
+      1,
+      ethers.ZeroAddress
+    );
+    await time.increaseTo(halfMature);
+    await ballsToken.transfer(keeper, oneMil);
+    await ballsToken
+      .connect(keeper)
+      .approve(await poolHandlerProxy.getAddress(), oneMil);
+
+    await (poolHandlerProxy.connect(keeper) as any).stake(
+      0,
+      winningPrediction,
+      2,
+      ethers.ZeroAddress
+    );
+
+    await time.increaseTo(ch.maturity);
+    const statementDataParams = prepareStatementProvision(
+      ch.statementId,
+      ch.statement,
+      ch.maturity,
+      loosingPrediction
+    );
+    await registryProxy.provideData(...statementDataParams);
+
+    await poolHandlerProxy.evaluate(0);
+    await expect(poolHandlerProxy.close(0)).revertedWithCustomError(
+      poolHandlerProxy,
+      "DisputePeriod"
+    );
+    await time.increase(60 * 60); // dispute period
+    await poolDisputeProxy.cancel(0);
+    const challenge = await getChallenge(poolViewProxy, 0);
+    expect(challenge.outcome).to.equal(loosingPrediction);
+    const challengeBallerWinningState = await getChallengeState(
+      poolViewProxy,
+      0,
+      baller.address,
+      ethers.keccak256(winningPrediction)
+    );
+    console.log("challengeBallerWinningState", challengeBallerWinningState);
+    const ballerShare = computeWinnerShare(
+      challengeBallerWinningState.optionSupply.rewards,
+      challengeBallerWinningState.optionSupply.tokens,
+      challengeBallerWinningState.poolSupply.tokens,
+      challengeBallerWinningState.playerOptionSupply.rewards,
+      true
+    );
+    const ballerShareView = await poolViewProxy.winnerShare(0, baller.address);
+    console.log(ballerShare);
+    const ballerShareViewFloor = Math.floor(
+      parseFloat(ethers.formatUnits(ballerShareView.toString()))
+    );
+    const ballerShareFloor = Math.floor(
+      parseFloat(ethers.formatUnits(ballerShare.toString()))
+    );
+    expect(ballerShareViewFloor).to.equal(ballerShareFloor);
+    const ballerWithdrawal =
+      ballerShareView + challengeBallerWinningState.playerOptionSupply.tokens;
+    await expect((poolHandlerProxy.connect(baller) as any).withdraw(0))
+      .to.emit(poolHandlerProxy, "WinningsWithdrawn")
+      .withArgs(0, baller.address, ballerShareView, ballerWithdrawal)
+      .emit(ballsToken, "Transfer")
+      .withArgs(
+        await poolHandlerProxy.getAddress(),
+        baller.address,
+        ballerWithdrawal
+      );
+
+    await expect(
+      (poolHandlerProxy.connect(baller) as any).withdraw(0)
+    ).revertedWithCustomError(poolHandlerProxy, "PlayerAlreadyWithdrawn");
+
+    const challengeKeeperWinningState = await getChallengeState(
+      poolViewProxy,
+      0,
+      keeper.address,
+      ethers.keccak256(winningPrediction)
+    );
+    console.log("challengeKeeperWinningState", challengeKeeperWinningState);
+    const keeperShare = computeWinnerShare(
+      challengeKeeperWinningState.optionSupply.rewards,
+      challengeKeeperWinningState.optionSupply.tokens,
+      challengeKeeperWinningState.poolSupply.tokens,
+      challengeKeeperWinningState.playerOptionSupply.rewards,
+      true
+    );
+    expect(keeperShare).to.equal(0);
+    const keeperShareView = await poolViewProxy.winnerShare(0, keeper.address);
+    console.log(keeperShareView);
+
+    const keeperShareViewFloor = Math.floor(
+      parseFloat(ethers.formatUnits(keeperShareView.toString()))
+    );
+    const keeperShareFloor = Math.floor(
+      parseFloat(ethers.formatUnits(keeperShare.toString()))
+    );
+    expect(keeperShareViewFloor).to.equal(keeperShareFloor);
+
+    const keeperWithdrawal =
+      keeperShareView + challengeKeeperWinningState.playerOptionSupply.tokens;
+
+    await expect((poolHandlerProxy.connect(keeper) as any).withdraw(0))
+      .to.emit(poolHandlerProxy, "WinningsWithdrawn")
+      .withArgs(0, keeper.address, keeperShareView, keeperWithdrawal)
+      .emit(ballsToken, "Transfer")
+      .withArgs(
+        await poolHandlerProxy.getAddress(),
+        keeper.address,
+        keeperWithdrawal
+      );
+    expect(keeperWithdrawal).to.equal(oneGrand * BigInt(2));
+    expect(keeperShareFloor).to.equal(ballerShareFloor);
+
+    await expect(
+      (poolHandlerProxy.connect(keeper) as any).withdraw(0)
+    ).revertedWithCustomError(poolHandlerProxy, "PlayerAlreadyWithdrawn");
+
+    await expect((poolHandlerProxy.connect(striker) as any).withdraw(0))
+      .to.emit(ballsToken, "Transfer")
+      .withArgs(
+        await poolHandlerProxy.getAddress(),
+        striker.address,
+        oneGrand * BigInt(2)
+      );
+    await expect(
+      (poolHandlerProxy.connect(striker) as any).withdraw(0)
+    ).revertedWithCustomError(poolHandlerProxy, "PlayerAlreadyWithdrawn");
+  });
+
   it("Cancel", async function () {
     const {
       registryProxy,
@@ -1741,7 +1949,7 @@ describe("ChallengePool - Withdraw", function () {
     );
     const keeperShareView = await poolViewProxy.winnerShare(0, keeper.address);
     console.log(keeperShareView);
-    
+
     const keeperShareViewFloor = Math.floor(
       parseFloat(ethers.formatUnits(keeperShareView.toString()))
     );
@@ -1768,10 +1976,9 @@ describe("ChallengePool - Withdraw", function () {
     await expect(
       (poolHandlerProxy.connect(keeper) as any).withdraw(0)
     ).revertedWithCustomError(poolHandlerProxy, "PlayerAlreadyWithdrawn");
-
+    await (poolHandlerProxy.connect(striker) as any).withdraw(0);
     await expect(
-      (poolHandlerProxy.connect(keeper) as any).withdraw(0)
+      (poolHandlerProxy.connect(striker) as any).withdraw(0)
     ).revertedWithCustomError(poolHandlerProxy, "PlayerAlreadyWithdrawn");
-
   });
 });

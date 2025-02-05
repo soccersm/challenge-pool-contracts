@@ -157,6 +157,9 @@ contract ChallengePoolView is IChallengePoolView, ChallengePoolHelpers {
         if (HelpersLib.compareBytes(HelpersLib.emptyBytes, c.outcome)) {
             revert IChallengePoolCommon.InvalidOutcome();
         }
+        if (s.optionSupply[_challengeId][keccak256(c.outcome)].rewards == 0) {
+            return 0;
+        }
         IChallengePoolHandler.PlayerSupply storage playerOption = s
             .playerOptionSupply[_challengeId][_player][keccak256(c.outcome)];
         if (c.state == IChallengePoolCommon.ChallengeState.closed) {

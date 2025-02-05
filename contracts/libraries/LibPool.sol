@@ -235,6 +235,9 @@ library LibPool {
         if (HelpersLib.compareBytes(HelpersLib.emptyBytes, c.outcome)) {
             revert IChallengePoolCommon.InvalidOutcome();
         }
+        if (s.optionSupply[_challengeId][keccak256(c.outcome)].rewards == 0) {
+            return _withdrawAfterCancelled(_challengeId);
+        }
         if (s.playerSupply[_challengeId][msg.sender].stakes == 0) {
             revert IChallengePoolCommon.PlayerNotInPool();
         }
