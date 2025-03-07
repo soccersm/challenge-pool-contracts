@@ -9,6 +9,8 @@ import "../interfaces/IChallengePool.sol";
 import "../interfaces/IPaymaster.sol";
 import "../utils/Errors.sol";
 
+import "../libraries/LibData.sol";
+
 library LibTransfer {
     function _send(address _token, uint256 _amount, address _to) internal {
         uint256 balanceBefore = IERC20(_token).balanceOf(address(this));
@@ -19,11 +21,15 @@ library LibTransfer {
         }
     }
 
-    function _receive(address _token, uint256 _amount) internal {
+    function _receive(
+        address _token,
+        uint256 _amount,
+        address _caller
+    ) internal {
         uint256 balanceBefore = IERC20(_token).balanceOf(address(this));
         SafeERC20.safeTransferFrom(
             IERC20(_token),
-            msg.sender,
+            _caller,
             address(this),
             _amount
         );
@@ -36,10 +42,11 @@ library LibTransfer {
     function _depositFromPaymaster(
         address _paymaster,
         address _token,
-        uint256 _amount
+        uint256 _amount,
+        address _caller
     ) internal {
         uint256 balanceBefore = IERC20(_token).balanceOf(address(this));
-        IPaymaster(_paymaster).payFor(_token, msg.sender, _amount);
+        IPaymaster(_paymaster).payFor(_token, _caller, _amount);
         uint256 balanceAfter = IERC20(_token).balanceOf(address(this));
         if ((balanceAfter - balanceBefore) != _amount) {
             revert ProtocolInvariantCheckFailed();
@@ -49,12 +56,31 @@ library LibTransfer {
     function _depositOrPaymaster(
         address _paymaster,
         address _token,
-        uint256 _amount
+        uint256 _amount,
+        address _caller
     ) internal {
         if (_paymaster == address(0)) {
-            _receive(_token, _amount);
+            _receive(_token, _amount, _caller);
         } else {
-            _depositFromPaymaster(_paymaster, _token, _amount);
+            _depositFromPaymaster(_paymaster, _token, _amount, _caller);
+        }
+    }
+
+    function _stakeAirDrop(
+        address _paymaster,
+        address _token,
+        address _caller
+    ) internal {
+        if (_paymaster == address(0)) {
+            AirDropStore storage a = AirDropStorage.load();
+            if (a.claimCount[_caller][_token] < a.maxClaim) {
+                a.claimCount[_caller][_token] += 1;
+                IPaymaster(a.paymaster).depositFor(
+                    _token,
+                    _caller,
+                    a.stakeAirDrop
+                );
+            }
         }
     }
 }

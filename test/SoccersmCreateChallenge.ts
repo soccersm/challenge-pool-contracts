@@ -43,6 +43,7 @@ describe("ChallengePool - Create Challenge", function () {
       poolManagerProxy,
       keeper,
       paymaster,
+      oneMil,
     } = await loadFixture(deploySoccersm);
 
     const btcChallenge = btcEvent(
@@ -268,6 +269,14 @@ describe("ChallengePool - Create Challenge", function () {
     );
 
     const preparedStementChallenge = prepareCreateChallenge(sc.challenge);
+
+    await expect(
+      (poolHandlerProxy.connect(keeper) as any).createChallenge(
+        ...(preparedStementChallenge as any)
+      )
+    ).to.be.revertedWith("low balance ...");
+
+    await ballsToken.transfer(paymaster, oneMil);
 
     await (poolHandlerProxy.connect(keeper) as any).createChallenge(
       ...(preparedStementChallenge as any)

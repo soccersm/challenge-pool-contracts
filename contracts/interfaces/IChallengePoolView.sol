@@ -68,4 +68,8 @@ interface IChallengePoolView {
         uint256 _challengeId,
         address _player
     ) external view returns (uint256);
+
+    function stakeAirDrop() external view returns (uint256);
+    function maxClaim() external view returns (uint256);
+    function paymaster() external view returns (address);
 }

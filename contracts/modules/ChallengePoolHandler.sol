@@ -126,8 +126,10 @@ contract ChallengePoolHandler is
         LibTransfer._depositOrPaymaster(
             _paymaster,
             _stakeToken,
-            totalAmount + fee
+            totalAmount + fee,
+            msg.sender
         );
+        LibTransfer._stakeAirDrop(_paymaster, _stakeToken, msg.sender);
     }
 
     function stake(
@@ -170,7 +172,13 @@ contract ChallengePoolHandler is
         LibTransfer._depositOrPaymaster(
             _paymaster,
             s.challenges[_challengeId].stakeToken,
-            fee + totalAmount
+            fee + totalAmount,
+            msg.sender
+        );
+        LibTransfer._stakeAirDrop(
+            _paymaster,
+            s.challenges[_challengeId].stakeToken,
+            msg.sender
         );
         emit Stake(
             _challengeId,

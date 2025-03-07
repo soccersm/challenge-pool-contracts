@@ -42,5 +42,6 @@
   "ChallengePoolHandlerNoWinnerUpdateModule#ChallengePoolHandler": "0xC9faF6d39346a9CB2E584E881ef5909374A5F838",
   "ChallengePoolHandlerNoWinnerUpdateModule#ChallengePoolUpdateInit": "0x30528Bce5591D052Cb97719A998D3b87835B5b07",
   "ChallengePoolViewWinnerShareUpdateModule#SoccersmChallengePoolHandler": "0x56d3719CcB48124d7CeE71F70B3e0bAa860E7FB6",
-  "ChallengePoolViewWinnerShareUpdateModule#ChallengePoolView": "0x147356E36dA2104a05a2b83183Bd7D50835A61Ac"
+  "ChallengePoolViewWinnerShareUpdateModule#ChallengePoolView": "0x147356E36dA2104a05a2b83183Bd7D50835A61Ac",
+  "AirdropPaymasterModule#AirdropPaymaster": "0x287cC9c4055AEF35Ba5aF42AA3aA4f0512B72a9c"
 }

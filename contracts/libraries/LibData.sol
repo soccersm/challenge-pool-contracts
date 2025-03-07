@@ -78,3 +78,22 @@ library DPStorage {
         }
     }
 }
+
+struct AirDropStore {
+    uint256 stakeAirDrop;
+    address paymaster;
+    uint256 maxClaim;
+    mapping(address => mapping(address => uint256)) claimCount; // player -> token -> claims
+}
+
+library AirDropStorage {
+    bytes32 constant AIRDROP_STORAGE_POSITION =
+        keccak256("soccersm.data.airdop");
+
+    function load() internal pure returns (AirDropStore storage s) {
+        bytes32 position = AIRDROP_STORAGE_POSITION;
+        assembly {
+            s.slot := position
+        }
+    }
+}

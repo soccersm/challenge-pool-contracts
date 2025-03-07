@@ -7,13 +7,23 @@ const PoolResolversModule = buildModule("PoolResolversModule", (m) => {
   const assetPriceBoundedResolver = m.contract("AssetPriceBoundedResolver");
   const assetPriceTargetResolver = m.contract("AssetPriceTargetResolver");
   const multiAssetRangeResolver = m.contract("MultiAssetRangeResolver");
-  const footBallCorrectScoreResolver = m.contract("FootBallCorrectScoreResolver");
+  const footBallCorrectScoreResolver = m.contract(
+    "FootBallCorrectScoreResolver"
+  );
   const footBallOutcomeResolver = m.contract("FootBallOutcomeResolver");
   const footballOverUnderResolver = m.contract("FootballOverUnderResolver");
-  const multiFootBallCorrectScoreResolver = m.contract("MultiFootBallCorrectScoreResolver");
-  const multiFootBallOutcomeResolver = m.contract("MultiFootBallOutcomeResolver");
-  const multiFootBallTotalExactResolver = m.contract("MultiFootBallTotalExactResolver");
-  const multiFootBallTotalScoreRangeResolver = m.contract("MultiFootBallTotalScoreRangeResolver");
+  const multiFootBallCorrectScoreResolver = m.contract(
+    "MultiFootBallCorrectScoreResolver"
+  );
+  const multiFootBallOutcomeResolver = m.contract(
+    "MultiFootBallOutcomeResolver"
+  );
+  const multiFootBallTotalExactResolver = m.contract(
+    "MultiFootBallTotalExactResolver"
+  );
+  const multiFootBallTotalScoreRangeResolver = m.contract(
+    "MultiFootBallTotalScoreRangeResolver"
+  );
   const statementResolver = m.contract("StatementResolver");
 
   return {
@@ -27,7 +37,7 @@ const PoolResolversModule = buildModule("PoolResolversModule", (m) => {
     multiFootBallOutcomeResolver,
     multiFootBallTotalExactResolver,
     multiFootBallTotalScoreRangeResolver,
-    statementResolver
+    statementResolver,
   };
 });
 

@@ -37,7 +37,7 @@ contract AirdropPaymaster is IPaymaster, Ownable {
         uint256 _amt
     ) external override {
         balance[_token][_addr] += _amt;
-        LibTransfer._receive(_token, _amt);
+        LibTransfer._receive(_token, _amt, msg.sender);
         emit Deposit(_token, msg.sender, msg.sender, _addr, _amt);
     }
 

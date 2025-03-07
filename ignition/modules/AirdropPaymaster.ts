@@ -5,7 +5,7 @@ import { buildModule } from "@nomicfoundation/hardhat-ignition/modules";
 
 const AirdropPaymasterModule = buildModule("AirdropPaymasterModule", (m) => {
   const paymaster = m.contract("AirdropPaymaster", [
-    m.getParameter("soccersm", "0xDE5c8eAFEBEC017D9d26F757B9d7F04A0C1eb177"),
+    m.getParameter("soccersm", "0x56d3719CcB48124d7CeE71F70B3e0bAa860E7FB6"),
   ]);
 
   return { paymaster };

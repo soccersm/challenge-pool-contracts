@@ -100,10 +100,7 @@ contract ChallengePoolManager is
         address _stakeToken
     ) external override onlyPoolManager positiveAddress(_stakeToken) {
         CPStore storage c = CPStorage.load();
-        require(
-            !c.stakeTokens[_stakeToken].active,
-            "stake token is active"
-        );
+        require(!c.stakeTokens[_stakeToken].active, "stake token is active");
         c.stakeTokens[_stakeToken] = StakeToken(_stakeToken, 0, true);
         emit StakeTokenAdded(msg.sender, _stakeToken, true);
     }
@@ -194,5 +191,29 @@ contract ChallengePoolManager is
         address _token
     ) external view override returns (StakeToken memory) {
         return CPStorage.load().stakeTokens[_token];
+    }
+
+    function setStakeAirDrop(
+        uint256 _stakeAirDrop
+    ) external override onlyPoolManager nonZero(_stakeAirDrop) {
+        uint256 oldStakeAirDrop = AirDropStorage.load().stakeAirDrop;
+        AirDropStorage.load().stakeAirDrop = _stakeAirDrop;
+        emit SetMaxClaim(msg.sender, oldStakeAirDrop, _stakeAirDrop);
+    }
+
+    function setMaxClaim(
+        uint256 _maxClaim
+    ) external override onlyPoolManager nonZero(_maxClaim) {
+        uint256 oldMaxClaim = AirDropStorage.load().maxClaim;
+        AirDropStorage.load().maxClaim = _maxClaim;
+        emit SetMaxClaim(msg.sender, oldMaxClaim, _maxClaim);
+    }
+
+    function setPaymaster(
+        address _paymaster
+    ) external override onlyPoolManager positiveAddress(_paymaster) {
+        address oldPaymaster = AirDropStorage.load().paymaster;
+        AirDropStorage.load().paymaster = _paymaster;
+        emit SetPaymaster(msg.sender, oldPaymaster, _paymaster);
     }
 }

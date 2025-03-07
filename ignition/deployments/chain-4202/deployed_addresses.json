@@ -34,5 +34,18 @@
   "PoolResolversModule#MultiFootBallOutcomeResolver": "0x3A6Ccf3F6dA8B8b5b643CF1fE24812e702513BBD",
   "PoolResolversModule#MultiFootBallTotalExactResolver": "0x2FE284A7855C708604b37DE30A0F9e564f4579ef",
   "PoolResolversModule#MultiFootBallTotalScoreRangeResolver": "0x309F25c1bA4923C4E003A3F8170D6C22ef7fCE4f",
-  "PoolResolversModule#StatementResolver": "0x2a4b36663078A84cD6e15f84Cd85245e5cb1bc8a"
+  "PoolResolversModule#StatementResolver": "0x2a4b36663078A84cD6e15f84Cd85245e5cb1bc8a",
+  "AirdropPaymasterModule#AirdropPaymaster": "0x5d42aD1B1De3D8f974947BAe849b1A7C789F53b0",
+  "ChallengePoolHandler_StakeAirDropModule#ChallengePoolDispute": "0xF36834A450cA1F386FE750E7293DC2EFDc6FE961",
+  "ChallengePoolHandler_StakeAirDropModule#ChallengePoolHandler": "0x280a301AFf08E72Fd8cA3B318be41663023850e8",
+  "ChallengePoolHandler_StakeAirDropModule#DiamondCutFacet": "0x3c98dc63f1545fe991e393368771C18C8961609a",
+  "ChallengePoolHandler_StakeAirDropModule#SoccersmChallengePoolDispute": "0x3c98dc63f1545fe991e393368771C18C8961609a",
+  "ChallengePoolHandler_StakeAirDropModule#SoccersmChallengePoolHandler": "0x3c98dc63f1545fe991e393368771C18C8961609a",
+  "ChallengePoolHandler_StakeAirDropModule#SoccersmChallengePoolManager": "0x3c98dc63f1545fe991e393368771C18C8961609a",
+  "ChallengePoolHandler_StakeAirDropModule#SoccersmChallengePoolView": "0x3c98dc63f1545fe991e393368771C18C8961609a",
+  "ChallengePoolHandler_StakeAirDropModule#ChallengePoolManager": "0x3c1364c40DA5f8709dbcB25A13cDD35b0a118B62",
+  "ChallengePoolHandler_StakeAirDropModule#ChallengePoolView": "0x066484ba9700B35bD1bF1986aa138e5ED2604933",
+  "ChallengePoolHandler_StakeAirDropModule#StakeAirDropInit": "0x727934b9520C552aAF5ef54df9dA7E6cBBaf1bA1",
+  "ChallengePoolManager_RemoveModule#DiamondCutFacet": "0x3c98dc63f1545fe991e393368771C18C8961609a",
+  "StakePaymasterModule#StakePaymaster": "0x6347c4684195f93Fa5d1b9799b18A9783Ed47da0"
 }

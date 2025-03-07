@@ -1,6 +1,6 @@
 import { loadFixture } from "@nomicfoundation/hardhat-toolbox/network-helpers";
 import { ethers, ignition } from "hardhat";
-import IgniteTestModule from "../ignition/modules/IgniteTest";
+import IgniteTestModule from "../ignition/modules/test/IgniteTest";
 
 export async function deploySoccersm() {
   const [
@@ -35,6 +35,7 @@ export async function deploySoccersm() {
   await ballsToken.transfer(baller, oneMil);
   await ballsToken.transfer(striker, oneMil);
   await ballsToken.approve(paymaster, oneMil);
+  await poolManagerProxy.setPaymaster(paymaster);
   await paymaster.depositFor(ballsToken, keeper, oneMil);
   return {
     soccersm,

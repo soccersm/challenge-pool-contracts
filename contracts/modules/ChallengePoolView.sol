@@ -174,4 +174,16 @@ contract ChallengePoolView is IChallengePoolView, ChallengePoolHelpers {
             revert IChallengePoolCommon.ActionNotAllowedForState(c.state);
         }
     }
+
+    function stakeAirDrop() external view override returns (uint256) {
+        return AirDropStorage.load().stakeAirDrop;
+    }
+
+    function maxClaim() external view override returns (uint256) {
+        return AirDropStorage.load().maxClaim;
+    }
+
+    function paymaster() external view override returns (address) {
+        return AirDropStorage.load().paymaster;
+    }
 }

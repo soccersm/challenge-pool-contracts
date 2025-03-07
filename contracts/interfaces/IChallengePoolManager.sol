@@ -74,6 +74,21 @@ interface IChallengePoolManager {
         uint256 oldDisputeStake,
         uint256 newDisputeStake
     );
+    event SetStakeAirDrop(
+        address  caller,
+        uint256 oldStakeAirDrop,
+        uint256 newStakeAirDrop
+    );
+    event SetMaxClaim(
+        address  caller,
+        uint256 oldMaxClaim,
+        uint256 newMaxClaim
+    );
+    event SetPaymaster(
+        address  caller,
+        address oldPaymaster,
+        address newPaymaster
+    );
 
     function setFeeAddress(address _feeAddress) external;
 
@@ -126,4 +141,8 @@ interface IChallengePoolManager {
     function stakeToken(
         address _token
     ) external view returns (StakeToken memory);
+
+    function setStakeAirDrop(uint256 _stakeAirDrop) external;
+    function setMaxClaim(uint256 _maxClaim) external;
+    function setPaymaster(address _paymaster) external;
 }

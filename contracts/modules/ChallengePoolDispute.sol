@@ -84,7 +84,7 @@ contract ChallengePoolDispute is
         }
         s.optionDisputes[_challengeId][keccak256(_outcome)] += s.disputeStake;
         s.poolDisputes[_challengeId] += s.disputeStake;
-        LibTransfer._receive(c.stakeToken, s.disputeStake);
+        LibTransfer._receive(c.stakeToken, s.disputeStake, msg.sender);
         emit DisputeOutcome(
             _challengeId,
             msg.sender,
