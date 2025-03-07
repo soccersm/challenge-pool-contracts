@@ -43,5 +43,17 @@
   "ChallengePoolHandlerNoWinnerUpdateModule#ChallengePoolUpdateInit": "0x30528Bce5591D052Cb97719A998D3b87835B5b07",
   "ChallengePoolViewWinnerShareUpdateModule#SoccersmChallengePoolHandler": "0x56d3719CcB48124d7CeE71F70B3e0bAa860E7FB6",
   "ChallengePoolViewWinnerShareUpdateModule#ChallengePoolView": "0x147356E36dA2104a05a2b83183Bd7D50835A61Ac",
-  "AirdropPaymasterModule#AirdropPaymaster": "0x287cC9c4055AEF35Ba5aF42AA3aA4f0512B72a9c"
+  "AirdropPaymasterModule#AirdropPaymaster": "0x287cC9c4055AEF35Ba5aF42AA3aA4f0512B72a9c",
+  "StakePaymasterModule#StakePaymaster": "0xF118F1134d80023721f1EA13331d1fE7e6Bf8a7f",
+  "ChallengePoolManager_RemoveModule#DiamondCutFacet": "0x56d3719CcB48124d7CeE71F70B3e0bAa860E7FB6",
+  "ChallengePoolHandler_StakeAirDropModule#DiamondCutFacet": "0x56d3719CcB48124d7CeE71F70B3e0bAa860E7FB6",
+  "ChallengePoolHandler_StakeAirDropModule#SoccersmChallengePoolDispute": "0x56d3719CcB48124d7CeE71F70B3e0bAa860E7FB6",
+  "ChallengePoolHandler_StakeAirDropModule#SoccersmChallengePoolHandler": "0x56d3719CcB48124d7CeE71F70B3e0bAa860E7FB6",
+  "ChallengePoolHandler_StakeAirDropModule#SoccersmChallengePoolManager": "0x56d3719CcB48124d7CeE71F70B3e0bAa860E7FB6",
+  "ChallengePoolHandler_StakeAirDropModule#SoccersmChallengePoolView": "0x56d3719CcB48124d7CeE71F70B3e0bAa860E7FB6",
+  "ChallengePoolHandler_StakeAirDropModule#ChallengePoolDispute": "0xD0c6BB4118BB419c35Ca18857DE57FB9911021D9",
+  "ChallengePoolHandler_StakeAirDropModule#ChallengePoolHandler": "0x6bc607F38414aecEE12CAE4B66b40137D215bD20",
+  "ChallengePoolHandler_StakeAirDropModule#ChallengePoolManager": "0x596AE573F676772DEA519e1bA21305153d0Fa485",
+  "ChallengePoolHandler_StakeAirDropModule#ChallengePoolView": "0x46bbDCDfEc0aEec9275abA5Fc3bB91Bd3F9B139a",
+  "ChallengePoolHandler_StakeAirDropModule#StakeAirDropInit": "0xbF3652c181E3656119053B920067b1555FA4302F"
 }

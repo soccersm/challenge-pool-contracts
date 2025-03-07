@@ -7,7 +7,7 @@ import { ethers } from "hardhat";
 const ChallengePoolManager_RemoveModule = buildModule(
   "ChallengePoolManager_RemoveModule",
   (m) => {
-    const soccersm = "0x3c98dc63f1545fe991e393368771C18C8961609a";
+    const soccersm = "0x56d3719CcB48124d7CeE71F70B3e0bAa860E7FB6";
     const cutProxy = m.contractAt("DiamondCutFacet", soccersm);
 
     const cpmC = [
@@ -51,6 +51,7 @@ const ChallengePoolManager_RemoveModule = buildModule(
         "0xb4789d48",
         "0x7ae530d8",
         "0x4d5fb210",
+        "0x8e9dafdb",
         "0x821415c5",
         "0x726845bb",
         "0xba038f32",
@@ -61,6 +62,7 @@ const ChallengePoolManager_RemoveModule = buildModule(
         "0x26a49e37",
         "0xeb1ca693",
         "0x5c4cb599",
+        "0x59715121"
       ],
     ];
 

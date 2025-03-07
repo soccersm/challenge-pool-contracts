@@ -29,6 +29,7 @@
     "deploys:id": "hardhat ignition status",
     "deploy:all": "hardhat run scripts/deploy.ts --network",
     "deploy:paymaster": "hardhat ignition deploy ignition/modules/AirdropPaymaster.ts --verify --network",
+    "deploy:stakemaster": "hardhat ignition deploy ignition/modules/StakePaymaster.ts --verify --network",
     "deploy:soccersm": "hardhat ignition deploy ignition/modules/Soccersm.ts --verify --network",
     "deploy:pool": "hardhat ignition deploy ignition/modules/ChallengePool.ts --verify --network",
     "deploy:providers": "hardhat ignition deploy ignition/modules/DataProviders.ts --verify --network",

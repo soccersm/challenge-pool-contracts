@@ -12,7 +12,7 @@ const ChallengePoolHandler_StakeAirDropModule = buildModule(
   "ChallengePoolHandler_StakeAirDropModule",
   (m) => {
     const soccersm = "0x56d3719CcB48124d7CeE71F70B3e0bAa860E7FB6";
-    const paymaster = "";
+    const paymaster = "0xF118F1134d80023721f1EA13331d1fE7e6Bf8a7f";
     const cutProxy = m.contractAt("DiamondCutFacet", soccersm);
 
     const cpi = m.contract("StakeAirDropInit");
