@@ -72,4 +72,5 @@ interface IChallengePoolView {
     function stakeAirDrop() external view returns (uint256);
     function maxClaim() external view returns (uint256);
     function paymaster() external view returns (address);
+    function minPoolMaturity() external view returns (uint256);
 }

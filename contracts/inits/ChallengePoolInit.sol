@@ -21,5 +21,6 @@ contract ChallengePoolInit {
         a.stakeAirDrop = 5e18;
         a.paymaster = address(0);
         a.maxClaim = 2;
+        a.minPoolMaturity = 7 days;
     }
 }

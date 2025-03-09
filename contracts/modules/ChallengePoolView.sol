@@ -186,4 +186,8 @@ contract ChallengePoolView is IChallengePoolView, ChallengePoolHelpers {
     function paymaster() external view override returns (address) {
         return AirDropStorage.load().paymaster;
     }
+
+    function minPoolMaturity() external view override returns (uint256) {
+        return AirDropStorage.load().minPoolMaturity;
+    }
 }

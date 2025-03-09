@@ -36,6 +36,7 @@ export async function deploySoccersm() {
   await ballsToken.transfer(striker, oneMil);
   await ballsToken.approve(paymaster, oneMil);
   await poolManagerProxy.setPaymaster(paymaster);
+  await poolManagerProxy.setMinPoolMaturity(BigInt(60 * 60 * 16));
   await paymaster.depositFor(ballsToken, keeper, oneMil);
   return {
     soccersm,

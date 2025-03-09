@@ -216,4 +216,12 @@ contract ChallengePoolManager is
         AirDropStorage.load().paymaster = _paymaster;
         emit SetPaymaster(msg.sender, oldPaymaster, _paymaster);
     }
+
+    function setMinPoolMaturity(
+        uint256 _minPoolMaturity
+    ) external override onlyPoolManager {
+        uint256 oldMinPoolMaturity = AirDropStorage.load().minPoolMaturity;
+        AirDropStorage.load().minPoolMaturity = _minPoolMaturity;
+        emit SetMaxClaim(msg.sender, oldMinPoolMaturity, _minPoolMaturity);
+    }
 }

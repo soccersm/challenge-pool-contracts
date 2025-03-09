@@ -1,0 +1,18 @@
+{
+  "_format": "hh-sol-artifact-1",
+  "contractName": "StakeAirDropPoolMaturityInit",
+  "sourceName": "contracts/inits/StakeAirDropPoolMaturityInit.sol",
+  "abi": [
+    {
+      "inputs": [],
+      "name": "init",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    }
+  ],
+  "bytecode": "0x6080806040523460135760b0908160198239f35b600080fdfe6004361015600c57600080fd5b60003560e01c63e1c7392a14602057600080fd5b3460755760007ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffc36011260755762093a807fb4e10a4811f331e910bbd821832ab85ed1158088534d96bdd9d92f6de8be798555005b600080fdfea26469706673582212200e93bac39762b8db9d7d8f527726e2949cd5f11478824465792f7edc06383a7e64736f6c634300081c0033",
+  "deployedBytecode": "0x6004361015600c57600080fd5b60003560e01c63e1c7392a14602057600080fd5b3460755760007ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffc36011260755762093a807fb4e10a4811f331e910bbd821832ab85ed1158088534d96bdd9d92f6de8be798555005b600080fdfea26469706673582212200e93bac39762b8db9d7d8f527726e2949cd5f11478824465792f7edc06383a7e64736f6c634300081c0033",
+  "linkReferences": {},
+  "deployedLinkReferences": {}
+}

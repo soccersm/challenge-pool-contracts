@@ -55,5 +55,11 @@
   "ChallengePoolHandler_StakeAirDropModule#ChallengePoolHandler": "0x6bc607F38414aecEE12CAE4B66b40137D215bD20",
   "ChallengePoolHandler_StakeAirDropModule#ChallengePoolManager": "0x596AE573F676772DEA519e1bA21305153d0Fa485",
   "ChallengePoolHandler_StakeAirDropModule#ChallengePoolView": "0x46bbDCDfEc0aEec9275abA5Fc3bB91Bd3F9B139a",
-  "ChallengePoolHandler_StakeAirDropModule#StakeAirDropInit": "0xbF3652c181E3656119053B920067b1555FA4302F"
+  "ChallengePoolHandler_StakeAirDropModule#StakeAirDropInit": "0xbF3652c181E3656119053B920067b1555FA4302F",
+  "ChallengePoolHandler_StakeAirDropPoolMaturityModule#DiamondCutFacet": "0x56d3719CcB48124d7CeE71F70B3e0bAa860E7FB6",
+  "ChallengePoolHandler_StakeAirDropPoolMaturityModule#ChallengePoolDispute": "0x57C5910058171E351441f2c722a0D1bd4BDb7E2C",
+  "ChallengePoolHandler_StakeAirDropPoolMaturityModule#ChallengePoolHandler": "0xc61b261AB77E3Dd78ec98c9C31b4917725a3A9e0",
+  "ChallengePoolHandler_StakeAirDropPoolMaturityModule#ChallengePoolManager": "0xb3e198Cc89FC302582b43a9F68799b1A521840E8",
+  "ChallengePoolHandler_StakeAirDropPoolMaturityModule#ChallengePoolView": "0xd3FE89CBadBD850F6E770505002b3AF51DfE95D5",
+  "ChallengePoolHandler_StakeAirDropPoolMaturityModule#StakeAirDropPoolMaturityInit": "0xFe633D186d83cFa78DFd512241C43cD384f7e61a"
 }

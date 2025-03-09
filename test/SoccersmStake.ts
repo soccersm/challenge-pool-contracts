@@ -55,10 +55,6 @@ describe("ChallengePool - Stake Challenge", function () {
 
     expect(await paymaster.balance(ballsToken, baller)).to.equal(BigInt(0));
 
-    await ballsToken.transfer(paymaster, oneMil);
-
-    expect(await paymaster.balance(ballsToken, baller)).to.equal(BigInt(5e18));
-
     expect(await poolManagerProxy.challengeId()).to.equals(1);
     //Challenge ID
     const challengeId = (await poolManagerProxy.challengeId()) - 1n;
@@ -90,7 +86,11 @@ describe("ChallengePool - Stake Challenge", function () {
       )
     ).to.not.be.reverted;
 
-    expect(await paymaster.balance(ballsToken, baller)).to.equal(BigInt(10e18));
+    expect(await paymaster.balance(ballsToken, baller)).to.equal(BigInt(0));
+
+    await ballsToken.transfer(paymaster, oneMil);
+
+    expect(await paymaster.balance(ballsToken, baller)).to.equal(BigInt(5e18));
 
     //_incrementSupply after stake
     // baller created and staked challenge
@@ -235,6 +235,7 @@ describe("ChallengePool - Stake Challenge", function () {
     const mahamaOption = ethers.keccak256(mPrediction);
     const bawumiaOption = ethers.keccak256(bPrediction);
     const cheddarOption = ethers.keccak256(cPrediction);
+    await time.increase(60 * 60 * 12);
 
     await ballsToken
       .connect(striker)
@@ -247,7 +248,7 @@ describe("ChallengePool - Stake Challenge", function () {
       ethers.ZeroAddress
     );
 
-    expect(await paymaster.balance(ballsToken, baller)).to.equal(BigInt(10e18));
+    expect(await paymaster.balance(ballsToken, striker)).to.equal(BigInt(5e18));
 
     //get states
     const strikerOptionSupply = await getPlayerOptionSupply(
@@ -291,16 +292,16 @@ describe("ChallengePool - Stake Challenge", function () {
     );
 
     expect(strikerOptionSupply.withdraw).to.be.equal(
-      (await challengeState_bawumiaOption.playerOptionSupply).withdraw
+      challengeState_bawumiaOption.playerOptionSupply.withdraw
     );
     expect(strikerOptionSupply.rewards).to.be.equal(
-      (await challengeState_bawumiaOption.playerOptionSupply).rewards
+      challengeState_bawumiaOption.playerOptionSupply.rewards
     );
     expect(strikerOptionSupply.tokens).to.be.equal(
-      (await challengeState_bawumiaOption.playerOptionSupply).tokens
+      challengeState_bawumiaOption.playerOptionSupply.tokens
     );
     expect(strikerOptionSupply.stakes).to.be.equal(
-      (await challengeState_bawumiaOption.playerOptionSupply).stakes
+      challengeState_bawumiaOption.playerOptionSupply.stakes
     );
 
     //compare state with Bawumia option
@@ -327,16 +328,16 @@ describe("ChallengePool - Stake Challenge", function () {
     );
 
     expect(ballerOptionSupply.withdraw).to.be.equal(
-      (await challengeState_mahamaOption.playerOptionSupply).withdraw
+      challengeState_mahamaOption.playerOptionSupply.withdraw
     );
     expect(ballerOptionSupply.rewards).to.be.equal(
-      (await challengeState_mahamaOption.playerOptionSupply).rewards
+      challengeState_mahamaOption.playerOptionSupply.rewards
     );
     expect(ballerOptionSupply.tokens).to.be.equal(
-      (await challengeState_mahamaOption.playerOptionSupply).tokens
+      challengeState_mahamaOption.playerOptionSupply.tokens
     );
     expect(ballerOptionSupply.stakes).to.be.equal(
-      (await challengeState_mahamaOption.playerOptionSupply).stakes
+      challengeState_mahamaOption.playerOptionSupply.stakes
     );
 
     expect(allGhPoolSupply.stakes).to.be.equal(

@@ -38,7 +38,11 @@ export function functionSigsSelectors(contractName: string): {
   return funcs;
 }
 
-export function encodeFunctionData(contractName: string, selector: string, params: any[]) {
+export function encodeFunctionData(
+  contractName: string,
+  selector: string,
+  params: any[]
+) {
   const abi = artifacts.readArtifactSync(contractName).abi;
   const face = ethers.Interface.from(abi);
   return face.encodeFunctionData(selector, params);
@@ -50,4 +54,5 @@ export const INIT_SIG: string = "init()";
 export const INIT_ADDRESS_SIG: string = "init(address)";
 export const INIT: string = "init";
 
-// console.log(functionSigsSelectors("ChallengePoolManager"));
+// console.log(functionSigsSelectors("ChallengePoolView"));
+

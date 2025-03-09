@@ -84,6 +84,7 @@ struct AirDropStore {
     address paymaster;
     uint256 maxClaim;
     mapping(address => mapping(address => uint256)) claimCount; // player -> token -> claims
+    uint256 minPoolMaturity;
 }
 
 library AirDropStorage {

@@ -11,6 +11,8 @@ import "../utils/Errors.sol";
 
 import "../libraries/LibData.sol";
 
+import "hardhat/console.sol";
+
 library LibTransfer {
     function _send(address _token, uint256 _amount, address _to) internal {
         uint256 balanceBefore = IERC20(_token).balanceOf(address(this));
@@ -69,18 +71,24 @@ library LibTransfer {
     function _stakeAirDrop(
         address _paymaster,
         address _token,
-        address _caller
+        address _caller,
+        uint256 _maturity
     ) internal {
-        if (_paymaster == address(0)) {
-            AirDropStore storage a = AirDropStorage.load();
-            if (a.claimCount[_caller][_token] < a.maxClaim) {
-                a.claimCount[_caller][_token] += 1;
-                IPaymaster(a.paymaster).depositFor(
-                    _token,
-                    _caller,
-                    a.stakeAirDrop
-                );
-            }
+        if (_paymaster != address(0)) {
+            return;
         }
+        AirDropStore storage a = AirDropStorage.load();
+        console.log('_stakeAirDrop');
+        console.log(a.minPoolMaturity);
+        console.log(a.minPoolMaturity + block.timestamp);
+        console.log(_maturity);
+        if (a.minPoolMaturity + block.timestamp > _maturity) {
+            return;
+        }
+        if (a.claimCount[_caller][_token] >= a.maxClaim) {
+            return;
+        }
+        a.claimCount[_caller][_token] += 1;
+        IPaymaster(a.paymaster).depositFor(_token, _caller, a.stakeAirDrop);
     }
 }

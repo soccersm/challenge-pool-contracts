@@ -7,5 +7,6 @@ contract StakeAirDropInit {
         a.stakeAirDrop = 5e18;
         a.paymaster = _paymaster;
         a.maxClaim = 2;
+        a.minPoolMaturity = 7 days;
     }
 }

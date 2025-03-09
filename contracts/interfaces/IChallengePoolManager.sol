@@ -8,86 +8,75 @@ interface IChallengePoolManager {
         bool active;
     }
 
-    event StakeTokenAdded(
-        address  caller,
-        address  token,
-        bool active
-    );
-    event StakeTokenRemoved(
-        address  caller,
-        address  token,
-        bool active
-    );
+    event StakeTokenAdded(address caller, address token, bool active);
+    event StakeTokenRemoved(address caller, address token, bool active);
     event FeeWithdrawn(
-        address  caller,
-        address  token,
+        address caller,
+        address token,
         address to,
         uint256 amount
     );
     event SetFeeAddress(
-        address  caller,
+        address caller,
         address oldFeeAddress,
         address newFeeAddress
     );
     event SetMinMaturityPeriod(
-        address  caller,
+        address caller,
         uint256 oldMinMaturityPeriod,
         uint256 newMinMaturityPeriod
     );
     event SetCreatePoolFee(
-        address  caller,
+        address caller,
         uint256 oldCreatePoolFee,
         uint256 newCreatePoolFee
     );
-    event SetStakeFee(
-        address  caller,
-        uint256 oldStakeFee,
-        uint256 newStakeFee
-    );
+    event SetStakeFee(address caller, uint256 oldStakeFee, uint256 newStakeFee);
     event SetEarlyWithdrawFee(
-        address  caller,
+        address caller,
         uint256 oldEarlyWithdrawFee,
         uint256 newEarlyWithdrawFee
     );
     event SetMaxOptionsPerPool(
-        address  caller,
+        address caller,
         uint256 oldMaxOptionsPerPool,
         uint256 newMaxOptionsPerPool
     );
     event SetMaxEventsPerPool(
-        address  caller,
+        address caller,
         uint256 oldMaxEventsPerPool,
         uint256 newMaxEventsPerPool
     );
     event SetMinStakeAmount(
-        address  caller,
+        address caller,
         uint256 oldMinStakeAmount,
         uint256 newMinStakeAmount
     );
     event SetDisputePeriod(
-        address  caller,
+        address caller,
         uint256 oldDisputePeriod,
         uint256 newDisputePeriod
     );
     event SetDisputeStake(
-        address  caller,
+        address caller,
         uint256 oldDisputeStake,
         uint256 newDisputeStake
     );
     event SetStakeAirDrop(
-        address  caller,
+        address caller,
         uint256 oldStakeAirDrop,
         uint256 newStakeAirDrop
     );
-    event SetMaxClaim(
-        address  caller,
-        uint256 oldMaxClaim,
-        uint256 newMaxClaim
-    );
+    event SetMaxClaim(address caller, uint256 oldMaxClaim, uint256 newMaxClaim);
     event SetPaymaster(
-        address  caller,
+        address caller,
         address oldPaymaster,
         address newPaymaster
+    );
+    event SetMinPoolMaturity(
+        address caller,
+        address oldMinPoolMaturity,
+        address newMinPoolMaturity
     );
 
     function setFeeAddress(address _feeAddress) external;
@@ -136,7 +125,7 @@ interface IChallengePoolManager {
 
     function disputeStake() external view returns (uint256);
 
-    function challengeId() external view returns(uint256);
+    function challengeId() external view returns (uint256);
 
     function stakeToken(
         address _token
@@ -145,4 +134,5 @@ interface IChallengePoolManager {
     function setStakeAirDrop(uint256 _stakeAirDrop) external;
     function setMaxClaim(uint256 _maxClaim) external;
     function setPaymaster(address _paymaster) external;
+    function setMinPoolMaturity(uint256 _minPoolMaturity) external;
 }
