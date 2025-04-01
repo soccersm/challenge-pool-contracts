@@ -78,6 +78,11 @@ interface IChallengePoolManager {
         address oldMinPoolMaturity,
         address newMinPoolMaturity
     );
+    event SetGelatoForwarder(
+        address caller,
+        address oldGelatoForwarderr,
+        address newGelatoForwarder
+    );
 
     function setFeeAddress(address _feeAddress) external;
 
@@ -135,4 +140,5 @@ interface IChallengePoolManager {
     function setMaxClaim(uint256 _maxClaim) external;
     function setPaymaster(address _paymaster) external;
     function setMinPoolMaturity(uint256 _minPoolMaturity) external;
+    function setGelatoForwarder(address _gelatoForwarder) external;
 }

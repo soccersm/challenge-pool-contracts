@@ -73,4 +73,5 @@ interface IChallengePoolView {
     function maxClaim() external view returns (uint256);
     function paymaster() external view returns (address);
     function minPoolMaturity() external view returns (uint256);
+    function gelatoForwarder() external view returns (address);
 }

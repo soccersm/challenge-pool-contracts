@@ -21,7 +21,8 @@ library LibPool {
         uint256 _basePrice,
         uint256 _quantity,
         uint256 _totalAmount,
-        uint256 _fee
+        uint256 _fee,
+        address _caller
     ) internal {
         CPStore storage s = CPStorage.load();
         uint256 rewardPoints = LibPrice._stakeRewardPoints(
@@ -29,7 +30,7 @@ library LibPool {
             block.timestamp,
             _maturity
         );
-        s.playerOptionSupply[s.challengeId][msg.sender][
+        s.playerOptionSupply[s.challengeId][_caller][
             keccak256(_prediction)
         ] = IChallengePoolHandler.PlayerSupply(
             false,
@@ -37,7 +38,7 @@ library LibPool {
             _totalAmount,
             rewardPoints
         );
-        s.playerSupply[s.challengeId][msg.sender] = IChallengePoolHandler
+        s.playerSupply[s.challengeId][_caller] = IChallengePoolHandler
             .PlayerSupply(false, _quantity, _totalAmount, rewardPoints);
         s.optionSupply[s.challengeId][
             keccak256(_prediction)
@@ -67,7 +68,7 @@ library LibPool {
         );
         emit IChallengePoolHandler.NewChallenge(
             s.challengeId,
-            msg.sender,
+            _caller,
             block.timestamp,
             _maturity,
             IChallengePoolCommon.ChallengeState.open,
@@ -92,18 +93,17 @@ library LibPool {
         bytes calldata _prediction,
         uint256 _quantity,
         uint256 _totalAmount,
-        uint256 _rewardPoints
+        uint256 _rewardPoints,
+        address _caller
     ) internal {
         IChallengePoolHandler.PlayerSupply storage playerOptionSupply = s
-            .playerOptionSupply[_challengeId][msg.sender][
-                keccak256(_prediction)
-            ];
+            .playerOptionSupply[_challengeId][_caller][keccak256(_prediction)];
         playerOptionSupply.stakes += _quantity;
         playerOptionSupply.tokens += _totalAmount;
         playerOptionSupply.rewards += _rewardPoints;
-        s.playerSupply[_challengeId][msg.sender].stakes += _quantity;
-        s.playerSupply[_challengeId][msg.sender].tokens += _totalAmount;
-        s.playerSupply[_challengeId][msg.sender].rewards += _rewardPoints;
+        s.playerSupply[_challengeId][_caller].stakes += _quantity;
+        s.playerSupply[_challengeId][_caller].tokens += _totalAmount;
+        s.playerSupply[_challengeId][_caller].rewards += _rewardPoints;
         s
         .optionSupply[_challengeId][keccak256(_prediction)].stakes += _quantity;
         s
@@ -122,18 +122,17 @@ library LibPool {
         bytes calldata _prediction,
         uint256 _quantity,
         uint256 _totalAmount,
-        uint256 _rewardPoints
+        uint256 _rewardPoints,
+        address _caller
     ) internal {
         IChallengePoolHandler.PlayerSupply storage playerOptionSupply = s
-            .playerOptionSupply[_challengeId][msg.sender][
-                keccak256(_prediction)
-            ];
+            .playerOptionSupply[_challengeId][_caller][keccak256(_prediction)];
         playerOptionSupply.stakes -= _quantity;
         playerOptionSupply.tokens -= _totalAmount;
         playerOptionSupply.rewards -= _rewardPoints;
-        s.playerSupply[_challengeId][msg.sender].stakes -= _quantity;
-        s.playerSupply[_challengeId][msg.sender].tokens -= _totalAmount;
-        s.playerSupply[_challengeId][msg.sender].rewards -= _rewardPoints;
+        s.playerSupply[_challengeId][_caller].stakes -= _quantity;
+        s.playerSupply[_challengeId][_caller].tokens -= _totalAmount;
+        s.playerSupply[_challengeId][_caller].rewards -= _rewardPoints;
         s
         .optionSupply[_challengeId][keccak256(_prediction)].stakes -= _quantity;
         s
@@ -229,20 +228,20 @@ library LibPool {
         CPStorage.load().stakeTokens[_token].accumulatedFee += _fee;
     }
 
-    function _withdrawWinnigs(uint256 _challengeId) internal {
+    function _withdrawWinnigs(uint256 _challengeId, address _caller) internal {
         CPStore storage s = CPStorage.load();
         IChallengePoolHandler.Challenge storage c = s.challenges[_challengeId];
         if (HelpersLib.compareBytes(HelpersLib.emptyBytes, c.outcome)) {
             revert IChallengePoolCommon.InvalidOutcome();
         }
         if (s.optionSupply[_challengeId][keccak256(c.outcome)].rewards == 0) {
-            return _withdrawAfterCancelled(_challengeId);
+            return _withdrawAfterCancelled(_challengeId, _caller);
         }
-        if (s.playerSupply[_challengeId][msg.sender].stakes == 0) {
+        if (s.playerSupply[_challengeId][_caller].stakes == 0) {
             revert IChallengePoolCommon.PlayerNotInPool();
         }
         IChallengePoolHandler.PlayerSupply storage playerOptionSupply = s
-            .playerOptionSupply[_challengeId][msg.sender][keccak256(c.outcome)];
+            .playerOptionSupply[_challengeId][_caller][keccak256(c.outcome)];
         if (playerOptionSupply.withdrawn) {
             revert IChallengePoolCommon.PlayerAlreadyWithdrawn();
         }
@@ -255,45 +254,48 @@ library LibPool {
             playerOptionSupply.rewards
         );
         uint256 totalAmount = playerShare + playerOptionSupply.tokens;
-        LibTransfer._send(c.stakeToken, totalAmount, msg.sender);
+        LibTransfer._send(c.stakeToken, totalAmount, _caller);
         emit IChallengePoolHandler.WinningsWithdrawn(
             _challengeId,
-            msg.sender,
+            _caller,
             playerShare,
             totalAmount
         );
     }
 
-    function _withdrawAfterCancelled(uint256 _challengeId) internal {
+    function _withdrawAfterCancelled(
+        uint256 _challengeId,
+        address _caller
+    ) internal {
         CPStore storage s = CPStorage.load();
         IChallengePoolHandler.Challenge storage c = s.challenges[_challengeId];
-        if (s.playerSupply[_challengeId][msg.sender].stakes == 0) {
+        if (s.playerSupply[_challengeId][_caller].stakes == 0) {
             revert IChallengePoolCommon.PlayerNotInPool();
         }
-        if (s.playerSupply[_challengeId][msg.sender].withdrawn) {
+        if (s.playerSupply[_challengeId][_caller].withdrawn) {
             revert IChallengePoolCommon.PlayerAlreadyWithdrawn();
         }
-        s.playerSupply[_challengeId][msg.sender].withdrawn = true;
-        uint256 totalAmount = s.playerSupply[_challengeId][msg.sender].tokens;
-        LibTransfer._send(c.stakeToken, totalAmount, msg.sender);
+        s.playerSupply[_challengeId][_caller].withdrawn = true;
+        uint256 totalAmount = s.playerSupply[_challengeId][_caller].tokens;
+        LibTransfer._send(c.stakeToken, totalAmount, _caller);
         emit IChallengePoolHandler.WinningsWithdrawn(
             _challengeId,
-            msg.sender,
+            _caller,
             0,
             totalAmount
         );
     }
 
-    function _withdraw(uint256 _challengeId) internal {
+    function _withdraw(uint256 _challengeId, address _caller) internal {
         IChallengePoolCommon.ChallengeState state = CPStorage
             .load()
             .challenges[_challengeId]
             .state;
 
         if (state == IChallengePoolCommon.ChallengeState.closed) {
-            _withdrawWinnigs(_challengeId);
+            _withdrawWinnigs(_challengeId, _caller);
         } else if (state == IChallengePoolCommon.ChallengeState.cancelled) {
-            _withdrawAfterCancelled(_challengeId);
+            _withdrawAfterCancelled(_challengeId, _caller);
         } else {
             revert IChallengePoolCommon.ActionNotAllowedForState(state);
         }

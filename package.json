@@ -9,8 +9,6 @@
     "typescript": "^5.0.0"
   },
   "dependencies": {
-    "@gelatonetwork/automate-sdk": "^3.0.36",
-    "@gelatonetwork/web3-functions-sdk": "^2.4.4",
     "@openzeppelin/contracts": "^5.1.0",
     "@solidstate/contracts": "^0.0.61",
     "dotenv": "^16.4.7",

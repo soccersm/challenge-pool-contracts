@@ -48,6 +48,7 @@ struct CPStore {
     address feeAddress;
     uint256 disputePeriod;
     uint256 disputeStake;
+    address gelatoTrustedForwarder;
 }
 
 library CPStorage {

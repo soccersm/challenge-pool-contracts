@@ -190,4 +190,8 @@ contract ChallengePoolView is IChallengePoolView, ChallengePoolHelpers {
     function minPoolMaturity() external view override returns (uint256) {
         return AirDropStorage.load().minPoolMaturity;
     }
+
+    function gelatoForwarder() external view override returns (address) {
+        return CPStorage.load().gelatoTrustedForwarder;
+    }
 }

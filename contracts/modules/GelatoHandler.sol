@@ -8,6 +8,7 @@ import "@solidstate/contracts/security/reentrancy_guard/ReentrancyGuard.sol";
 
 import "../libraries/LibData.sol";
 import "../interfaces/IChallengePoolHandler.sol";
+import "../interfaces/IGelatoHandler.sol";
 import "../libraries/LibPrice.sol";
 import "../libraries/LibTransfer.sol";
 import "../libraries/LibPool.sol";
@@ -19,16 +20,18 @@ import "./TopicRegistry.sol";
 
 import "../diamond/interfaces/SoccersmRoles.sol";
 import "../utils/ChallengePoolHelpers.sol";
+import "../utils/ERC2771Context.sol";
 
-contract ChallengePoolHandler is
-    IChallengePoolHandler,
+contract GelatoHandler is
+    IGelatoHandler,
     SoccersmRoles,
     Helpers,
     ChallengePoolHelpers,
     PausableInternal,
-    ReentrancyGuard
+    ReentrancyGuard,
+    ERC2771Context
 {
-    function createChallenge(
+    function createChallengeRelay(
         ChallengeEvent[] calldata _events,
         bytes[] calldata _options,
         address _stakeToken,
@@ -107,9 +110,9 @@ contract ChallengePoolHandler is
             }
             LibPool._validateEvent(t, _events[i]);
         }
-        uint256 totalAmount = _basePrice * _quantity;
-        uint256 fee = LibPrice._computeCreateFee(totalAmount);
+        uint256 fee = LibPrice._computeCreateFee(_basePrice);
         LibPool._recordFee(_stakeToken, fee);
+        uint256 totalAmount = _basePrice * _quantity;
 
         LibPool._initPool(
             _stakeToken,
@@ -132,7 +135,7 @@ contract ChallengePoolHandler is
         );
     }
 
-    function stake(
+    function stakeRelay(
         uint256 _challengeId,
         bytes calldata _prediction,
         uint256 _quantity,
@@ -154,7 +157,7 @@ contract ChallengePoolHandler is
             revert InvalidPrediction();
         }
         uint256 totalAmount = currentPrice * _quantity;
-        uint256 fee = LibPrice._computeStakeFee(totalAmount);
+        uint256 fee = LibPrice._computeStakeFee(currentPrice);
         uint256 rewardPoints = LibPrice._stakeRewardPoints(
             _quantity,
             s.challenges[_challengeId].createdAt,
@@ -182,7 +185,7 @@ contract ChallengePoolHandler is
             msg.sender,
             s.challenges[_challengeId].maturity
         );
-        emit Stake(
+        emit IChallengePoolHandler.Stake(
             _challengeId,
             msg.sender,
             _prediction,
@@ -194,7 +197,7 @@ contract ChallengePoolHandler is
         );
     }
 
-    function earlyWithdraw(
+    function earlyWithdrawRelay(
         uint256 _challengeId,
         bytes calldata _prediction,
         uint256 _quantity,
@@ -236,7 +239,7 @@ contract ChallengePoolHandler is
         // );
         // uint256 currentPrice = basePrice - penalty;
         // uint256 totalAmount = basePrice * _quantity;
-        // uint256 fee = LibPrice._computeEarlyWithdrawFee(totalAmount);
+        // uint256 fee = LibPrice._computeEarlyWithdrawFee(basePrice);
         // uint256 rewardPoints = LibPrice._earlyWithdrawRewardPoints(
         //     playerOptionSupply.rewards,
         //     playerOptionSupply.stakes,
@@ -271,7 +274,7 @@ contract ChallengePoolHandler is
         // );
     }
 
-    function withdraw(
+    function withdrawRelay(
         uint256 _challengeId
     )
         external
@@ -283,87 +286,14 @@ contract ChallengePoolHandler is
         LibPool._withdraw(_challengeId, msg.sender);
     }
 
-    function bulkWithdraw(uint256[] calldata _challengeIds) external override {
+    function bulkWithdrawRelay(
+        uint256[] calldata _challengeIds
+    ) external override {
         for (uint i = 0; i < _challengeIds.length; i++) {
             if (_challengeIds[i] >= CPStorage.load().challengeId) {
                 revert IChallengePoolCommon.InvalidChallenge();
             }
             LibPool._withdraw(_challengeIds[i], msg.sender);
         }
-    }
-
-    function evaluate(
-        uint256 _challengeId
-    )
-        external
-        override
-        whenNotPaused
-        validChallenge(_challengeId)
-        poolInState(_challengeId, ChallengeState.matured)
-    {
-        TRStore storage t = TRStorage.load();
-        CPStore storage s = CPStorage.load();
-        Challenge storage c = s.challenges[_challengeId];
-        c.state = ChallengeState.evaluated;
-        bytes memory result = HelpersLib.emptyBytes;
-        if (!c.multi) {
-            bool allCorrect = true;
-            for (uint i = 0; i < c.events.length; i++) {
-                if (c.events[i].maturity > block.timestamp) {
-                    revert InvalidEventMaturity();
-                }
-                if (
-                    HelpersLib.compareBytes(
-                        HelpersLib.no,
-                        LibPool._resolveEvent(t, c.events[i], c.options)
-                    )
-                ) {
-                    allCorrect = false;
-                    break;
-                }
-            }
-            if (allCorrect) {
-                result = HelpersLib.yes;
-            } else {
-                result = HelpersLib.no;
-            }
-        } else {
-            result = LibPool._resolveEvent(t, c.events[0], c.options);
-        }
-        c.outcome = result;
-        c.lastOutcomeSet = block.timestamp;
-
-        emit EvaluateChallenge(
-            _challengeId,
-            msg.sender,
-            ChallengeState.evaluated,
-            result
-        );
-    }
-
-    function close(
-        uint256 _challengeId
-    ) external override whenNotPaused validChallenge(_challengeId) {
-        CPStore storage s = CPStorage.load();
-        Challenge storage c = s.challenges[_challengeId];
-        if (HelpersLib.compareBytes(HelpersLib.emptyBytes, c.outcome)) {
-            revert InvalidOutcome();
-        }
-        if (
-            c.state != ChallengeState.settled &&
-            c.state != ChallengeState.evaluated
-        ) {
-            revert ActionNotAllowedForState(c.state);
-        }
-        if (block.timestamp - c.lastOutcomeSet < s.disputePeriod) {
-            revert DisputePeriod();
-        }
-        c.state = ChallengeState.closed;
-        emit CloseChallenge(
-            _challengeId,
-            msg.sender,
-            ChallengeState.closed,
-            c.outcome
-        );
     }
 }
