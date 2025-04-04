@@ -125,13 +125,13 @@ contract GelatoHandler is
             _quantity,
             totalAmount,
             fee,
-            msg.sender
+            _msgSender()
         );
         LibTransfer._depositOrPaymaster(
             _paymaster,
             _stakeToken,
             totalAmount + fee,
-            msg.sender
+            _msgSender()
         );
     }
 
@@ -170,24 +170,24 @@ contract GelatoHandler is
             _quantity,
             totalAmount,
             rewardPoints,
-            msg.sender
+            _msgSender()
         );
         LibPool._recordFee(s.challenges[_challengeId].stakeToken, fee);
         LibTransfer._depositOrPaymaster(
             _paymaster,
             s.challenges[_challengeId].stakeToken,
             fee + totalAmount,
-            msg.sender
+            _msgSender()
         );
         LibTransfer._stakeAirDrop(
             _paymaster,
             s.challenges[_challengeId].stakeToken,
-            msg.sender,
+            _msgSender(),
             s.challenges[_challengeId].maturity
         );
         emit IChallengePoolHandler.Stake(
             _challengeId,
-            msg.sender,
+            _msgSender(),
             _prediction,
             _quantity,
             currentPrice,
@@ -222,7 +222,7 @@ contract GelatoHandler is
         //     revert InvalidPrediction();
         // }
         // IChallengePoolHandler.PlayerSupply storage playerOptionSupply = s
-        //     .playerOptionSupply[_challengeId][msg.sender][
+        //     .playerOptionSupply[_challengeId][_msgSender()][
         //         keccak256(_prediction)
         //     ];
         // if (playerOptionSupply.stakes < _quantity) {
@@ -259,11 +259,11 @@ contract GelatoHandler is
         // LibTransfer._send(
         //     s.challenges[_challengeId].stakeToken,
         //     totalAmount,
-        //     msg.sender
+        //     _msgSender()
         // );
         // emit Withdraw(
         //     _challengeId,
-        //     msg.sender,
+        //     _msgSender(),
         //     _prediction,
         //     _quantity,
         //     currentPrice,
@@ -283,7 +283,7 @@ contract GelatoHandler is
         nonReentrant
         validChallenge(_challengeId)
     {
-        LibPool._withdraw(_challengeId, msg.sender);
+        LibPool._withdraw(_challengeId, _msgSender());
     }
 
     function bulkWithdrawRelay(
@@ -293,7 +293,7 @@ contract GelatoHandler is
             if (_challengeIds[i] >= CPStorage.load().challengeId) {
                 revert IChallengePoolCommon.InvalidChallenge();
             }
-            LibPool._withdraw(_challengeIds[i], msg.sender);
+            LibPool._withdraw(_challengeIds[i], _msgSender());
         }
     }
 }

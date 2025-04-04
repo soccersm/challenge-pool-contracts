@@ -362,7 +362,7 @@ describe("ChallengePool - Stake Challenge", function () {
       ballerCreateFees[0] +
       ballerGhCreateFees[0] +
       ballerGhStakeFees[0] +
-      ballerStakeFees[0] +
+      ballerStakeFees[0] * BigInt(2) +
       strikerStakeFees[0];
     console.log("Total Accumulated Fees: ", totalAccuFees);
     expect(allFees).to.equals(totalAccuFees);

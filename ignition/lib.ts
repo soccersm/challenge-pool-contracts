@@ -54,5 +54,5 @@ export const INIT_SIG: string = "init()";
 export const INIT_ADDRESS_SIG: string = "init(address)";
 export const INIT: string = "init";
 
-// console.log(functionSigsSelectors("ChallengePoolView"));
+console.log(functionSigsSelectors("GelatoHandler"));
 

@@ -62,5 +62,11 @@
   "ChallengePoolHandler_StakeAirDropPoolMaturityModule#ChallengePoolManager": "0xb3e198Cc89FC302582b43a9F68799b1A521840E8",
   "ChallengePoolHandler_StakeAirDropPoolMaturityModule#ChallengePoolView": "0xd3FE89CBadBD850F6E770505002b3AF51DfE95D5",
   "ChallengePoolHandler_StakeAirDropPoolMaturityModule#StakeAirDropPoolMaturityInit": "0xFe633D186d83cFa78DFd512241C43cD384f7e61a",
-  "ArmyStakePaymasterModule#StakePaymaster": "0x373d640c4f4032d07d9B0B3c44661959883287a0"
+  "ArmyStakePaymasterModule#StakePaymaster": "0x373d640c4f4032d07d9B0B3c44661959883287a0",
+  "ChallengePoolHandler_GelatoModule#DiamondCutFacet": "0x56d3719CcB48124d7CeE71F70B3e0bAa860E7FB6",
+  "ChallengePoolHandler_GelatoModule#ChallengePoolDispute": "0xbB2CF9b14C98C5e9f72Ad99D34bcE7440c3E99d8",
+  "ChallengePoolHandler_GelatoModule#ChallengePoolHandler": "0xBD838260dd96Ee6a7f7a158B8809876a874636cF",
+  "ChallengePoolHandler_GelatoModule#ChallengePoolManager": "0x834C2af8B615C2Cb4659dC956ab3d85066323028",
+  "ChallengePoolHandler_GelatoModule#ChallengePoolView": "0xeC5CEd3C21De2F02e6cD19a7B6CC0f3535e6190a",
+  "ChallengePoolHandler_GelatoModule#GelatoHandler": "0x1622d71f813c67da1D3a6E248B99EdDFfd462EaC"
 }

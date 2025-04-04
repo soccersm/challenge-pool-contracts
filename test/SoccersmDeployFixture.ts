@@ -12,6 +12,7 @@ export async function deploySoccersm() {
     baller,
     striker,
     keeper,
+    gelato,
   ] = await ethers.getSigners();
 
   const {
@@ -37,6 +38,8 @@ export async function deploySoccersm() {
   await ballsToken.approve(paymaster, oneMil);
   await poolManagerProxy.setPaymaster(paymaster);
   await poolManagerProxy.setMinPoolMaturity(BigInt(60 * 60 * 16));
+  await poolManagerProxy.setMinPoolMaturity(BigInt(60 * 60 * 16));
+  await poolManagerProxy.setGelatoForwarder(gelato);
   await paymaster.depositFor(ballsToken, keeper, oneMil);
   return {
     soccersm,
@@ -59,6 +62,7 @@ export async function deploySoccersm() {
     oneMil,
     oneGrand,
     poolViewProxy,
+    gelato
   };
 }
 
