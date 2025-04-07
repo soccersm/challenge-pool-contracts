@@ -6,6 +6,7 @@ export type Statement = {
   options: string[];
   maturity: number;
   prediction: string;
+  answer?: string;
 };
 export const statements: Statement[] = [
   {
@@ -134,6 +135,7 @@ export const statements: Statement[] = [
       "https://res.cloudinary.com/djyedjeuc/image/upload/v1738154989/GPT_timaok.png",
     maturity: 1741996800,
     prediction: "no",
+    answer: 'no',
   },
   {
     id: "NvidiaApple2025",
@@ -172,6 +174,7 @@ export const statements: Statement[] = [
       "https://res.cloudinary.com/djyedjeuc/image/upload/v1738155136/Bitcoin_tesct9.png",
     maturity: 1740700800,
     prediction: "yes",
+    answer: 'yes',
   },
   {
     id: "UnemploymentUSMarch2025",
@@ -182,6 +185,7 @@ export const statements: Statement[] = [
     image: "",
     maturity: 1741996800,
     prediction: "yes",
+    answer: 'no',
   },
   {
     id: "DollarCediMay3035",
