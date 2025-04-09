@@ -6,14 +6,14 @@ import { FacetCutAction, functionSelectors } from "../ignition/lib";
 
 describe("[Diamond]", async function () {
   async function deployDiamond() {
-    const { soccersm, cutProxy, acProxy, psProxy } = await ignition.deploy(
-      IgniteTestModule
-    );
+    const { soccersm, cutProxy, acProxy, oProxy, psProxy } =
+      await ignition.deploy(IgniteTestModule);
     const [owner, user] = await ethers.getSigners();
 
     return {
       soccersm,
       cutProxy,
+      oProxy,
       acProxy,
       psProxy,
       owner,
@@ -53,7 +53,7 @@ describe("[Diamond]", async function () {
   });
 
   it("Should Allow Adding New Facet: ", async function () {
-    const { cutProxy, owner } = await loadFixture(deployDiamond);
+    const { cutProxy, owner, user } = await loadFixture(deployDiamond);
 
     // Deploy facet
     const MockFacet = await ethers.getContractFactory("MockFacet");
@@ -71,16 +71,34 @@ describe("[Diamond]", async function () {
       },
     ];
 
+    //passing add facet
     await(cutProxy.connect(owner) as any).diamondCut(
       cut,
       ethers.ZeroAddress,
       "0x"
     );
 
+    //revert already added facet
+    await expect(
+      (cutProxy.connect(owner) as any).diamondCut(cut, ethers.ZeroAddress, "0x")
+    ).to.be.revertedWith(
+      "LibDiamondCut: Can't add function that already exists"
+    );
+
     // Verify added facet
     await(mockFacet as any).setNumber(100);
     const getMockNumber = await(mockFacet as any).getNumber();
-    console.log("getMockNumber: ", getMockNumber);
     expect(getMockNumber).to.equal(100);
+  });
+
+  it("Ownership: Should Check Owner, Transfer Ownership", async function () {
+    const { cutProxy, oProxy, owner, user } = await loadFixture(deployDiamond);
+    const actualOwner = await oProxy.owner();
+    expect(actualOwner).to.equal(await owner.getAddress());
+
+    // Transfer ownership
+    await(oProxy.connect(owner) as any).transferOwnership(
+      await user.getAddress()
+    );
   });
 });
