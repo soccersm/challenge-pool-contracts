@@ -57,6 +57,11 @@ const IgniteTestModule = buildModule("IgniteTestModule", (m) => {
     id: "SoccersmAccessControl",
   });
 
+  //OwnershipFacet
+  const oProxy = m.contractAt("OwnershipFacet", soccersm, {
+    id: "SoccersmOwnership",
+  });
+
   const psProxy = m.contractAt("PausableFacet", soccersm, {
     id: "SoccersmPausable",
   });
@@ -185,6 +190,7 @@ const IgniteTestModule = buildModule("IgniteTestModule", (m) => {
   return {
     soccersm,
     cutProxy,
+    oProxy,
     acProxy,
     psProxy,
     registryProxy,
