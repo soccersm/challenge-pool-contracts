@@ -52,7 +52,7 @@ describe("[Diamond]", async function () {
     expect(await acProxy.TOPIC_REGISTRAR()).to.equal(expectedTopicRegistrar);
   });
 
-  it.only("Should Allow Adding New Facet", async function () {
+  it("Should Allow Adding New Facet", async function () {
     const { cutProxy, owner, user } = await loadFixture(deployDiamond);
 
     // Deploy facet
@@ -61,7 +61,6 @@ describe("[Diamond]", async function () {
 
     // Prepare cut
     const selectors = functionSelectors("MockFacet");
-    console.log("function selector: ", functionSelectors("MockFacet"));
 
     const cut = [
       {
@@ -95,6 +94,61 @@ describe("[Diamond]", async function () {
     await mockOnDiamond.setNumber(100);
     const getMockNumber = await mockOnDiamond.getNumber();
     expect(getMockNumber).to.equal(100);
+  });
+
+  it("Should Allow Removing Facet", async function () {
+    const { cutProxy, owner, user } = await loadFixture(deployDiamond);
+
+    // Deploy and add facet first
+    const MockFacet = await ethers.getContractFactory("MockFacet");
+    const mockFacet = await MockFacet.deploy();
+    const selectors = functionSelectors("MockFacet");
+
+    const addCut = [
+      {
+        facetAddress: await mockFacet.getAddress(),
+        action: FacetCutAction.Add,
+        functionSelectors: selectors,
+      },
+    ];
+    await (cutProxy.connect(owner) as any).diamondCut(
+      addCut,
+      ethers.ZeroAddress,
+      "0x"
+    );
+
+    // Prepare removal cut
+    const removeCut = [
+      {
+        facetAddress: ethers.ZeroAddress,
+        action: FacetCutAction.Remove,
+        functionSelectors: selectors,
+      },
+    ];
+
+    // Successful removal
+    await expect(
+      (cutProxy.connect(owner) as any).diamondCut(
+        removeCut,
+        ethers.ZeroAddress,
+        "0x"
+      )
+    ).to.not.be.reverted;
+
+    // Verify functions are removed
+    const mockOnDiamond = MockFacet.attach(await cutProxy.getAddress());
+    await expect((mockOnDiamond as any).getNumber()).to.be.reverted;
+
+    // Attempt duplicate removal
+    await expect(
+      (cutProxy.connect(owner) as any).diamondCut(
+        removeCut,
+        ethers.ZeroAddress,
+        "0x"
+      )
+    ).to.be.revertedWith(
+      "LibDiamondCut: Can't remove function that doesn't exist"
+    );
   });
 
   it("Ownership: Should Check Owner, Transfer Ownership", async function () {
