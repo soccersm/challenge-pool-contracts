@@ -52,7 +52,7 @@ describe("[Diamond]", async function () {
     expect(await acProxy.TOPIC_REGISTRAR()).to.equal(expectedTopicRegistrar);
   });
 
-  it("Should Allow Adding New Facet: ", async function () {
+  it.only("Should Allow Adding New Facet", async function () {
     const { cutProxy, owner, user } = await loadFixture(deployDiamond);
 
     // Deploy facet
@@ -72,11 +72,16 @@ describe("[Diamond]", async function () {
     ];
 
     //passing add facet
-    await(cutProxy.connect(owner) as any).diamondCut(
+    await (cutProxy.connect(owner) as any).diamondCut(
       cut,
       ethers.ZeroAddress,
       "0x"
     );
+
+    //revert notOwner
+    await expect(
+      (cutProxy.connect(user) as any).diamondCut(cut, ethers.ZeroAddress, "0x")
+    ).to.be.revertedWith("LibDiamond: Must be contract owner");
 
     //revert already added facet
     await expect(
@@ -86,8 +91,9 @@ describe("[Diamond]", async function () {
     );
 
     // Verify added facet
-    await(mockFacet as any).setNumber(100);
-    const getMockNumber = await(mockFacet as any).getNumber();
+    const mockOnDiamond: any = MockFacet.attach(await cutProxy.getAddress());
+    await mockOnDiamond.setNumber(100);
+    const getMockNumber = await mockOnDiamond.getNumber();
     expect(getMockNumber).to.equal(100);
   });
 
@@ -107,6 +113,5 @@ describe("[Diamond]", async function () {
     await expect(
       (oProxy.connect(owner) as any).transferOwnership(await owner.getAddress())
     ).to.be.revertedWith("LibDiamond: Must be contract owner");
-      
   });
 });
