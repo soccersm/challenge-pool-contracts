@@ -97,8 +97,16 @@ describe("[Diamond]", async function () {
     expect(actualOwner).to.equal(await owner.getAddress());
 
     // Transfer ownership
-    await(oProxy.connect(owner) as any).transferOwnership(
-      await user.getAddress()
-    );
+    await expect(
+      (oProxy.connect(owner) as any).transferOwnership(await user.getAddress())
+    )
+      .to.emit(oProxy, "OwnershipTransferred")
+      .withArgs(await owner.getAddress(), await user.getAddress());
+
+    //revert user is owner
+    await expect(
+      (oProxy.connect(owner) as any).transferOwnership(await owner.getAddress())
+    ).to.be.revertedWith("LibDiamond: Must be contract owner");
+      
   });
 });
