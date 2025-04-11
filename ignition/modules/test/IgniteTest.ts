@@ -122,6 +122,10 @@ const IgniteTestModule = buildModule("IgniteTestModule", (m) => {
     id: "SoccersmChallengePoolView",
   });
 
+  const stakeInitProxy = m.contractAt("StakeAirDropInitView", soccersm, {
+    id: "SoccersmStakeAirDropInitView",
+  });
+
   const assetPriceBoundedResolver = m.contract("AssetPriceBoundedResolver");
   const assetPriceTargetResolver = m.contract("AssetPriceTargetResolver");
   const multiAssetRangeResolver = m.contract("MultiAssetRangeResolver");
@@ -199,6 +203,7 @@ const IgniteTestModule = buildModule("IgniteTestModule", (m) => {
     poolDisputeProxy,
     poolManagerProxy,
     paymaster,
+    stakeInitProxy,
   };
 });
 
