@@ -1,4 +1,3 @@
-import { StakeAirDropInit } from "./../typechain-types/contracts/inits/StakeAirDropInit";
 import { expect } from "chai";
 import { ethers, ignition, userConfig } from "hardhat";
 import { loadFixture } from "@nomicfoundation/hardhat-toolbox/network-helpers";
