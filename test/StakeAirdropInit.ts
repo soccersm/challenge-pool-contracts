@@ -7,35 +7,25 @@ import { FacetCutAction, functionSelectors } from "../ignition/lib";
 
 describe("StakeAirDropInit", async function () {
   async function deployStakeAirDropInit() {
-    const { soccersm, cutProxy } = await ignition.deploy(IgniteTestModule);
+    const { soccersm, cutProxy, poolViewProxy } = await ignition.deploy(
+      IgniteTestModule
+    );
     const [owner, user] = await ethers.getSigners();
-    //deploy StakeAirDropInit and StakeAirDropInitView
+    //deploy StakeAirDropInit
     const StakeAirDropInit = await ethers.getContractFactory(
       "StakeAirDropInit"
     );
     const stakeAirDropInit = await StakeAirDropInit.deploy();
-    const StakeAirDropInitView = await ethers.getContractFactory(
-      "StakeAirDropInitView"
-    );
-    const stakeAirDropInitView = await StakeAirDropInitView.deploy();
-
     const initSelectors = functionSelectors("StakeAirDropInit");
-    const initViewSelectors = functionSelectors("StakeAirDropInitView");
-
     const cut = [
       {
         facetAddress: await stakeAirDropInit.getAddress(),
         action: FacetCutAction.Add,
         functionSelectors: initSelectors,
       },
-      {
-        facetAddress: await stakeAirDropInitView.getAddress(),
-        action: FacetCutAction.Add,
-        functionSelectors: initViewSelectors,
-      },
     ];
 
-    await (cutProxy.connect(owner) as any).diamondCut(
+    await(cutProxy.connect(owner) as any).diamondCut(
       cut,
       ethers.ZeroAddress,
       "0x"
@@ -45,28 +35,22 @@ describe("StakeAirDropInit", async function () {
       cutProxy,
       stakeAirDropInit,
       StakeAirDropInit,
-      StakeAirDropInitView,
-      stakeAirDropInitView,
+      poolViewProxy,
       owner,
       user,
     };
   }
 
   it("Should Deploy StakeAirDropInit", async function () {
-    const { owner, cutProxy, stakeAirDropInit, stakeAirDropInitView } =
-      await loadFixture(deployStakeAirDropInit);
+    const { stakeAirDropInit } = await loadFixture(deployStakeAirDropInit);
     expect(await stakeAirDropInit.getAddress()).to.be.properAddress;
-    expect(await stakeAirDropInitView.getAddress()).to.be.properAddress;
   });
 
   it("Should check init constants", async function () {
     //check diamond
-    const { owner, cutProxy, StakeAirDropInit, StakeAirDropInitView } =
+    const { owner, cutProxy, StakeAirDropInit, poolViewProxy } =
       await loadFixture(deployStakeAirDropInit);
     const initStakeDiamond = StakeAirDropInit.attach(
-      await cutProxy.getAddress()
-    );
-    const initStakeDiamondView = StakeAirDropInitView.attach(
       await cutProxy.getAddress()
     );
     expect(await (initStakeDiamond as any).init(await owner.getAddress())).to
@@ -76,20 +60,16 @@ describe("StakeAirDropInit", async function () {
     const maxClaim = 2;
     const minPoolMaturity = 7 * 24 * 60 * 60;
 
-    const storedStakeAirdrop = await (
-      initStakeDiamondView as any
-    ).getStakeAirDrop();
+    const storedStakeAirdrop = await(poolViewProxy as any).stakeAirDrop();
     expect(stakeAirDrop).to.be.equal(storedStakeAirdrop);
 
-    const storedMaxClaim = await (initStakeDiamondView as any).getMaxClaim();
+    const storedMaxClaim = await(poolViewProxy as any).maxClaim();
     expect(maxClaim).to.be.equal(storedMaxClaim);
 
-    const storedMinPoolMaturiy = await (
-      initStakeDiamondView as any
-    ).getMinPoolMaturity();
+    const storedMinPoolMaturiy = await(poolViewProxy as any).minPoolMaturity();
     expect(minPoolMaturity).to.be.equal(storedMinPoolMaturiy);
 
-    const storedPaymaster = await (initStakeDiamondView as any).getPaymaster();
+    const storedPaymaster = await(poolViewProxy as any).paymaster();
     expect(await owner.getAddress()).to.be.equal(storedPaymaster);
   });
 });
