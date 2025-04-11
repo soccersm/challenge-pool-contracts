@@ -1,6 +1,6 @@
 import { StakeAirDropInit } from "./../typechain-types/contracts/inits/StakeAirDropInit";
 import { expect } from "chai";
-import { ethers, ignition } from "hardhat";
+import { ethers, ignition, userConfig } from "hardhat";
 import { loadFixture } from "@nomicfoundation/hardhat-toolbox/network-helpers";
 import IgniteTestModule from "../ignition/modules/test/IgniteTest";
 import { FacetCutAction, functionSelectors } from "../ignition/lib";
@@ -69,9 +69,27 @@ describe("StakeAirDropInit", async function () {
     const initStakeDiamondView = StakeAirDropInitView.attach(
       await cutProxy.getAddress()
     );
-    console.log(
-      "initStakeDiamondView: ",
-      await (initStakeDiamondView as any).getAirDropStore()
-    );
+    expect(await (initStakeDiamond as any).init(await owner.getAddress())).to
+      .not.be.reverted;
+
+    const stakeAirDrop = BigInt(5e18);
+    const maxClaim = 2;
+    const minPoolMaturity = 7 * 24 * 60 * 60;
+
+    const storedStakeAirdrop = await (
+      initStakeDiamondView as any
+    ).getStakeAirDrop();
+    expect(stakeAirDrop).to.be.equal(storedStakeAirdrop);
+
+    const storedMaxClaim = await (initStakeDiamondView as any).getMaxClaim();
+    expect(maxClaim).to.be.equal(storedMaxClaim);
+
+    const storedMinPoolMaturiy = await (
+      initStakeDiamondView as any
+    ).getMinPoolMaturity();
+    expect(minPoolMaturity).to.be.equal(storedMinPoolMaturiy);
+
+    const storedPaymaster = await (initStakeDiamondView as any).getPaymaster();
+    expect(await owner.getAddress()).to.be.equal(storedPaymaster);
   });
 });
