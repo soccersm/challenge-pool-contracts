@@ -6,18 +6,25 @@ describe("StakeAirDropInit", async function () {
   async function deployStakeAirDropInit() {
     const [owner, user] = await ethers.getSigners();
     const stake = await ethers.getContractFactory("StakeAirDropInit");
-    const paymaster = await stake.deploy();
+    const stakePaymaster = await stake.deploy();
 
     const minStakeAmount = BigInt(1 * 1e18);
     const oneGrand = BigInt(minStakeAmount * BigInt(1e3));
 
     return {
       owner,
-      paymaster,
+      stakePaymaster,
       user,
       oneGrand,
     };
   }
+
+  it("Should Deploy StakeAirDropInit", async function () {
+    const { stakePaymaster } = await loadFixture(deployStakeAirDropInit);
+    expect(
+      await ethers.provider.getCode(await stakePaymaster.getAddress())
+    ).to.not.equal("0x");
+  });
 
 
 });
