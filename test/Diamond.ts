@@ -4,7 +4,7 @@ import { loadFixture } from "@nomicfoundation/hardhat-toolbox/network-helpers";
 import IgniteTestModule from "../ignition/modules/test/IgniteTest";
 import { FacetCutAction, functionSelectors } from "../ignition/lib";
 
-describe("[Diamond]", async function () {
+describe("Diamond", async function () {
   async function deployDiamond() {
     const { soccersm, cutProxy, acProxy, oProxy, psProxy } =
       await ignition.deploy(IgniteTestModule);
