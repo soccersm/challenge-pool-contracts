@@ -3,40 +3,75 @@ import { expect } from "chai";
 import { ethers, ignition } from "hardhat";
 import { loadFixture } from "@nomicfoundation/hardhat-toolbox/network-helpers";
 import IgniteTestModule from "../ignition/modules/test/IgniteTest";
+import { FacetCutAction, functionSelectors } from "../ignition/lib";
 
 describe("StakeAirDropInit", async function () {
   async function deployStakeAirDropInit() {
+    const { soccersm, cutProxy } = await ignition.deploy(IgniteTestModule);
+    const [owner, user] = await ethers.getSigners();
+    //deploy StakeAirDropInit and StakeAirDropInitView
+    const StakeAirDropInit = await ethers.getContractFactory(
+      "StakeAirDropInit"
+    );
+    const stakeAirDropInit = await StakeAirDropInit.deploy();
     const StakeAirDropInitView = await ethers.getContractFactory(
       "StakeAirDropInitView"
     );
     const stakeAirDropInitView = await StakeAirDropInitView.deploy();
 
-    const [paymaster] = await ethers.getSigners();
+    const initSelectors = functionSelectors("StakeAirDropInit");
+    const initViewSelectors = functionSelectors("StakeAirDropInitView");
 
-    const minStakeAmount = BigInt(1 * 1e18);
-    const oneGrand = BigInt(minStakeAmount * BigInt(1e3));
+    const cut = [
+      {
+        facetAddress: await stakeAirDropInit.getAddress(),
+        action: FacetCutAction.Add,
+        functionSelectors: initSelectors,
+      },
+      {
+        facetAddress: await stakeAirDropInitView.getAddress(),
+        action: FacetCutAction.Add,
+        functionSelectors: initViewSelectors,
+      },
+    ];
 
+    await (cutProxy.connect(owner) as any).diamondCut(
+      cut,
+      ethers.ZeroAddress,
+      "0x"
+    );
     return {
-      paymaster,
+      soccersm,
+      cutProxy,
+      stakeAirDropInit,
+      StakeAirDropInit,
+      StakeAirDropInitView,
       stakeAirDropInitView,
-      oneGrand,
+      owner,
+      user,
     };
   }
 
   it("Should Deploy StakeAirDropInit", async function () {
-    const { stakeAirDropInitView } = await loadFixture(deployStakeAirDropInit);
-    expect(
-      await ethers.provider.getCode(await stakeAirDropInitView.getAddress())
-    ).to.not.equal("0x");
+    const { owner, cutProxy, stakeAirDropInit, stakeAirDropInitView } =
+      await loadFixture(deployStakeAirDropInit);
+    expect(await stakeAirDropInit.getAddress()).to.be.properAddress;
+    expect(await stakeAirDropInitView.getAddress()).to.be.properAddress;
   });
 
   it("Should check init constants", async function () {
-    const { stakeAirDropInitView, oneGrand } = await loadFixture(
-      deployStakeAirDropInit
+    //check diamond
+    const { owner, cutProxy, StakeAirDropInit, StakeAirDropInitView } =
+      await loadFixture(deployStakeAirDropInit);
+    const initStakeDiamond = StakeAirDropInit.attach(
+      await cutProxy.getAddress()
+    );
+    const initStakeDiamondView = StakeAirDropInitView.attach(
+      await cutProxy.getAddress()
     );
     console.log(
-      "getAirDropStore: ",
-      await stakeAirDropInitView.getAirDropStore()
+      "initStakeDiamondView: ",
+      await (initStakeDiamondView as any).getAirDropStore()
     );
   });
 });
