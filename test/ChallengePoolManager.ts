@@ -440,6 +440,41 @@ describe("ChallengePoolManager", async function () {
         //revert for not active stake
         const randomToken = ethers.Wallet.createRandom().address
         await expect(poolManagerProxy.removeStakeToken(randomToken)).to.be.revertedWith("stake token is not active");
+      });
+
+      it.only("Should setDisputePeriod", async function() {
+         const { poolManagerProxy, owner, user, CHALLENGE_POOL_MANAGER } =
+          await loadFixture(deployPoolManager);
+        expect(
+          await ethers.provider.getCode(await poolManagerProxy.getAddress())
+        ).to.not.equal("0x");
+
+        const newDisputePeriod = 2 * 60 * 60; //2hours
+        const oldDisputePeriod = await poolManagerProxy.disputePeriod();
+        await expect(poolManagerProxy.setDisputePeriod(newDisputePeriod)).to.emit(poolManagerProxy, "SetDisputePeriod").withArgs(owner.address, oldDisputePeriod, newDisputePeriod);
+
+        expect(newDisputePeriod).to.be.equal(await poolManagerProxy.disputePeriod());
+      })
+
+      it.only("Should reverts for setDisputePeriod", async function() {
+         const { poolManagerProxy, owner, user, CHALLENGE_POOL_MANAGER } =
+          await loadFixture(deployPoolManager);
+        expect(
+          await ethers.provider.getCode(await poolManagerProxy.getAddress())
+        ).to.not.equal("0x");
+
+        const newDisputePeriod = 2 * 60 * 60; //2hours
+        //revert for onlyPoolManager
+        await expect(
+          (poolManagerProxy.connect(user) as any).setDisputePeriod(
+            newDisputePeriod
+          )
+        ).to.be.revertedWith(
+          `AccessControl: account ${user.address.toLowerCase()} is missing role ${CHALLENGE_POOL_MANAGER}`
+        );
+
+        //revert for nonZero
+        await expect(poolManagerProxy.setDisputePeriod(0n)).to.be.revertedWithCustomError(poolManagerProxy, "ZeroNumber")
       })
 
 });
