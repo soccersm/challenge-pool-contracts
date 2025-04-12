@@ -71,4 +71,18 @@ describe("StakeAirDropInit", async function () {
     const storedPaymaster = await(poolViewProxy as any).paymaster();
     expect(await owner.getAddress()).to.be.equal(storedPaymaster);
   });
+
+  it("Should deploy and check stored values for StakeAirDropPoolMaturityInit", async function () {
+    const { poolViewProxy } = await loadFixture(deployStakeAirDropInit);
+    const StakeAirDropPoolMaturityInit = await ethers.getContractFactory(
+      "StakeAirDropPoolMaturityInit"
+    );
+    const stakeAirDropPoolMaturityInit =
+      await StakeAirDropPoolMaturityInit.deploy();
+    expect(await stakeAirDropPoolMaturityInit.init()).to.not.be.reverted;
+
+    const minPoolMaturity = 7 * 24 * 60 * 60;
+    const storedMinPoolMaturity = await poolViewProxy.minPoolMaturity();
+    expect(minPoolMaturity).to.be.equal(storedMinPoolMaturity);
+  });
 });
