@@ -442,7 +442,7 @@ describe("ChallengePoolManager", async function () {
         await expect(poolManagerProxy.removeStakeToken(randomToken)).to.be.revertedWith("stake token is not active");
       });
 
-      it.only("Should setDisputePeriod", async function() {
+      it("Should setDisputePeriod", async function() {
          const { poolManagerProxy, owner, user, CHALLENGE_POOL_MANAGER } =
           await loadFixture(deployPoolManager);
         expect(
@@ -456,7 +456,7 @@ describe("ChallengePoolManager", async function () {
         expect(newDisputePeriod).to.be.equal(await poolManagerProxy.disputePeriod());
       })
 
-      it.only("Should reverts for setDisputePeriod", async function() {
+      it("Should reverts for setDisputePeriod", async function() {
          const { poolManagerProxy, owner, user, CHALLENGE_POOL_MANAGER } =
           await loadFixture(deployPoolManager);
         expect(
@@ -475,6 +475,41 @@ describe("ChallengePoolManager", async function () {
 
         //revert for nonZero
         await expect(poolManagerProxy.setDisputePeriod(0n)).to.be.revertedWithCustomError(poolManagerProxy, "ZeroNumber")
+      });
+
+      it("Should setDisputeStake", async function() {
+         const { poolManagerProxy, owner, user, CHALLENGE_POOL_MANAGER } =
+          await loadFixture(deployPoolManager);
+        expect(
+          await ethers.provider.getCode(await poolManagerProxy.getAddress())
+        ).to.not.equal("0x");
+
+        const newDisputeStake = BigInt(6e18);
+        const oldDisputeStake = await poolManagerProxy.disputeStake();
+        await expect(poolManagerProxy.setDisputeStake(newDisputeStake)).to.emit(poolManagerProxy, "SetDisputeStake").withArgs(owner.address, oldDisputeStake, newDisputeStake);
+
+        expect(newDisputeStake).to.be.equal(await poolManagerProxy.disputeStake());
       })
+
+      it("Should reverts for setDisputeStake", async function() {
+         const { poolManagerProxy, owner, user, CHALLENGE_POOL_MANAGER } =
+          await loadFixture(deployPoolManager);
+        expect(
+          await ethers.provider.getCode(await poolManagerProxy.getAddress())
+        ).to.not.equal("0x");
+
+        const newDisputeStake = BigInt(6e18);
+        //revert for onlyPoolManager
+        await expect(
+          (poolManagerProxy.connect(user) as any).setDisputeStake(
+            newDisputeStake
+          )
+        ).to.be.revertedWith(
+          `AccessControl: account ${user.address.toLowerCase()} is missing role ${CHALLENGE_POOL_MANAGER}`
+        );
+
+        //revert for nonZero
+        await expect(poolManagerProxy.setDisputeStake(0n)).to.be.revertedWithCustomError(poolManagerProxy, "ZeroNumber")
+      });
 
 });
