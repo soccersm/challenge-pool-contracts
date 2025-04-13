@@ -1,15 +1,22 @@
-import { prepareCreateChallenge } from './lib';
+import { prepareCreateChallenge } from "./lib";
 import { loadFixture } from "@nomicfoundation/hardhat-toolbox/network-helpers";
 import { ethers } from "hardhat";
 import { expect } from "chai";
 import { toUtf8Bytes } from "ethers";
-import { btcEvent } from './mock';
-import { deploySoccersm } from './SoccersmDeployFixture';
+import { btcEvent } from "./mock";
+import { deploySoccersm } from "./SoccersmDeployFixture";
 
 describe("ChallengePoolManager", async function () {
   async function deployPoolManager() {
-    const { poolViewProxy, poolHandlerProxy, poolManagerProxy, paymaster, ballsToken, oneGrand, baller} =
-      await loadFixture(deploySoccersm);
+    const {
+      poolViewProxy,
+      poolHandlerProxy,
+      poolManagerProxy,
+      paymaster,
+      ballsToken,
+      oneGrand,
+      baller,
+    } = await loadFixture(deploySoccersm);
     const [owner, user] = await ethers.getSigners();
     const CHALLENGE_POOL_MANAGER = ethers.keccak256(
       toUtf8Bytes("CHALLENGE_POOL_MANAGER")
@@ -24,8 +31,8 @@ describe("ChallengePoolManager", async function () {
       user,
       CHALLENGE_POOL_MANAGER,
       ballsToken,
-      oneGrand, 
-      baller
+      oneGrand,
+      baller,
     };
   }
 
@@ -557,8 +564,17 @@ describe("ChallengePoolManager", async function () {
   });
 
   it("Should withdrawFee", async function () {
-    const { poolManagerProxy, poolViewProxy, poolHandlerProxy, owner, user, CHALLENGE_POOL_MANAGER, ballsToken, baller, oneGrand } =
-      await loadFixture(deployPoolManager);
+    const {
+      poolManagerProxy,
+      poolViewProxy,
+      poolHandlerProxy,
+      owner,
+      user,
+      CHALLENGE_POOL_MANAGER,
+      ballsToken,
+      baller,
+      oneGrand,
+    } = await loadFixture(deployPoolManager);
     expect(
       await ethers.provider.getCode(await poolManagerProxy.getAddress())
     ).to.not.equal("0x");
@@ -581,22 +597,41 @@ describe("ChallengePoolManager", async function () {
           await poolViewProxy.createFee(oneGrand)
         )[1]
       );
-    await expect((poolHandlerProxy.connect(baller) as any).createChallenge(
-      ...(preparedBTCChallenge as any)
-    )).to.not.be.reverted;
+    await expect(
+      (poolHandlerProxy.connect(baller) as any).createChallenge(
+        ...(preparedBTCChallenge as any)
+      )
+    ).to.not.be.reverted;
 
     //withdrawFee
     const [fee, feePlusPrice] = await poolViewProxy.createFee(oneGrand);
 
-    await expect(poolManagerProxy.withdrawFee(await ballsToken.getAddress())).to.emit(poolManagerProxy, "FeeWithdrawn").withArgs(owner.address, await ballsToken.getAddress(), owner.address, fee);
+    await expect(poolManagerProxy.withdrawFee(await ballsToken.getAddress()))
+      .to.emit(poolManagerProxy, "FeeWithdrawn")
+      .withArgs(
+        owner.address,
+        await ballsToken.getAddress(),
+        owner.address,
+        fee
+      );
 
-    expect(await poolViewProxy.getAccumulatedFee(await ballsToken.getAddress())).to.be.equal(0n); 
-
+    expect(
+      await poolViewProxy.getAccumulatedFee(await ballsToken.getAddress())
+    ).to.be.equal(0n);
   });
 
   it("Should reverts for withdrawFee", async function () {
-    const { poolManagerProxy, poolViewProxy, poolHandlerProxy, owner, user, CHALLENGE_POOL_MANAGER, ballsToken, baller, oneGrand } =
-      await loadFixture(deployPoolManager);
+    const {
+      poolManagerProxy,
+      poolViewProxy,
+      poolHandlerProxy,
+      owner,
+      user,
+      CHALLENGE_POOL_MANAGER,
+      ballsToken,
+      baller,
+      oneGrand,
+    } = await loadFixture(deployPoolManager);
     expect(
       await ethers.provider.getCode(await poolManagerProxy.getAddress())
     ).to.not.equal("0x");
@@ -620,37 +655,88 @@ describe("ChallengePoolManager", async function () {
           await poolViewProxy.createFee(oneGrand)
         )[1]
       );
-    await expect((poolHandlerProxy.connect(baller) as any).createChallenge(
-      ...(preparedBTCChallenge as any)
-    )).to.not.be.reverted;
+    await expect(
+      (poolHandlerProxy.connect(baller) as any).createChallenge(
+        ...(preparedBTCChallenge as any)
+      )
+    ).to.not.be.reverted;
 
     //revert for onlyAdmin
-     await expect(
-       (poolManagerProxy.connect(user) as any).withdrawFee(await ballsToken.getAddress())
-     ).to.be.revertedWith(
-       `AccessControl: account ${user.address.toLowerCase()} is missing role ${DEFAULT_ADMIN_ROLE}`
-     );
+    await expect(
+      (poolManagerProxy.connect(user) as any).withdrawFee(
+        await ballsToken.getAddress()
+      )
+    ).to.be.revertedWith(
+      `AccessControl: account ${user.address.toLowerCase()} is missing role ${DEFAULT_ADMIN_ROLE}`
+    );
 
     //withdrawFee
     const [fee, feePlusPrice] = await poolViewProxy.createFee(oneGrand);
 
-    await expect(poolManagerProxy.withdrawFee(await ballsToken.getAddress())).to.emit(poolManagerProxy, "FeeWithdrawn").withArgs(owner.address, await ballsToken.getAddress(), owner.address, fee);
+    await expect(poolManagerProxy.withdrawFee(await ballsToken.getAddress()))
+      .to.emit(poolManagerProxy, "FeeWithdrawn")
+      .withArgs(
+        owner.address,
+        await ballsToken.getAddress(),
+        owner.address,
+        fee
+      );
 
-    expect(await poolViewProxy.getAccumulatedFee(await ballsToken.getAddress())).to.be.equal(0n); 
+    expect(
+      await poolViewProxy.getAccumulatedFee(await ballsToken.getAddress())
+    ).to.be.equal(0n);
 
     //revert for 'no fee to extra'
-     await expect(poolManagerProxy.withdrawFee(await ballsToken.getAddress()))
-       .to.be.revertedWith("no fee to extra");
-
+    await expect(
+      poolManagerProxy.withdrawFee(await ballsToken.getAddress())
+    ).to.be.revertedWith("no fee to extra");
   });
 
-  it("Should return stakeToken", async function() {
-    const {poolManagerProxy} = await loadFixture(deployPoolManager);
+  it("Should return stakeToken", async function () {
+    const { poolManagerProxy } = await loadFixture(deployPoolManager);
     const token = ethers.Wallet.createRandom();
-    const [tokenAddress, fees, active] = await poolManagerProxy.stakeToken(token);
-    
+    const [tokenAddress, fees, active] = await poolManagerProxy.stakeToken(
+      token
+    );
+
     expect(tokenAddress).to.be.properAddress;
-    expect(fees).to.be.a("bigint"); 
+    expect(fees).to.be.a("bigint");
     expect(active).to.be.a("boolean");
-  }); 
+  });
+
+  it("Should setStakeAirDrop", async function () {
+    const { poolManagerProxy, owner, poolViewProxy } = await loadFixture(
+      deployPoolManager
+    );
+    const oldStakeAirDrop = await poolViewProxy.stakeAirDrop();
+    const newStakeAirdrop = BigInt(10e18);
+    await expect(poolManagerProxy.setStakeAirDrop(newStakeAirdrop))
+      .to.emit(poolManagerProxy, "SetStakeAirDrop")
+      .withArgs(owner.address, oldStakeAirDrop, newStakeAirdrop);
+    expect(await poolViewProxy.stakeAirDrop()).to.equal(newStakeAirdrop);
+  });
+
+  it("Should reverts for setStakeAirDrop", async function () {
+    const {
+      poolManagerProxy,
+      owner,
+      poolViewProxy,
+      user,
+      CHALLENGE_POOL_MANAGER,
+    } = await loadFixture(deployPoolManager);
+    const newStakeAirdrop = BigInt(10e18);
+
+    //revert for onlyPoolManager
+    await expect(
+      (poolManagerProxy.connect(user) as any).setStakeAirDrop(newStakeAirdrop)
+    ).to.be.revertedWith(
+      `AccessControl: account ${user.address.toLowerCase()} is missing role ${CHALLENGE_POOL_MANAGER}`
+    );
+
+    //revert for nonZero
+    const zeroStake = 0n;
+    await expect(
+      poolManagerProxy.setStakeAirDrop(zeroStake)
+    ).to.be.revertedWithCustomError(poolManagerProxy, "ZeroNumber");
+  });
 });
