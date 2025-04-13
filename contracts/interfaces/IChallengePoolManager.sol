@@ -75,8 +75,8 @@ interface IChallengePoolManager {
     );
     event SetMinPoolMaturity(
         address caller,
-        address oldMinPoolMaturity,
-        address newMinPoolMaturity
+        uint256 oldMinPoolMaturity,
+        uint256 newMinPoolMaturity
     );
     event SetGelatoForwarder(
         address caller,
