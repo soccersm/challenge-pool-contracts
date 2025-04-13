@@ -222,7 +222,7 @@ contract ChallengePoolManager is
     ) external override onlyPoolManager {
         uint256 oldMinPoolMaturity = AirDropStorage.load().minPoolMaturity;
         AirDropStorage.load().minPoolMaturity = _minPoolMaturity;
-        emit SetMaxClaim(msg.sender, oldMinPoolMaturity, _minPoolMaturity);
+        emit SetMinPoolMaturity(msg.sender, oldMinPoolMaturity, _minPoolMaturity);
     }
 
     function setGelatoForwarder(
