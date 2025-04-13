@@ -563,7 +563,6 @@ describe("ChallengePoolManager", async function () {
     expect(
       await ethers.provider.getCode(await poolManagerProxy.getAddress())
     ).to.not.equal("0x");
-    const DEFAULT_ADMIN_ROLE = ethers.ZeroHash;
 
     //create Challenge -> Record accumulated fees -> withdraw
     //CreateChallenge
@@ -593,6 +592,56 @@ describe("ChallengePoolManager", async function () {
     await expect(poolManagerProxy.withdrawFee(await ballsToken.getAddress())).to.emit(poolManagerProxy, "FeeWithdrawn").withArgs(owner.address, await ballsToken.getAddress(), owner.address, fee);
 
     expect(await poolViewProxy.getAccumulatedFee(await ballsToken.getAddress())).to.be.equal(0n); 
+
+  });
+
+  it.only("Should reverts for withdrawFee", async function () {
+    const { poolManagerProxy, poolViewProxy, poolHandlerProxy, owner, user, CHALLENGE_POOL_MANAGER, ballsToken, baller, oneGrand } =
+      await loadFixture(deployPoolManager);
+    expect(
+      await ethers.provider.getCode(await poolManagerProxy.getAddress())
+    ).to.not.equal("0x");
+    const DEFAULT_ADMIN_ROLE = ethers.ZeroHash;
+
+    //create Challenge: Record accumulated fees -> withdraw
+    //CreateChallenge
+    const btcChallenge = btcEvent(
+      await ballsToken.getAddress(),
+      1,
+      oneGrand,
+      ethers.ZeroAddress
+    );
+    const preparedBTCChallenge = prepareCreateChallenge(btcChallenge.challenge);
+
+    await ballsToken
+      .connect(baller)
+      .approve(
+        await poolHandlerProxy.getAddress(),
+        (
+          await poolViewProxy.createFee(oneGrand)
+        )[1]
+      );
+    await expect((poolHandlerProxy.connect(baller) as any).createChallenge(
+      ...(preparedBTCChallenge as any)
+    )).to.not.be.reverted;
+
+    //revert for onlyAdmin
+     await expect(
+       (poolManagerProxy.connect(user) as any).withdrawFee(await ballsToken.getAddress())
+     ).to.be.revertedWith(
+       `AccessControl: account ${user.address.toLowerCase()} is missing role ${DEFAULT_ADMIN_ROLE}`
+     );
+
+    //withdrawFee
+    const [fee, feePlusPrice] = await poolViewProxy.createFee(oneGrand);
+
+    await expect(poolManagerProxy.withdrawFee(await ballsToken.getAddress())).to.emit(poolManagerProxy, "FeeWithdrawn").withArgs(owner.address, await ballsToken.getAddress(), owner.address, fee);
+
+    expect(await poolViewProxy.getAccumulatedFee(await ballsToken.getAddress())).to.be.equal(0n); 
+
+    //revert for 'no fee to extra'
+     await expect(poolManagerProxy.withdrawFee(await ballsToken.getAddress()))
+       .to.be.revertedWith("no fee to extra");
 
   });
 });
