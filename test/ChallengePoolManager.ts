@@ -85,8 +85,7 @@ describe("ChallengePoolManager", async function () {
   });
 
   it("Should setMinMaturityPeriod", async function () {
-    const { poolManagerProxy, owner, CHALLENGE_POOL_MANAGER } =
-      await loadFixture(deployPoolManager);
+    const { poolManagerProxy, owner } = await loadFixture(deployPoolManager);
     expect(
       await ethers.provider.getCode(await poolManagerProxy.getAddress())
     ).to.not.equal("0x");
@@ -103,7 +102,7 @@ describe("ChallengePoolManager", async function () {
   });
 
   it("Should reverts for setMinMaturityPeriod", async function () {
-    const { poolManagerProxy, owner, user, CHALLENGE_POOL_MANAGER } =
+    const { poolManagerProxy, user, CHALLENGE_POOL_MANAGER } =
       await loadFixture(deployPoolManager);
     expect(
       await ethers.provider.getCode(await poolManagerProxy.getAddress())
@@ -127,8 +126,7 @@ describe("ChallengePoolManager", async function () {
   });
 
   it("Should setCreatePoolFee", async function () {
-    const { poolManagerProxy, owner, user, CHALLENGE_POOL_MANAGER } =
-      await loadFixture(deployPoolManager);
+    const { poolManagerProxy, owner } = await loadFixture(deployPoolManager);
     expect(
       await ethers.provider.getCode(await poolManagerProxy.getAddress())
     ).to.not.equal("0x");
@@ -143,7 +141,7 @@ describe("ChallengePoolManager", async function () {
   });
 
   it("Should reverts for setCreatePoolFee", async function () {
-    const { poolManagerProxy, owner, user, CHALLENGE_POOL_MANAGER } =
+    const { poolManagerProxy, user, CHALLENGE_POOL_MANAGER } =
       await loadFixture(deployPoolManager);
     expect(
       await ethers.provider.getCode(await poolManagerProxy.getAddress())
@@ -166,8 +164,7 @@ describe("ChallengePoolManager", async function () {
   });
 
   it("Should setStakeFee", async function () {
-    const { poolManagerProxy, owner, user, CHALLENGE_POOL_MANAGER } =
-      await loadFixture(deployPoolManager);
+    const { poolManagerProxy, owner } = await loadFixture(deployPoolManager);
     expect(
       await ethers.provider.getCode(await poolManagerProxy.getAddress())
     ).to.not.equal("0x");
@@ -182,7 +179,7 @@ describe("ChallengePoolManager", async function () {
   });
 
   it("Should reverts for setStakeFee", async function () {
-    const { poolManagerProxy, owner, user, CHALLENGE_POOL_MANAGER } =
+    const { poolManagerProxy, user, CHALLENGE_POOL_MANAGER } =
       await loadFixture(deployPoolManager);
     expect(
       await ethers.provider.getCode(await poolManagerProxy.getAddress())
@@ -205,8 +202,7 @@ describe("ChallengePoolManager", async function () {
   });
 
   it("Should setEarlyWithdrawFee", async function () {
-    const { poolManagerProxy, owner, user, CHALLENGE_POOL_MANAGER } =
-      await loadFixture(deployPoolManager);
+    const { poolManagerProxy, owner } = await loadFixture(deployPoolManager);
     expect(
       await ethers.provider.getCode(await poolManagerProxy.getAddress())
     ).to.not.equal("0x");
@@ -223,7 +219,7 @@ describe("ChallengePoolManager", async function () {
   });
 
   it("Should reverts for setEarlyWithdrawFee", async function () {
-    const { poolManagerProxy, owner, user, CHALLENGE_POOL_MANAGER } =
+    const { poolManagerProxy, user, CHALLENGE_POOL_MANAGER } =
       await loadFixture(deployPoolManager);
     expect(
       await ethers.provider.getCode(await poolManagerProxy.getAddress())
@@ -248,8 +244,7 @@ describe("ChallengePoolManager", async function () {
   });
 
   it("Should setMaxOptionsPerPool", async function () {
-    const { poolManagerProxy, owner, user, CHALLENGE_POOL_MANAGER } =
-      await loadFixture(deployPoolManager);
+    const { poolManagerProxy, owner } = await loadFixture(deployPoolManager);
     expect(
       await ethers.provider.getCode(await poolManagerProxy.getAddress())
     ).to.not.equal("0x");
@@ -266,7 +261,7 @@ describe("ChallengePoolManager", async function () {
   });
 
   it("Should reverts for setMaxOptionsPerPool", async function () {
-    const { poolManagerProxy, owner, user, CHALLENGE_POOL_MANAGER } =
+    const { poolManagerProxy, user, CHALLENGE_POOL_MANAGER } =
       await loadFixture(deployPoolManager);
     expect(
       await ethers.provider.getCode(await poolManagerProxy.getAddress())
@@ -291,8 +286,7 @@ describe("ChallengePoolManager", async function () {
   });
 
   it("Should setMaxEventsPerPool", async function () {
-    const { poolManagerProxy, owner, user, CHALLENGE_POOL_MANAGER } =
-      await loadFixture(deployPoolManager);
+    const { poolManagerProxy, owner } = await loadFixture(deployPoolManager);
     expect(
       await ethers.provider.getCode(await poolManagerProxy.getAddress())
     ).to.not.equal("0x");
@@ -309,7 +303,7 @@ describe("ChallengePoolManager", async function () {
   });
 
   it("Should reverts for setMaxEventsPerPool", async function () {
-    const { poolManagerProxy, owner, user, CHALLENGE_POOL_MANAGER } =
+    const { poolManagerProxy, user, CHALLENGE_POOL_MANAGER } =
       await loadFixture(deployPoolManager);
     expect(
       await ethers.provider.getCode(await poolManagerProxy.getAddress())
@@ -334,8 +328,7 @@ describe("ChallengePoolManager", async function () {
   });
 
   it("Should setMinStakeAmount", async function () {
-    const { poolManagerProxy, owner, user, CHALLENGE_POOL_MANAGER } =
-      await loadFixture(deployPoolManager);
+    const { poolManagerProxy, owner } = await loadFixture(deployPoolManager);
     expect(
       await ethers.provider.getCode(await poolManagerProxy.getAddress())
     ).to.not.equal("0x");
@@ -352,7 +345,7 @@ describe("ChallengePoolManager", async function () {
   });
 
   it("Should reverts for setMinStakeAmount", async function () {
-    const { poolManagerProxy, owner, user, CHALLENGE_POOL_MANAGER } =
+    const { poolManagerProxy, user, CHALLENGE_POOL_MANAGER } =
       await loadFixture(deployPoolManager);
     expect(
       await ethers.provider.getCode(await poolManagerProxy.getAddress())
@@ -377,8 +370,7 @@ describe("ChallengePoolManager", async function () {
   });
 
   it("Should addStakeToken", async function () {
-    const { poolManagerProxy, owner, user, CHALLENGE_POOL_MANAGER } =
-      await loadFixture(deployPoolManager);
+    const { poolManagerProxy, owner } = await loadFixture(deployPoolManager);
     expect(
       await ethers.provider.getCode(await poolManagerProxy.getAddress())
     ).to.not.equal("0x");
@@ -398,7 +390,7 @@ describe("ChallengePoolManager", async function () {
   });
 
   it("Should reverts for addStakeToken", async function () {
-    const { poolManagerProxy, owner, user, CHALLENGE_POOL_MANAGER } =
+    const { poolManagerProxy, user, CHALLENGE_POOL_MANAGER } =
       await loadFixture(deployPoolManager);
     expect(
       await ethers.provider.getCode(await poolManagerProxy.getAddress())
@@ -433,8 +425,7 @@ describe("ChallengePoolManager", async function () {
   });
 
   it("Should removeStakeToken", async function () {
-    const { poolManagerProxy, owner, user, CHALLENGE_POOL_MANAGER } =
-      await loadFixture(deployPoolManager);
+    const { poolManagerProxy, owner } = await loadFixture(deployPoolManager);
     expect(
       await ethers.provider.getCode(await poolManagerProxy.getAddress())
     ).to.not.equal("0x");
@@ -460,7 +451,7 @@ describe("ChallengePoolManager", async function () {
   });
 
   it("Should reverts for removeStakeToken", async function () {
-    const { poolManagerProxy, owner, user, CHALLENGE_POOL_MANAGER } =
+    const { poolManagerProxy, user, CHALLENGE_POOL_MANAGER } =
       await loadFixture(deployPoolManager);
     expect(
       await ethers.provider.getCode(await poolManagerProxy.getAddress())
@@ -488,8 +479,7 @@ describe("ChallengePoolManager", async function () {
   });
 
   it("Should setDisputePeriod", async function () {
-    const { poolManagerProxy, owner, user, CHALLENGE_POOL_MANAGER } =
-      await loadFixture(deployPoolManager);
+    const { poolManagerProxy, owner } = await loadFixture(deployPoolManager);
     expect(
       await ethers.provider.getCode(await poolManagerProxy.getAddress())
     ).to.not.equal("0x");
@@ -506,7 +496,7 @@ describe("ChallengePoolManager", async function () {
   });
 
   it("Should reverts for setDisputePeriod", async function () {
-    const { poolManagerProxy, owner, user, CHALLENGE_POOL_MANAGER } =
+    const { poolManagerProxy, user, CHALLENGE_POOL_MANAGER } =
       await loadFixture(deployPoolManager);
     expect(
       await ethers.provider.getCode(await poolManagerProxy.getAddress())
@@ -527,8 +517,7 @@ describe("ChallengePoolManager", async function () {
   });
 
   it("Should setDisputeStake", async function () {
-    const { poolManagerProxy, owner, user, CHALLENGE_POOL_MANAGER } =
-      await loadFixture(deployPoolManager);
+    const { poolManagerProxy, owner } = await loadFixture(deployPoolManager);
     expect(
       await ethers.provider.getCode(await poolManagerProxy.getAddress())
     ).to.not.equal("0x");
@@ -543,7 +532,7 @@ describe("ChallengePoolManager", async function () {
   });
 
   it("Should reverts for setDisputeStake", async function () {
-    const { poolManagerProxy, owner, user, CHALLENGE_POOL_MANAGER } =
+    const { poolManagerProxy, user, CHALLENGE_POOL_MANAGER } =
       await loadFixture(deployPoolManager);
     expect(
       await ethers.provider.getCode(await poolManagerProxy.getAddress())
@@ -569,8 +558,6 @@ describe("ChallengePoolManager", async function () {
       poolViewProxy,
       poolHandlerProxy,
       owner,
-      user,
-      CHALLENGE_POOL_MANAGER,
       ballsToken,
       baller,
       oneGrand,
@@ -627,7 +614,6 @@ describe("ChallengePoolManager", async function () {
       poolHandlerProxy,
       owner,
       user,
-      CHALLENGE_POOL_MANAGER,
       ballsToken,
       baller,
       oneGrand,
@@ -717,13 +703,8 @@ describe("ChallengePoolManager", async function () {
   });
 
   it("Should reverts for setStakeAirDrop", async function () {
-    const {
-      poolManagerProxy,
-      owner,
-      poolViewProxy,
-      user,
-      CHALLENGE_POOL_MANAGER,
-    } = await loadFixture(deployPoolManager);
+    const { poolManagerProxy, user, CHALLENGE_POOL_MANAGER } =
+      await loadFixture(deployPoolManager);
     const newStakeAirdrop = BigInt(10e18);
 
     //revert for onlyPoolManager
@@ -738,5 +719,138 @@ describe("ChallengePoolManager", async function () {
     await expect(
       poolManagerProxy.setStakeAirDrop(zeroStake)
     ).to.be.revertedWithCustomError(poolManagerProxy, "ZeroNumber");
+  });
+
+  it("Should setMaxClaim", async function () {
+    const { poolManagerProxy, poolViewProxy, owner } = await loadFixture(
+      deployPoolManager
+    );
+    const oldMaxClaim = await poolViewProxy.maxClaim();
+    const newMaxClaim = 3 * 24 * 60 * 60;
+
+    await expect(poolManagerProxy.setMaxClaim(newMaxClaim))
+      .to.emit(poolManagerProxy, "SetMaxClaim")
+      .withArgs(owner.address, oldMaxClaim, newMaxClaim);
+    expect(await poolViewProxy.maxClaim()).to.be.equal(newMaxClaim);
+  });
+
+  it("Should reverts for setMaxClaim", async function () {
+    const {
+      poolManagerProxy,
+      poolViewProxy,
+      owner,
+      user,
+      CHALLENGE_POOL_MANAGER,
+    } = await loadFixture(deployPoolManager);
+    const newMaxClaim = 3 * 24 * 60 * 60;
+
+    //revert for onlyPoolManager
+    await expect(
+      (poolManagerProxy.connect(user) as any).setMaxClaim(newMaxClaim)
+    ).to.be.revertedWith(
+      `AccessControl: account ${user.address.toLowerCase()} is missing role ${CHALLENGE_POOL_MANAGER}`
+    );
+
+    //revert for nonZero
+    const zeroMaxClaim = 0n;
+    await expect(
+      poolManagerProxy.setMaxClaim(zeroMaxClaim)
+    ).to.be.revertedWithCustomError(poolManagerProxy, "ZeroNumber");
+  });
+
+  it("Should setPaymaster", async function () {
+    const { poolManagerProxy, poolViewProxy, owner } = await loadFixture(
+      deployPoolManager
+    );
+    const oldPaymaster = await poolViewProxy.paymaster();
+    const newPaymaster = ethers.Wallet.createRandom();
+
+    await expect(poolManagerProxy.setPaymaster(newPaymaster))
+      .to.emit(poolManagerProxy, "SetPaymaster")
+      .withArgs(owner.address, oldPaymaster, newPaymaster);
+    expect(await poolViewProxy.paymaster()).to.be.equal(newPaymaster);
+  });
+
+  it("Should reverts for setPaymaster", async function () {
+    const {
+      poolManagerProxy,
+      poolViewProxy,
+      owner,
+      user,
+      CHALLENGE_POOL_MANAGER,
+    } = await loadFixture(deployPoolManager);
+    const newPaymaster = ethers.Wallet.createRandom();
+
+    //revert for onlyPoolManager
+    await expect(
+      (poolManagerProxy.connect(user) as any).setPaymaster(newPaymaster)
+    ).to.be.revertedWith(
+      `AccessControl: account ${user.address.toLowerCase()} is missing role ${CHALLENGE_POOL_MANAGER}`
+    );
+
+    //revert for positiveAddress
+    const zeroAddress = ethers.ZeroAddress;
+    await expect(
+      poolManagerProxy.setPaymaster(zeroAddress)
+    ).to.be.revertedWithCustomError(poolManagerProxy, "ZeroAddress");
+  });
+
+  it("Should setMinPoolMaturity, Revert for setMinPoolMaturity", async function () {
+    const {
+      poolManagerProxy,
+      poolViewProxy,
+      owner,
+      user,
+      CHALLENGE_POOL_MANAGER,
+    } = await loadFixture(deployPoolManager);
+
+    const oldMinPoolMaturiy = await poolViewProxy.minPoolMaturity();
+    const newMinPoolMaturity = 14 * 24 * 60 * 60;
+    await expect(poolManagerProxy.setMinPoolMaturity(newMinPoolMaturity))
+      .to.emit(poolManagerProxy, "SetMinPoolMaturity")
+      .withArgs(owner.address, oldMinPoolMaturiy, newMinPoolMaturity);
+
+    //revert for onlyPoolManger
+    await expect(
+      (poolManagerProxy.connect(user) as any).setMinPoolMaturity(
+        newMinPoolMaturity
+      )
+    ).to.be.revertedWith(
+      `AccessControl: account ${user.address.toLowerCase()} is missing role ${CHALLENGE_POOL_MANAGER}`
+    );
+    //revert zero setMinPoolMaturity?
+  });
+
+  it("Should setGelatoForwarder", async function() {
+    const {
+      poolManagerProxy,
+      poolViewProxy,
+      owner,
+      user,
+      CHALLENGE_POOL_MANAGER,
+    } = await loadFixture(deployPoolManager);
+    const oldGelatoForwarder = await poolViewProxy.gelatoForwarder();
+    const newGelatoForwarder = ethers.Wallet.createRandom();
+
+    await expect(poolManagerProxy.setGelatoForwarder(newGelatoForwarder)).to.emit(poolManagerProxy, "SetGelatoForwarder").withArgs(owner.address, oldGelatoForwarder, newGelatoForwarder); 
+    expect(await poolViewProxy.gelatoForwarder()).to.be.equal(newGelatoForwarder);
+  });
+
+  it("Should reverts for setGelatoForwarder", async function() {
+    const {
+      poolManagerProxy,
+      poolViewProxy,
+      owner,
+      user,
+      CHALLENGE_POOL_MANAGER,
+    } = await loadFixture(deployPoolManager);
+    const oldGelatoForwarder = await poolViewProxy.gelatoForwarder();
+    const newGelatoForwarder = ethers.Wallet.createRandom();
+    //revert for onlyPoolManager
+    await expect((poolManagerProxy.connect(user) as any).setGelatoForwarder(newGelatoForwarder)).to.be.revertedWith(`AccessControl: account ${user.address.toLowerCase()} is missing role ${CHALLENGE_POOL_MANAGER}`);
+
+    //revert for positiveAddress
+    const zeroGelato = ethers.ZeroAddress;
+    await expect(poolManagerProxy.setGelatoForwarder(zeroGelato)).to.be.revertedWithCustomError(poolManagerProxy, "ZeroAddress"); 
   });
 });
