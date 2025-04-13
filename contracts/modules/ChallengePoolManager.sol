@@ -198,7 +198,7 @@ contract ChallengePoolManager is
     ) external override onlyPoolManager nonZero(_stakeAirDrop) {
         uint256 oldStakeAirDrop = AirDropStorage.load().stakeAirDrop;
         AirDropStorage.load().stakeAirDrop = _stakeAirDrop;
-        emit SetMaxClaim(msg.sender, oldStakeAirDrop, _stakeAirDrop);
+        emit SetStakeAirDrop(msg.sender, oldStakeAirDrop, _stakeAirDrop);
     }
 
     function setMaxClaim(
