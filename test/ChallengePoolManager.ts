@@ -557,7 +557,7 @@ describe("ChallengePoolManager", async function () {
     ).to.be.revertedWithCustomError(poolManagerProxy, "ZeroNumber");
   });
 
-  it.only("Should withdrawFee", async function () {
+  it("Should withdrawFee", async function () {
     const { poolManagerProxy, poolViewProxy, poolHandlerProxy, owner, user, CHALLENGE_POOL_MANAGER, ballsToken, baller, oneGrand } =
       await loadFixture(deployPoolManager);
     expect(
@@ -595,7 +595,7 @@ describe("ChallengePoolManager", async function () {
 
   });
 
-  it.only("Should reverts for withdrawFee", async function () {
+  it("Should reverts for withdrawFee", async function () {
     const { poolManagerProxy, poolViewProxy, poolHandlerProxy, owner, user, CHALLENGE_POOL_MANAGER, ballsToken, baller, oneGrand } =
       await loadFixture(deployPoolManager);
     expect(
