@@ -1,7 +1,6 @@
-import { CreateChallenge, prepareCreateChallenge } from './lib';
+import { prepareCreateChallenge } from './lib';
 import { loadFixture } from "@nomicfoundation/hardhat-toolbox/network-helpers";
-import IgniteTestModule from "../ignition/modules/test/IgniteTest";
-import { ethers, ignition } from "hardhat";
+import { ethers } from "hardhat";
 import { expect } from "chai";
 import { toUtf8Bytes } from "ethers";
 import { btcEvent } from './mock';
@@ -644,4 +643,14 @@ describe("ChallengePoolManager", async function () {
        .to.be.revertedWith("no fee to extra");
 
   });
+
+  it("Should return stakeToken", async function() {
+    const {poolManagerProxy} = await loadFixture(deployPoolManager);
+    const token = ethers.Wallet.createRandom();
+    const [tokenAddress, fees, active] = await poolManagerProxy.stakeToken(token);
+    
+    expect(tokenAddress).to.be.properAddress;
+    expect(fees).to.be.a("bigint"); 
+    expect(active).to.be.a("boolean");
+  }); 
 });
