@@ -24,6 +24,7 @@ export async function deploySoccersm() {
     poolDisputeProxy,
     poolManagerProxy,
     poolViewProxy,
+    psProxy,
     paymaster,
   } = await ignition.deploy(IgniteTestModule, { displayUi: false });
   const BallsToken = await ethers.getContractFactory("BallsToken");
@@ -50,6 +51,7 @@ export async function deploySoccersm() {
     poolHandlerProxy,
     poolDisputeProxy,
     poolManagerProxy,
+    psProxy,
     paymaster,
     owner,
     oracle,
@@ -62,7 +64,7 @@ export async function deploySoccersm() {
     oneMil,
     oneGrand,
     poolViewProxy,
-    gelato
+    gelato,
   };
 }
 
