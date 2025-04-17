@@ -1,5 +1,3 @@
-import { BallsToken } from './../typechain-types/contracts/tokens/Balls.sol/BallsToken';
-import { ChallengePoolView } from './../typechain-types/contracts/modules/ChallengePoolView';
 import { prepareCreateChallenge } from "./lib";
 import { loadFixture } from "@nomicfoundation/hardhat-toolbox/network-helpers";
 import { ethers } from "hardhat";
@@ -7,7 +5,7 @@ import { expect } from "chai";
 import { toUtf8Bytes } from "ethers";
 import { btcEvent } from "./mock";
 import { deploySoccersm } from "./SoccersmDeployFixture";
-import { FacetCutAction, functionSelectors } from '../ignition/lib';
+import { FacetCutAction, functionSelectors } from "../ignition/lib";
 
 describe("GelatoHandler", async function () {
   async function deployGelatoHandler() {
@@ -15,6 +13,7 @@ describe("GelatoHandler", async function () {
       poolViewProxy,
       poolHandlerProxy,
       poolManagerProxy,
+      psProxy,
       cutProxy,
       paymaster,
       ballsToken,
@@ -53,6 +52,7 @@ describe("GelatoHandler", async function () {
       poolManagerProxy,
       poolHandlerProxy,
       cutProxy,
+      psProxy,
       paymaster,
       owner,
       user,
@@ -62,55 +62,93 @@ describe("GelatoHandler", async function () {
       oneGrand,
       baller,
       gelatoHandler,
-      gelatoHandlerProxy
+      gelatoHandlerProxy,
     };
   }
 
-  it("Should Deploy and add GelatoHandler to Diamond", async function() {
-    const {gelatoHandler, owner, gelatoHandlerProxy, cutProxy} = await loadFixture(deployGelatoHandler); 
-    expect (await gelatoHandler.getAddress()).to.be.properAddress;
-    
-        expect(gelatoHandlerProxy.interface.hasFunction("createChallengeRelay")).to.be.true;
-        expect(gelatoHandlerProxy.interface.hasFunction("stakeRelay")).to.be.true;
-        expect(gelatoHandlerProxy.interface.hasFunction("withdrawRelay"))
-          .to.be.true;
-        expect(gelatoHandlerProxy.interface.hasFunction("bulkWithdrawRelay")).to
-          .be.true;
-        expect(gelatoHandlerProxy.interface.hasFunction("nonExisting"))
-          .to.be.false;
-  });
+  async function testCreateChallengeRelay(
+    params: {
+      stakeToken?: string;
+      quantity?: number;
+      basePrice?: BigInt;
+      paymaster?: string;
+      deadline?: number;
+      expectedError?: string;
+    },
+    fixture: Awaited<ReturnType<typeof deployGelatoHandler>>
+  ) {
+    const { stakeToken, quantity, basePrice, paymaster, deadline } = params;
 
-  it("Should createChallengeRelay", async function() {
     const {
-      gelatoHandlerProxy,
       ballsToken,
-      oneGrand,
-      baller,
       poolHandlerProxy,
       poolViewProxy,
+      gelatoHandlerProxy,
       poolManagerProxy,
-    } = await loadFixture(deployGelatoHandler);
-    const btcChallenge = btcEvent(
-      await ballsToken.getAddress(),
-      1,
+      baller,
       oneGrand,
-      ethers.ZeroAddress
+    } = fixture;
+
+    // params or defaults
+    const stakeTokenAddress = stakeToken || (await ballsToken.getAddress());
+    const quantityVal = quantity ?? 1;
+    const basePriceVal = basePrice ?? oneGrand;
+    const paymasterVal = paymaster ?? ethers.ZeroAddress;
+
+    // Generate challenge
+    const btcChallenge = btcEvent(
+      stakeTokenAddress,
+      quantityVal,
+      basePriceVal,
+      paymasterVal,
+      deadline
     );
     const preparedBTCChallenge = prepareCreateChallenge(btcChallenge.challenge);
 
+    //fee
+    const fee = (await poolViewProxy.createFee(basePriceVal))[1];
+
+    // Approve fee
     await ballsToken
       .connect(baller)
-      .approve(
-        await poolHandlerProxy.getAddress(),
-        (
-          await poolViewProxy.createFee(oneGrand)
-        )[1]
-      );
+      .approve(await poolHandlerProxy.getAddress(), fee);
 
-    await expect((gelatoHandlerProxy.connect(baller) as any).createChallengeRelay(
-      ...(preparedBTCChallenge as any)
-    )).to.not.be.reverted;
-    expect(await poolManagerProxy.challengeId()).to.equals(1);
-  })
+    return (gelatoHandlerProxy.connect(baller) as any).createChallengeRelay(
+      ...preparedBTCChallenge
+    );
+  }
 
+  it("Should Deploy and add GelatoHandler to Diamond", async function () {
+    const { gelatoHandler, gelatoHandlerProxy } = await loadFixture(
+      deployGelatoHandler
+    );
+    expect(await gelatoHandler.getAddress()).to.be.properAddress;
+    expect(gelatoHandlerProxy.interface.hasFunction("createChallengeRelay")).to
+      .be.true;
+    expect(gelatoHandlerProxy.interface.hasFunction("stakeRelay")).to.be.true;
+    expect(gelatoHandlerProxy.interface.hasFunction("withdrawRelay")).to.be
+      .true;
+    expect(gelatoHandlerProxy.interface.hasFunction("bulkWithdrawRelay")).to.be
+      .true;
+    expect(gelatoHandlerProxy.interface.hasFunction("nonExisting")).to.be.false;
+  });
+
+  it("Should createChallengeRelay", async function () {
+    const fixture = await loadFixture(deployGelatoHandler);
+    await testCreateChallengeRelay({}, fixture);
+    expect(await fixture.poolManagerProxy.challengeId()).to.equals(1);
+  });
+
+  it("Should Reverts for createChallengeRelay", async function () {
+    const fixture = await loadFixture(deployGelatoHandler);
+    //revert for whenNotPaused
+    const { psProxy } = fixture;
+    await psProxy.pause();
+
+    await expect(
+      testCreateChallengeRelay({}, fixture)
+    ).to.be.revertedWithCustomError(psProxy, "Pausable__Paused");
+
+    //revert for nonZero quantity
+  });
 });
