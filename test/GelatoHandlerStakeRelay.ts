@@ -383,7 +383,7 @@ describe("GelatoHandler: stakeRelay, withdrawRelay", async function () {
           await poolViewProxy.createFee(oneGrand)
         )[1]
       );
-    await (poolHandlerProxy.connect(baller) as any).createChallenge(
+    await(poolHandlerProxy.connect(baller) as any).createChallenge(
       ...(preparedETHChallenge as any)
     );
 
@@ -401,7 +401,7 @@ describe("GelatoHandler: stakeRelay, withdrawRelay", async function () {
       .connect(baller)
       .approve(await gelatoHandlerProxy.getAddress(), oneMil);
 
-    await (gelatoHandlerProxy.connect(baller) as any).stakeRelay(
+    await(gelatoHandlerProxy.connect(baller) as any).stakeRelay(
       stakeParams.challengeId,
       stakeParams.prediction,
       stakeParams.quantity,
@@ -413,7 +413,7 @@ describe("GelatoHandler: stakeRelay, withdrawRelay", async function () {
       TopicId.MultiAssetRange,
       [6000, 7000]
     );
-    await (gelatoHandlerProxy.connect(baller) as any).stakeRelay(
+    await(gelatoHandlerProxy.connect(baller) as any).stakeRelay(
       1,
       ethPrediction,
       2,
@@ -444,13 +444,18 @@ describe("GelatoHandler: stakeRelay, withdrawRelay", async function () {
     await registryProxy.provideData(...ethProvideDataPrams);
 
     await poolHandlerProxy.evaluate(1);
-    await time.increase(60*60);
+    await time.increase(60 * 60);
     await poolHandlerProxy.close(1);
 
-
     //bulkwithdraw
+
     await expect(
-      (gelatoHandlerProxy.connect(baller) as any).bulkWithdrawRelay([0,1])
+      (gelatoHandlerProxy.connect(baller) as any).bulkWithdrawRelay([0, 1])
     ).to.not.be.reverted;
+
+    //revert for InvalidChallenge
+    await expect(
+      (gelatoHandlerProxy.connect(baller) as any).bulkWithdrawRelay([2, 3])
+    ).to.be.revertedWithCustomError(gelatoHandlerProxy, "InvalidChallenge");
   });
 });
