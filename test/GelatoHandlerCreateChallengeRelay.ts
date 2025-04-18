@@ -71,8 +71,7 @@ describe("GelatoHandler: createChallengeRelay", async function () {
       gelatoHandlerProxy,
     };
   }
-
-  async function testCreateChallengeRelay(
+ async function testCreateChallengeRelay(
     params: {
       stakeToken?: string;
       quantity?: number;
