@@ -133,7 +133,90 @@ describe("Topic Registry", async function () {
     await expect(
       registryProxy.updateTopic(topicName, newResolver, ethers.ZeroAddress)
     ).to.be.revertedWithCustomError(registryProxy, "ZeroAddress");
-
   });
 
+  it("should disableTopic", async function() {
+    const {registryProxy, oracle, TOPIC_REGISTRAR} = await loadFixture(deployTopicRegistry);
+     const topicName = "TestTopicName";
+     const resolver = ethers.Wallet.createRandom().address;
+     const dataProvider = ethers.Wallet.createRandom().address;
+
+     await expect(registryProxy.createTopic(topicName, resolver, dataProvider))
+       .to.emit(registryProxy, "NewTopic")
+       .withArgs(topicName, resolver, dataProvider, TopicState.active);
+      
+      //disable topic
+      await expect(registryProxy.disableTopic(topicName))
+        .to.emit(registryProxy, "TopicDisabled")
+        .withArgs(topicName, TopicState.disabled);
+        const getTopic = await registryProxy.getTopic(topicName);
+        expect(getTopic[3]).to.equal(TopicState.disabled);
+  })
+
+  it("should revert for disableTopic", async function() {
+    const {registryProxy, oracle, TOPIC_REGISTRAR} = await loadFixture(deployTopicRegistry);
+     const topicName = "TestTopicName";
+     const resolver = ethers.Wallet.createRandom().address;
+     const dataProvider = ethers.Wallet.createRandom().address;
+
+     await expect(registryProxy.createTopic(topicName, resolver, dataProvider))
+       .to.emit(registryProxy, "NewTopic")
+       .withArgs(topicName, resolver, dataProvider, TopicState.active);
+      
+      //disable topic
+      await expect(registryProxy.disableTopic(topicName))
+        .to.emit(registryProxy, "TopicDisabled")
+        .withArgs(topicName, TopicState.disabled);
+        const getTopic = await registryProxy.getTopic(topicName);
+        expect(getTopic[3]).to.equal(TopicState.disabled);
+
+    //revert onlyTopicRegistrar
+    await expect(
+      (registryProxy.connect(oracle) as any).disableTopic(topicName)
+    ).to.be.revertedWith(
+      `AccessControl: account ${oracle.address.toLowerCase()} is missing role ${TOPIC_REGISTRAR}`
+    );
+
+    //revert validTopic
+    await expect(
+      registryProxy.updateTopic("Invalidtopic", resolver, dataProvider)
+    ).to.be.revertedWithCustomError(registryProxy, "InvalidTopic");
+    
+  })
+
+  it.only("should enableTopic", async function() {
+    const {registryProxy, oracle, TOPIC_REGISTRAR} = await loadFixture(deployTopicRegistry);
+     const topicName = "TestTopicName";
+     const resolver = ethers.Wallet.createRandom().address;
+     const dataProvider = ethers.Wallet.createRandom().address;
+
+     await expect(registryProxy.createTopic(topicName, resolver, dataProvider))
+       .to.emit(registryProxy, "NewTopic")
+       .withArgs(topicName, resolver, dataProvider, TopicState.active);
+      
+      //disable topic
+      await expect(registryProxy.disableTopic(topicName))
+        .to.emit(registryProxy, "TopicDisabled")
+        .withArgs(topicName, TopicState.disabled);
+        const getTopic = await registryProxy.getTopic(topicName);
+        expect(getTopic[3]).to.equal(TopicState.disabled);
+
+      //enable topic
+      await expect(registryProxy.enableTopic(topicName))
+        .to.emit(registryProxy, "TopicEnabled")
+        .withArgs(topicName, TopicState.active);
+    const getTopicState = await registryProxy.getTopic(topicName);
+    expect(getTopicState[3]).to.equal(TopicState.active);
+
+    //revert onlyTopicRegistrar
+    await expect(
+      (registryProxy.connect(oracle) as any).enableTopic(topicName)
+    ).to.be.revertedWith(
+      `AccessControl: account ${oracle.address.toLowerCase()} is missing role ${TOPIC_REGISTRAR}`
+    );
+    //revert validTopic
+    await expect(
+      registryProxy.updateTopic("Invalidtopic", resolver, dataProvider)
+    ).to.be.revertedWithCustomError(registryProxy, "InvalidTopic");
+  })
 });
