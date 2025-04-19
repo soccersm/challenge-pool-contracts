@@ -178,3 +178,8 @@ export function computeWinnerShare(
   const tokensPerReward: any = totalLoosersTokens / winningOptionRewards;
   return (winnerRewards * tokensPerReward) as any as BigInt;
 }
+
+export enum TopicState {
+  disabled = 0,
+  active = 1,
+}
