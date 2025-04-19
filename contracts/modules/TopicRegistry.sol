@@ -94,10 +94,10 @@ contract TopicRegistry is ITopicRegistry, SoccersmRoles, Helpers {
         string calldata _topicId
     ) external override validTopic(_topicId) onlyTopicRegistrar {
         TRStore storage t = TRStorage.load();
-        t.registry[_topicId].state = ITopicRegistry.TopicState.disabled;
-        emit ITopicRegistry.TopicDisabled(
+        t.registry[_topicId].state = ITopicRegistry.TopicState.active;
+        emit ITopicRegistry.TopicEnabled(
             _topicId,
-            ITopicRegistry.TopicState.disabled
+            ITopicRegistry.TopicState.active
         );
     }
 
