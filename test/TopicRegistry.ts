@@ -25,6 +25,7 @@ describe("Topic Registry", async function () {
     const TOPIC_REGISTRAR = ethers.keccak256(toUtf8Bytes("TOPIC_REGISTRAR"));
     const ORACLE_ROLE = ethers.keccak256(toUtf8Bytes("ORACLE_ROLE"));
     const SOCCERSM_COUNCIL = ethers.keccak256(toUtf8Bytes("SOCCERSM_COUNCIL"));
+    const DEFAULT_ADMIN_ROLE = ethers.ZeroHash;
     return {
       registryProxy,
       poolViewProxy,
@@ -37,6 +38,7 @@ describe("Topic Registry", async function () {
       TOPIC_REGISTRAR,
       ORACLE_ROLE,
       SOCCERSM_COUNCIL,
+      DEFAULT_ADMIN_ROLE,
     };
   }
   it("Should createTopic", async function () {
@@ -320,6 +322,7 @@ describe("Topic Registry", async function () {
        ballsToken,
        baller,
        ORACLE_ROLE,
+       DEFAULT_ADMIN_ROLE,
      } = await loadFixture(deployTopicRegistry);
 
      const topicName = "TestEventTopicName";
@@ -327,30 +330,37 @@ describe("Topic Registry", async function () {
      const dataProvider = ethers.Wallet.createRandom().address;
      await registryProxy.createTopic(topicName, resolver, dataProvider);
 
-      const ch = ghanaElectionEvent(
-           await ballsToken.getAddress(),
-           1,
-           oneGrand,
-           ethers.ZeroAddress
-         );
+     const ch = ghanaElectionEvent(
+       await ballsToken.getAddress(),
+       1,
+       oneGrand,
+       ethers.ZeroAddress
+     );
 
-         const eventParams = coder.encode(
-             ["string", "string", "uint256", "bytes[]"],
-             [
-               ch.statementId,
-               ch.statement,
-               ch.maturity,
-               ch.options.map((o) => encodeMultiOptionByTopic(ch.topicId, o)),
-             ]
-           )
-         await expect(registryProxy.registerEvent(
-           ch.topicId,
-           eventParams
-         )).to.not.be.reverted;
+     const eventParams = coder.encode(
+       ["string", "string", "uint256", "bytes[]"],
+       [
+         ch.statementId,
+         ch.statement,
+         ch.maturity,
+         ch.options.map((o) => encodeMultiOptionByTopic(ch.topicId, o)),
+       ]
+     );
+     await expect(registryProxy.registerEvent(ch.topicId, eventParams)).to.not
+       .be.reverted;
 
-    //  //revert delegatedCall: invalid assetParams for topicName
-    //  await expect(registryProxy.provideData("AssetPriceBounded", assetParams))
-    //    .to.be.revertedWithCustomError(registryProxy, "DelegateCallFailed")
-    //    .withArgs("TopicRegistry.provideData");
+     await expect(
+       (registryProxy.connect(baller) as any).registerEvent(
+         ch.topicId,
+         eventParams
+       )
+     ).to.be.revertedWith(
+       `AccessControl: account ${baller.address.toLowerCase()} is missing role ${DEFAULT_ADMIN_ROLE}`
+     );
+
+     //revert delegatedCall: invalid assetParams for topicName
+     await expect(registryProxy.registerEvent("AssetPriceBounded", eventParams))
+       .to.be.revertedWithCustomError(registryProxy, "DelegateCallFailed")
+       .withArgs("TopicRegistry.registerEvent");
   })
 });
