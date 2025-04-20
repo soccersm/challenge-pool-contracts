@@ -1,3 +1,5 @@
+import { GetContractTypeFromFactory } from "./../typechain-types/common";
+
 import { toUtf8Bytes } from "ethers";
 import {
   loadFixture,
@@ -7,8 +9,14 @@ import { deploySoccersm } from "./SoccersmDeployFixture";
 import { expect } from "chai";
 import { ethers } from "hardhat";
 import { TopicState } from "./test_helpers";
-import { coder, encodeMultiOptionByTopic, TopicId } from "./lib";
-import { ghanaElectionEvent } from "./mock";
+import {
+  coder,
+  encodeMultiOptionByTopic,
+  prepareAssetPriceProvision,
+  prepareCreateChallenge,
+  TopicId,
+} from "./lib";
+import { btcEvent, ghanaElectionEvent } from "./mock";
 
 describe("Topic Registry", async function () {
   async function deployTopicRegistry() {
@@ -288,16 +296,17 @@ describe("Topic Registry", async function () {
     await expect(registryProxy.provideData(topicName, assetParams)).to.not.be
       .reverted;
 
-   const updateAssetParams = coder.encode(
+    const updateAssetParams = coder.encode(
       ["string", "uint256", "uint256"],
       ["TEST", await time.latest(), 2000000]
     );
-    await expect(
-      registryProxy.updateProvision(topicName, updateAssetParams)
-    ).to.not.be.reverted;
+    await expect(registryProxy.updateProvision(topicName, updateAssetParams)).to
+      .not.be.reverted;
 
     //revert delegatedCall
-    await expect(registryProxy.updateProvision("AssetPriceBounded", updateAssetParams))
+    await expect(
+      registryProxy.updateProvision("AssetPriceBounded", updateAssetParams)
+    )
       .to.be.revertedWithCustomError(registryProxy, "DelegateCallFailed")
       .withArgs("TopicRegistry.updateProvision");
 
@@ -313,54 +322,167 @@ describe("Topic Registry", async function () {
   });
 
   it("Should registerEvent", async function () {
-     const {
-       registryProxy,
-       oracle,
-       poolViewProxy,
-       poolHandlerProxy,
-       oneGrand,
-       ballsToken,
-       baller,
-       ORACLE_ROLE,
-       DEFAULT_ADMIN_ROLE,
-     } = await loadFixture(deployTopicRegistry);
+    const {
+      registryProxy,
+      oracle,
+      poolViewProxy,
+      poolHandlerProxy,
+      oneGrand,
+      ballsToken,
+      baller,
+      ORACLE_ROLE,
+      DEFAULT_ADMIN_ROLE,
+    } = await loadFixture(deployTopicRegistry);
 
-     const topicName = "TestEventTopicName";
-     const resolver = ethers.Wallet.createRandom().address;
-     const dataProvider = ethers.Wallet.createRandom().address;
-     await registryProxy.createTopic(topicName, resolver, dataProvider);
+    const topicName = "TestEventTopicName";
+    const resolver = ethers.Wallet.createRandom().address;
+    const dataProvider = ethers.Wallet.createRandom().address;
+    await registryProxy.createTopic(topicName, resolver, dataProvider);
 
-     const ch = ghanaElectionEvent(
-       await ballsToken.getAddress(),
-       1,
-       oneGrand,
-       ethers.ZeroAddress
-     );
+    const ch = ghanaElectionEvent(
+      await ballsToken.getAddress(),
+      1,
+      oneGrand,
+      ethers.ZeroAddress
+    );
 
-     const eventParams = coder.encode(
-       ["string", "string", "uint256", "bytes[]"],
-       [
-         ch.statementId,
-         ch.statement,
-         ch.maturity,
-         ch.options.map((o) => encodeMultiOptionByTopic(ch.topicId, o)),
-       ]
-     );
-     await expect(registryProxy.registerEvent(ch.topicId, eventParams)).to.not
-       .be.reverted;
+    const eventParams = coder.encode(
+      ["string", "string", "uint256", "bytes[]"],
+      [
+        ch.statementId,
+        ch.statement,
+        ch.maturity,
+        ch.options.map((o) => encodeMultiOptionByTopic(ch.topicId, o)),
+      ]
+    );
+    await expect(registryProxy.registerEvent(ch.topicId, eventParams)).to.not.be
+      .reverted;
 
-     await expect(
-       (registryProxy.connect(baller) as any).registerEvent(
-         ch.topicId,
-         eventParams
-       )
-     ).to.be.revertedWith(
-       `AccessControl: account ${baller.address.toLowerCase()} is missing role ${DEFAULT_ADMIN_ROLE}`
-     );
+    await expect(
+      (registryProxy.connect(baller) as any).registerEvent(
+        ch.topicId,
+        eventParams
+      )
+    ).to.be.revertedWith(
+      `AccessControl: account ${baller.address.toLowerCase()} is missing role ${DEFAULT_ADMIN_ROLE}`
+    );
 
-     //revert delegatedCall: invalid assetParams for topicName
-     await expect(registryProxy.registerEvent("AssetPriceBounded", eventParams))
-       .to.be.revertedWithCustomError(registryProxy, "DelegateCallFailed")
-       .withArgs("TopicRegistry.registerEvent");
-  })
+    //revert delegatedCall: invalid assetParams for topicName
+    await expect(registryProxy.registerEvent("AssetPriceBounded", eventParams))
+      .to.be.revertedWithCustomError(registryProxy, "DelegateCallFailed")
+      .withArgs("TopicRegistry.registerEvent");
+  });
+
+  it("Should getData", async function () {
+    const {
+      registryProxy,
+      ballsToken,
+      oneGrand,
+      baller,
+      poolHandlerProxy,
+      poolViewProxy,
+    } = await loadFixture(deployTopicRegistry);
+
+    const btcChallenge = btcEvent(
+      await ballsToken.getAddress(),
+      1,
+      oneGrand,
+      ethers.ZeroAddress
+    );
+    const preparedBTCChallenge = prepareCreateChallenge(btcChallenge.challenge);
+
+    await ballsToken
+      .connect(baller)
+      .approve(
+        await poolHandlerProxy.getAddress(),
+        (
+          await poolViewProxy.createFee(oneGrand)
+        )[1]
+      );
+
+    await expect(
+      (poolHandlerProxy.connect(baller) as any).createChallenge(
+        ...(preparedBTCChallenge as any)
+      )
+    ).to.not.be.reverted;
+
+    //register
+    await time.increaseTo(btcChallenge.maturity);
+    const assetPrice = 11000000;
+    const provideDataParams = prepareAssetPriceProvision(
+      btcChallenge.assetSymbol,
+      btcChallenge.maturity,
+      assetPrice
+    );
+    await registryProxy.provideData(...provideDataParams);
+    await expect(registryProxy.getData(...provideDataParams)).to.not.be
+      .reverted;
+
+    const invalidDataParams = coder.encode(
+      ["string", "uint256", "uint256"],
+      ["BBB", 100, 100]
+    );
+    //revert delegateCall
+    await expect(registryProxy.getData("Statement", invalidDataParams))
+      .to.be.revertedWithCustomError(registryProxy, "DelegateCallFailed")
+      .withArgs("TopicRegistry.getData");
+  });
+
+  it("Should hasData", async function () {
+    const {
+      registryProxy,
+      ballsToken,
+      oneGrand,
+      baller,
+      poolHandlerProxy,
+      poolViewProxy,
+    } = await loadFixture(deployTopicRegistry);
+
+    const btcChallenge = btcEvent(
+      await ballsToken.getAddress(),
+      1,
+      oneGrand,
+      ethers.ZeroAddress
+    );
+    const preparedBTCChallenge = prepareCreateChallenge(btcChallenge.challenge);
+
+    await ballsToken
+      .connect(baller)
+      .approve(
+        await poolHandlerProxy.getAddress(),
+        (
+          await poolViewProxy.createFee(oneGrand)
+        )[1]
+      );
+
+    await expect(
+      (poolHandlerProxy.connect(baller) as any).createChallenge(
+        ...(preparedBTCChallenge as any)
+      )
+    ).to.not.be.reverted;
+
+    //register
+    await time.increaseTo(btcChallenge.maturity);
+    const assetPrice = 11000000;
+    const provideDataParams = prepareAssetPriceProvision(
+      btcChallenge.assetSymbol,
+      btcChallenge.maturity,
+      assetPrice
+    );
+    await registryProxy.provideData(...provideDataParams);
+    const [topicId, params] = provideDataParams;
+    await expect(registryProxy.hasData(topicId, params)).to.not.be.reverted;
+    const hasData = await registryProxy.hasData.staticCall(topicId, params);
+
+    expect(hasData).to.equal(true);
+
+    const invalidDataParams = coder.encode(
+      ["string", "uint256", "uint256"],
+      ["BBB", 100, 100]
+    );
+    //revert delegateCall
+    await expect(registryProxy.hasData("Statement", invalidDataParams))
+      .to.be.revertedWithCustomError(registryProxy, "DelegateCallFailed")
+      .withArgs("TopicRegistry.hasData");
+  });
 });
