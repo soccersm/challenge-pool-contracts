@@ -7,7 +7,8 @@ import { deploySoccersm } from "./SoccersmDeployFixture";
 import { expect } from "chai";
 import { ethers } from "hardhat";
 import { TopicState } from "./test_helpers";
-import { coder } from "./lib";
+import { coder, encodeMultiOptionByTopic, TopicId } from "./lib";
+import { ghanaElectionEvent } from "./mock";
 
 describe("Topic Registry", async function () {
   async function deployTopicRegistry() {
@@ -308,4 +309,48 @@ describe("Topic Registry", async function () {
       `AccessControl: account ${baller.address.toLowerCase()} is missing role ${SOCCERSM_COUNCIL}`
     );
   });
+
+  it("Should registerEvent", async function () {
+     const {
+       registryProxy,
+       oracle,
+       poolViewProxy,
+       poolHandlerProxy,
+       oneGrand,
+       ballsToken,
+       baller,
+       ORACLE_ROLE,
+     } = await loadFixture(deployTopicRegistry);
+
+     const topicName = "TestEventTopicName";
+     const resolver = ethers.Wallet.createRandom().address;
+     const dataProvider = ethers.Wallet.createRandom().address;
+     await registryProxy.createTopic(topicName, resolver, dataProvider);
+
+      const ch = ghanaElectionEvent(
+           await ballsToken.getAddress(),
+           1,
+           oneGrand,
+           ethers.ZeroAddress
+         );
+
+         const eventParams = coder.encode(
+             ["string", "string", "uint256", "bytes[]"],
+             [
+               ch.statementId,
+               ch.statement,
+               ch.maturity,
+               ch.options.map((o) => encodeMultiOptionByTopic(ch.topicId, o)),
+             ]
+           )
+         await expect(registryProxy.registerEvent(
+           ch.topicId,
+           eventParams
+         )).to.not.be.reverted;
+
+    //  //revert delegatedCall: invalid assetParams for topicName
+    //  await expect(registryProxy.provideData("AssetPriceBounded", assetParams))
+    //    .to.be.revertedWithCustomError(registryProxy, "DelegateCallFailed")
+    //    .withArgs("TopicRegistry.provideData");
+  })
 });
