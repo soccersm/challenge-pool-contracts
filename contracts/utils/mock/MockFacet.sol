@@ -12,8 +12,4 @@ contract MockFacet {
     function setNumber(uint256 _number) external {
         number = _number;
     }
-
-    function doubleNumber() external {
-        number *= 2;
-    }
 }
