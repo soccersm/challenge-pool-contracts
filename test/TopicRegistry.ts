@@ -1,4 +1,3 @@
-import { GetContractTypeFromFactory } from "./../typechain-types/common";
 
 import { toUtf8Bytes } from "ethers";
 import {
@@ -14,7 +13,6 @@ import {
   encodeMultiOptionByTopic,
   prepareAssetPriceProvision,
   prepareCreateChallenge,
-  TopicId,
 } from "./lib";
 import { btcEvent, ghanaElectionEvent } from "./mock";
 
@@ -324,13 +322,9 @@ describe("Topic Registry", async function () {
   it("Should registerEvent", async function () {
     const {
       registryProxy,
-      oracle,
-      poolViewProxy,
-      poolHandlerProxy,
       oneGrand,
       ballsToken,
       baller,
-      ORACLE_ROLE,
       DEFAULT_ADMIN_ROLE,
     } = await loadFixture(deployTopicRegistry);
 
