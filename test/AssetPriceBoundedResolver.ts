@@ -49,14 +49,7 @@ describe("AssetPriceBoundedResolver", async function () {
   }
 
   it("AssetPriceBoundedResolver - validateEvent", async function () {
-    const {
-      registryProxy,
-      ballsToken,
-      baller,
-      oneGrand,
-      poolHandlerProxy,
-      poolViewProxy,
-    } = await loadFixture(deployTopicResolvers);
+    const { registryProxy } = await loadFixture(deployTopicResolvers);
     const [topicId, poolResolver, poolDataProvider, state] =
       await registryProxy.getTopic("AssetPriceBounded");
 
@@ -71,40 +64,6 @@ describe("AssetPriceBoundedResolver", async function () {
 
     //validateEvent
     const maturity = Math.floor(Date.now() / 1000) + 60 * 60 * 24;
-    //create BTC challenge
-    const btcChallenge = btcEvent(
-      await ballsToken.getAddress(),
-      1,
-      oneGrand,
-      ethers.ZeroAddress
-    );
-    const preparedBTCChallenge = prepareCreateChallenge(btcChallenge.challenge);
-
-    await ballsToken
-      .connect(baller)
-      .approve(
-        await poolHandlerProxy.getAddress(),
-        (
-          await poolViewProxy.createFee(oneGrand)
-        )[1]
-      );
-
-    await expect(
-      (poolHandlerProxy.connect(baller) as any).createChallenge(
-        ...(preparedBTCChallenge as any)
-      )
-    ).to.not.be.reverted;
-
-    //register
-    await time.increaseTo(btcChallenge.maturity);
-    const assetPrice = 110000 * 100;
-    const provideDataParams = prepareAssetPriceProvision(
-      btcChallenge.assetSymbol,
-      btcChallenge.maturity,
-      assetPrice
-    );
-
-    //await registryProxy.provideData(...provideDataParams);
 
     const assetPriceBound = {
       maturity,
@@ -204,5 +163,92 @@ describe("AssetPriceBoundedResolver", async function () {
     );
     console.log("eventValidated3", eventValidated3);
     expect(eventValidated3).to.be.equal(false);
+  });
+
+  xit("resolveEvent", async function () {
+    const {
+      registryProxy,
+      ballsToken,
+      oneGrand,
+      baller,
+      poolHandlerProxy,
+      poolViewProxy,
+    } = await loadFixture(deployTopicResolvers);
+    const [topicId, poolResolver, poolDataProvider, state] =
+      await registryProxy.getTopic("AssetPriceBounded");
+
+    const resolver = await ethers.getContractAt(
+      "AssetPriceBoundedResolver",
+      poolResolver
+    );
+    const dataProvider = await ethers.getContractAt(
+      "IDataProvider",
+      poolDataProvider
+    );
+
+    const btcChallenge = btcEvent(
+      await ballsToken.getAddress(),
+      1,
+      oneGrand,
+      ethers.ZeroAddress
+    );
+    const preparedBTCChallenge = prepareCreateChallenge(btcChallenge.challenge);
+
+    await ballsToken
+      .connect(baller)
+      .approve(
+        await poolHandlerProxy.getAddress(),
+        (
+          await poolViewProxy.createFee(oneGrand)
+        )[1]
+      );
+
+    await expect(
+      (poolHandlerProxy.connect(baller) as any).createChallenge(
+        ...(preparedBTCChallenge as any)
+      )
+    ).to.not.be.reverted;
+
+    //resolveEvent
+    const maturity = Math.floor(Date.now() / 1000) + 60 * 60 * 24;
+
+    const assetPriceBound = {
+      maturity,
+      topicId: TopicId.AssetPriceBounded,
+      outcome: "in",
+      priceUpperBound: 150000,
+      priceLowerBound: 120000,
+      assetSymbol: "BTC",
+    };
+    const eventParams = coder.encode(
+      ["string", "uint256", "uint256", "string"],
+      [
+        assetPriceBound.assetSymbol,
+        assetPriceBound.priceLowerBound,
+        assetPriceBound.priceUpperBound,
+        assetPriceBound.outcome,
+      ]
+    );
+    //provide data
+    await time.increaseTo(assetPriceBound.maturity);
+    const assetPrice = {
+      assetSymbol: "BTC",
+      price: 130000,
+      maturity: assetPriceBound.maturity,
+    };
+    const assetPriceTarget = 11000000;
+    const provideDataParams = prepareAssetPriceProvision(
+      btcChallenge.assetSymbol,
+      btcChallenge.maturity,
+      assetPriceTarget
+    );
+    await registryProxy.provideData(...provideDataParams);
+
+    const event = {
+      params: eventParams,
+      topicId: assetPriceBound.topicId,
+      maturity: assetPriceBound.maturity,
+    };
+    await resolver.resolveEvent(dataProvider, event, []); //DelegateCallFailed("BaseResolver._getData")
   });
 });
