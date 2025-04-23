@@ -195,6 +195,7 @@ export function encodeMultiOptionByTopic(
     case TopicId.AssetPriceTarget:
     case TopicId.FootBallCorrectScore:
     case TopicId.FootBallOutcome:
+      // return coder.encode(["string"], [option as StringOption]);
     case TopicId.FootballOverUnder:
     default:
       throw new Error("Invalid Event Topic, must be a multi event");
@@ -416,6 +417,18 @@ export function prepareFootballScoreProvision(
     [matchId, BigInt(homeScore), BigInt(awayScore)]
   );
   return ["FootBallCorrectScore", footballParams];
+}
+
+export function prepareFootballOutcomeProvision(
+  matchId: string,
+  homeScore: number,
+  awayScore: number
+): [string, string] {
+  const params = coder.encode(
+    ["string", "uint256", "uint256"],
+    [matchId, BigInt(homeScore), BigInt(awayScore)]
+  );
+  return ["FootBallOutcome", params];
 }
 
 export function prepareMultiFootballScoreRangeProvision(
