@@ -91,11 +91,27 @@ contract FootBallOutcomeResolver is BaseResolver {
         return HelpersLib.no;
     }
 
-    function validateOptions(
+     function validateOptions(
         IDataProvider /*dataProvider*/,
-        IChallengePoolHandler.ChallengeEvent memory /*_event*/,
-        bytes[] calldata /*_options*/
+        IChallengePoolHandler.ChallengeEvent calldata /*_event*/,
+        bytes[] calldata _options
     ) external pure override returns (bool) {
-        revert NotImplemented();
+        if (_options.length == 0) {
+            return false;
+        }
+        for (uint256 i = 0; i < _options.length; i++) {
+            string memory opt = abi.decode(_options[i], (string));
+            if (
+                !HelpersLib.compareStrings(opt, HelpersLib.HOME) &&
+                !HelpersLib.compareStrings(opt, HelpersLib.AWAY) &&
+                !HelpersLib.compareStrings(opt, HelpersLib.DRAW) &&
+                !HelpersLib.compareStrings(opt, HelpersLib.HOME_DRAW) &&
+                !HelpersLib.compareStrings(opt, HelpersLib.AWAY_DRAW) &&
+                !HelpersLib.compareStrings(opt, HelpersLib.HOME_AWAY)
+            ) {
+                return false;
+            }
+        }
+        return true;
     }
 }
