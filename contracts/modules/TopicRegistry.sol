@@ -119,7 +119,7 @@ contract TopicRegistry is ITopicRegistry, SoccersmRoles, Helpers {
         );
         if (!success) {
             revert DelegateCallFailed("TopicRegistry.provideData");
-        }
+        }   
     }
 
     function updateProvision(

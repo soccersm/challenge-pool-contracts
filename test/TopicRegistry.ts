@@ -13,6 +13,7 @@ import {
   encodeMultiOptionByTopic,
   prepareAssetPriceProvision,
   prepareCreateChallenge,
+  TopicId,
 } from "./lib";
 import { btcEvent, ghanaElectionEvent } from "./mock";
 
