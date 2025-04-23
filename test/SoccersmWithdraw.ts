@@ -17,6 +17,7 @@ import {
   multiOutcome,
   multiTotalExact,
   soccersmEvent,
+  targetEvent,
 } from "./mock";
 import {
   prepareCreateChallenge,
@@ -28,6 +29,11 @@ import {
   ASSET_PRICES_MULTIPLIER,
   prepareFootballScoreProvision,
   yesNo,
+  aboveBelow,
+  prepareAssetPriceTargetEventParam,
+  AssetPriceTargetEvent,
+  AboveBelow,
+  prepareAssetPriceTargetProvision,
 } from "./lib";
 import {
   computeWinnerShare,
@@ -630,6 +636,7 @@ describe("ChallengePool - Withdraw", function () {
       (poolHandlerProxy.connect(striker) as any).withdraw(0)
     ).revertedWithCustomError(poolHandlerProxy, "PlayerDidNotWinPool");
   });
+
   it("MultiFootBallTotalScoreRange", async function () {
     const {
       registryProxy,

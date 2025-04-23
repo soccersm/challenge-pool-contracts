@@ -91,6 +91,7 @@ export type ParamEncodedEventChallenge = {
 };
 
 export type YesNo = "yes" | "no";
+export type AboveBelow = "above" | "below";
 
 export type CreateChallenge = {
   events: EventChallenge[];
@@ -118,6 +119,11 @@ export const yesNo = {
   no: coder.encode(["string"], ["no"]),
 };
 
+export const aboveBelow = {
+  above: coder.encode(["string"], ["above"]),
+  below: coder.encode(["string"], ["below"]),
+};
+
 export const ASSET_PRICES_MULTIPLIER = 100; // multiply all prices by 100
 
 export function prepareCreateChallenge(
@@ -134,6 +140,11 @@ export function prepareCreateChallenge(
     const topicId = create.events[0].topicId;
     prediction = encodeMultiOptionByTopic(topicId, create.prediction);
     options = create.options.map((o) => encodeMultiOptionByTopic(topicId, o));
+  } else if (
+    create.events.length === 1 &&
+    create.events[0].topicId === TopicId.AssetPriceTarget
+  ) {
+    prediction = create.prediction === "above" ? yesNo.yes : yesNo.no;
   } else {
     prediction = yesNo[create.prediction as YesNo];
   }
@@ -369,6 +380,18 @@ export function prepareAssetPriceTargetEventParam(
   };
 }
 
+export function prepareAssetPriceTargetProvision(
+  assetSymbol: string,
+  maturity: number,
+  price: number
+): [string, string] {
+  const params = coder.encode(
+    ["string", "uint256", "uint256"],
+    [assetSymbol, BigInt(maturity), BigInt(price)]
+  );
+  return ["AssetPriceTarget", params];
+}
+
 export function prepareFootballCorrectScoreEventParam(
   ev: FootballCorrectScoreEvent
 ): ParamEncodedEventChallenge {
@@ -395,6 +418,19 @@ export function prepareFootballScoreProvision(
   return ["FootBallCorrectScore", footballParams];
 }
 
+export function prepareMultiFootballScoreRangeProvision(
+  matchId: string,
+  homeScore: number,
+  awayScore: number
+): [string, string] {
+  const params = coder.encode(
+    ["string", "uint256", "uint256"],
+    [matchId, homeScore, awayScore]
+  );
+
+  return ["MultiFootBallTotalScoreRange", params];
+}
+
 export function prepareAssetPriceProvision(
   assetSymbol: string,
   maturity: number,
@@ -415,12 +451,7 @@ export function prepareStatementProvision(
 ): [string, string] {
   const statementParams = coder.encode(
     ["string", "string", "uint256", "bytes"],
-    [
-      statementId,
-      statement,
-      BigInt(maturity),
-      answer,
-    ]
+    [statementId, statement, BigInt(maturity), answer]
   );
   return ["Statement", statementParams];
 }

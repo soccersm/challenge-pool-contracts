@@ -484,3 +484,42 @@ export function soccersmEvent(
     options: ["yes", "no"],
   };
 }
+
+export function targetEvent(
+  stakeToken: string,
+  quantity: number,
+  basePrice: bigint,
+  paymaster: string,
+  deadline?: number
+): {
+  challenge: CreateChallenge;
+  maturity: number;
+  assetSymbol: string;
+} {
+  const maturity = deadline ?? Math.floor(Date.now() / 1_000) + 60 * 60 * 24;
+
+  const assetPriceTarget: AssetPriceTargetEvent = {
+    maturity,
+    topicId: TopicId.AssetPriceTarget,
+    price: 80_000,
+    outcome: "above",
+    assetSymbol: "BTC",
+  };
+
+  const challenge: CreateChallenge = {
+    events: [assetPriceTarget],
+    options: [],
+    stakeToken,
+    prediction: "above",
+    quantity,
+    basePrice,
+    paymaster,
+  };
+
+  return {
+    challenge: challenge,
+    maturity,
+    assetSymbol: "BTC",
+  };
+}
+
