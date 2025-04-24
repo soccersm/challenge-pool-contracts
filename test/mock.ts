@@ -168,7 +168,13 @@ export function assetMatchComboEvent(
   };
 
   const assetMatchCombo: CreateChallenge = {
-    events: [assetPriceBound, assetPriceTarget, footBallCorrectScore, footBallOutcome, footballOverUnder],
+    events: [
+      assetPriceBound,
+      assetPriceTarget,
+      footBallCorrectScore,
+      footBallOutcome,
+      footballOverUnder,
+    ],
     options: [],
     stakeToken,
     prediction: "no",
@@ -520,6 +526,45 @@ export function targetEvent(
     challenge: challenge,
     maturity,
     assetSymbol: "BTC",
+  };
+}
+
+export function footballOutcomeEvent(
+  stakeToken: string,
+  quantity: number,
+  basePrice: bigint,
+  paymaster: string,
+  outcome: "draw" | "home" | "away" | "home-away" | "home-draw" | "away-draw",
+  deadline?: number
+): {
+  challenge: CreateChallenge;
+  maturity: number;
+  matchId: string;
+} {
+  const maturity = deadline ?? Math.floor(Date.now() / 1000) + 60 * 60 * 24;
+
+  const footballOutcome: FootballOutcomeEvent = {
+    maturity,
+    topicId: TopicId.FootBallOutcome,
+    matchId: "qrs",
+    outcome: outcome,
+  };
+
+
+  const challenge: CreateChallenge = {
+    events: [footballOutcome],
+    options: [],
+    stakeToken,
+    prediction: "no",
+    quantity,
+    basePrice,
+    paymaster,
+  };
+
+  return {
+    challenge: challenge,
+    maturity,
+    matchId: "qrs",
   };
 }
 
