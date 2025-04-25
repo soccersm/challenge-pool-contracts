@@ -550,7 +550,6 @@ export function footballOutcomeEvent(
     outcome: outcome,
   };
 
-
   const challenge: CreateChallenge = {
     events: [footballOutcome],
     options: [],
@@ -568,3 +567,42 @@ export function footballOutcomeEvent(
   };
 }
 
+export function footballOverUnderEvent(
+  stakeToken: string,
+  quantity: number,
+  basePrice: bigint,
+  paymaster: string,
+  outcome: "over" | "under",
+  matchId: string,
+  deadline?: number
+): {
+  challenge: CreateChallenge;
+  maturity: number;
+  matchId: string;
+} {
+  const maturity = deadline ?? Math.floor(Date.now() / 1000) + 60 * 60 * 24;
+
+  const ev: FootballOverUnderEvent = {
+    maturity,
+    topicId: TopicId.FootballOverUnder,
+    matchId: matchId,
+    outcome,
+    totalGoals: 4,
+  };
+
+  const challenge: CreateChallenge = {
+    events: [ev],
+    options: [],
+    stakeToken,
+    prediction: "no",
+    quantity,
+    basePrice,
+    paymaster,
+  };
+
+  return {
+    challenge,
+    maturity,
+    matchId: matchId,
+  };
+}
