@@ -147,4 +147,24 @@ describe("StakePaymaster", async function () {
     );
     expect(contractBalanceAfterDrain).to.be.equal(0);
   });
+
+   it("Revert not Implemented", async function () {
+     const { paymaster, owner, ballsToken, user } = await loadFixture(
+       deployAirdropPaymaster
+     );
+     //consent
+     await expect(
+       paymaster.consent(ethers.ZeroAddress, ethers.ZeroAddress, BigInt(100))
+     ).to.be.revertedWithCustomError(paymaster, "NotImplemented");
+
+     //deposit
+     await expect(
+       paymaster.deposit(ethers.ZeroAddress, BigInt(100))
+     ).to.be.revertedWithCustomError(paymaster, "NotImplemented");
+
+     //withdraw
+     await expect(
+       paymaster.withdraw(ethers.ZeroAddress, BigInt(100))
+     ).to.be.revertedWithCustomError(paymaster, "NotImplemented");
+   });
 });

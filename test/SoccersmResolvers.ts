@@ -8,6 +8,7 @@ import { ethers } from "hardhat";
 import { deploySoccersm } from "./SoccersmDeployFixture";
 
 import {
+  footBallCorrectScore,
   footballOutcomeEvent,
   footballOverUnderEvent,
   multiTotalScoreRange,
@@ -24,6 +25,7 @@ import {
   TopicId,
   prepareFootballOutcomeProvision,
   prepareFootballOverUnderProvision,
+  prepareFootballScoreProvision,
 } from "./lib";
 import {
   computeWinnerShare,
@@ -451,9 +453,6 @@ describe("Resolvers", function () {
       .approve(await poolHandlerProxy.getAddress(), oneMil);
 
     //stake
-    await ballsToken
-      .connect(baller)
-      .approve(await poolHandlerProxy.getAddress(), oneMil);
     await (poolHandlerProxy.connect(baller) as any).stake(
       0,
       winningPrediction1,
@@ -715,5 +714,72 @@ describe("Resolvers", function () {
     await expect(
       (poolHandlerProxy.connect(striker) as any).withdraw(0)
     ).revertedWithCustomError(poolHandlerProxy, "PlayerDidNotWinPool");
+  });
+
+  it("Resolve footballCorrectScore: yes prediction", async function () {
+    const {
+      registryProxy,
+      oneGrand,
+      oneMil,
+      baller,
+      ballsToken,
+      poolHandlerProxy,
+      poolViewProxy,
+    } = await loadFixture(deploySoccersm);
+
+    const ch = footBallCorrectScore(
+      await ballsToken.getAddress(),
+      1,
+      oneGrand,
+      ethers.ZeroAddress
+    );
+    const winningPrediction = yesNo.yes;
+    const footballScore = [4, 2];
+
+
+    const prepareFootballCorrectScore = prepareCreateChallenge(ch.challenge);
+    await ballsToken
+      .connect(baller)
+      .approve(
+        await poolHandlerProxy.getAddress(),
+        (
+          await poolViewProxy.createFee(oneGrand)
+        )[1]
+      );
+
+    await (poolHandlerProxy.connect(baller) as any).createChallenge(
+      ...prepareFootballCorrectScore
+    );
+
+    await ballsToken
+      .connect(baller)
+      .approve(await poolHandlerProxy.getAddress(), oneMil);
+
+    //stakes
+    await (poolHandlerProxy.connect(baller) as any).stake(
+      0,
+      winningPrediction,
+      2,
+      ethers.ZeroAddress
+    );
+
+    await time.increaseTo(ch.maturity);
+    const provideDataParams = prepareFootballScoreProvision(
+      ch.matchId,
+      footballScore[0],
+      footballScore[1]
+    );
+    await registryProxy.provideData(...provideDataParams);
+
+    await poolHandlerProxy.evaluate(0);
+    await time.increase(60 * 60);
+    await poolHandlerProxy.close(0);
+    const challenge = await getChallenge(poolViewProxy, 0);
+    console.log(
+      "DecodeOutcome: ",
+      coder.decode(["string"], challenge.outcome),
+      "prediction: ",
+      coder.decode(["string"], winningPrediction)
+    );
   });
 });

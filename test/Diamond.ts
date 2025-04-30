@@ -9,12 +9,18 @@ describe("Diamond", async function () {
     const { soccersm, cutProxy, acProxy, oProxy, psProxy } =
       await ignition.deploy(IgniteTestModule);
     const [owner, user] = await ethers.getSigners();
-
+    const diamondLoupeFacet = await ethers.getContractAt(
+      "DiamondLoupeFacet",
+      await soccersm.getAddress()
+    );
+     const facetAddresses = await diamondLoupeFacet.facetAddresses();
     return {
       soccersm,
       cutProxy,
       oProxy,
       acProxy,
+      diamondLoupeFacet,
+      facetAddresses,
       psProxy,
       owner,
       user,
@@ -97,7 +103,7 @@ describe("Diamond", async function () {
   });
 
   it("Should Allow Removing Facet", async function () {
-    const { cutProxy, owner, user } = await loadFixture(deployDiamond);
+    const { cutProxy, owner } = await loadFixture(deployDiamond);
 
     // Deploy and add facet first
     const MockFacet = await ethers.getContractFactory("MockFacet");
@@ -152,7 +158,7 @@ describe("Diamond", async function () {
   });
 
   it("Ownership: Should Check Owner, Transfer Ownership", async function () {
-    const { cutProxy, oProxy, owner, user } = await loadFixture(deployDiamond);
+    const { oProxy, owner, user } = await loadFixture(deployDiamond);
     const actualOwner = await oProxy.owner();
     expect(actualOwner).to.equal(await owner.getAddress());
 

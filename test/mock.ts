@@ -114,6 +114,44 @@ export function matchEvent(
   };
 }
 
+export function footBallCorrectScore(
+  stakeToken: string,
+  quantity: number,
+  basePrice: BigInt,
+  paymaster: string,
+  deadline?: number
+): {
+  challenge: CreateChallenge;
+  maturity: number;
+  matchId: string;
+} {
+  const maturity = deadline ?? Math.floor(Date.now() / 1000) + 60 * 60 * 24;
+
+  const footBallCorrectScore: FootballCorrectScoreEvent = {
+    maturity,
+    topicId: TopicId.FootBallCorrectScore,
+    matchId: "def",
+    homeScore: 4,
+    awayScore: 2,
+  };
+
+  const matchChallenge: CreateChallenge = {
+    events: [footBallCorrectScore],
+    options: [],
+    stakeToken,
+    prediction: "yes",
+    quantity,
+    basePrice,
+    paymaster,
+  };
+
+  return {
+    challenge: matchChallenge,
+    maturity,
+    matchId: "def",
+  };
+}
+
 export function assetMatchComboEvent(
   stakeToken: string,
   quantity: number,
