@@ -468,3 +468,15 @@ export function prepareStatementProvision(
   );
   return ["Statement", statementParams];
 }
+
+export function prepareFootballOverUnderProvision(
+  matchId: string,
+  homeScore: number,
+  awayScore: number
+): [string, string] {
+  const params = coder.encode(
+    ["string", "uint256", "uint256"],
+    [matchId, BigInt(homeScore), BigInt(awayScore)]
+  );
+  return ["FootballOverUnder", params];
+}

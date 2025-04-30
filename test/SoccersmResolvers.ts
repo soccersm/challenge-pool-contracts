@@ -9,6 +9,7 @@ import { deploySoccersm } from "./SoccersmDeployFixture";
 
 import {
   footballOutcomeEvent,
+  footballOverUnderEvent,
   multiTotalScoreRange,
   targetEvent,
 } from "./mock";
@@ -22,6 +23,7 @@ import {
   encodeMultiOptionByTopic,
   TopicId,
   prepareFootballOutcomeProvision,
+  prepareFootballOverUnderProvision,
 } from "./lib";
 import {
   computeWinnerShare,
@@ -421,11 +423,10 @@ describe("Resolvers", function () {
     );
     console.log("Challenge", ch);
 
-    const winningPrediction1 = yesNo.yes
-    const winningPrediction2 = yesNo.yes
-    const loosingPrediction1 = yesNo.no
-    const loosingPrediction2 = yesNo.no
-
+    const winningPrediction1 = yesNo.yes;
+    const winningPrediction2 = yesNo.yes;
+    const loosingPrediction1 = yesNo.no;
+    const loosingPrediction2 = yesNo.no;
 
     const footballScore = [3, 1];
     const quaterMature = ch.maturity - 60 * 60 * 16;
@@ -512,6 +513,186 @@ describe("Resolvers", function () {
       coder.decode(["string"], challenge.outcome),
       "prediction: ",
       coder.decode(["string"], winningPrediction1)
+    );
+
+    //withdraw
+    await expect((poolHandlerProxy.connect(baller) as any).withdraw(0))
+      .to.emit(poolHandlerProxy, "WinningsWithdrawn")
+      .emit(ballsToken, "Transfer");
+
+    await expect(
+      (poolHandlerProxy.connect(baller) as any).withdraw(0)
+    ).revertedWithCustomError(poolHandlerProxy, "PlayerAlreadyWithdrawn");
+
+    await expect((poolHandlerProxy.connect(keeper) as any).withdraw(0))
+      .to.emit(poolHandlerProxy, "WinningsWithdrawn")
+      .emit(ballsToken, "Transfer");
+
+    await expect(
+      (poolHandlerProxy.connect(keeper) as any).withdraw(0)
+    ).revertedWithCustomError(poolHandlerProxy, "PlayerAlreadyWithdrawn");
+
+    await expect(
+      (poolHandlerProxy.connect(striker) as any).withdraw(0)
+    ).revertedWithCustomError(poolHandlerProxy, "PlayerDidNotWinPool");
+  });
+
+  it("Should resolve footballOverUnder", async function () {
+    const {
+      registryProxy,
+      oneGrand,
+      oneMil,
+      baller,
+      keeper,
+      striker,
+      ballsToken,
+      poolHandlerProxy,
+      poolViewProxy,
+    } = await loadFixture(deploySoccersm);
+    //Setup: Create and Stake a challenge
+    const ch = footballOverUnderEvent(
+      await ballsToken.getAddress(),
+      1,
+      oneGrand,
+      ethers.ZeroAddress,
+      "over",
+      "match_001"
+    );
+    const ch2 = footballOverUnderEvent(
+      await ballsToken.getAddress(),
+      1,
+      oneGrand,
+      ethers.ZeroAddress,
+      "under",
+      "match_002"
+    );
+
+    const winningPrediction1 = yesNo.yes;
+    const winningPrediction2 = yesNo.yes;
+    const loosingPrediction1 = yesNo.no;
+    const loosingPrediction2 = yesNo.no;
+
+    const footballScore = [5, 1];
+    const footballScore2 = [1, 2];
+
+    const quaterMature = ch.maturity - 60 * 60 * 16;
+    const halfMature = ch.maturity - 60 * 60 * 12;
+
+    const prepareFootballOverUnder = prepareCreateChallenge(ch.challenge);
+    console.log("Outcome", prepareFootballOverUnder);
+    await ballsToken
+      .connect(baller)
+      .approve(
+        await poolHandlerProxy.getAddress(),
+        (
+          await poolViewProxy.createFee(oneGrand)
+        )[1]
+      );
+    await (poolHandlerProxy.connect(baller) as any).createChallenge(
+      ...(prepareFootballOverUnder as any)
+    );
+
+    await ballsToken
+      .connect(baller)
+      .approve(await poolHandlerProxy.getAddress(), oneMil);
+
+    const prepareFootballOverUnder2 = prepareCreateChallenge(ch2.challenge);
+    await ballsToken
+      .connect(baller)
+      .approve(
+        await poolHandlerProxy.getAddress(),
+        (
+          await poolViewProxy.createFee(oneGrand)
+        )[1]
+      );
+    await (poolHandlerProxy.connect(baller) as any).createChallenge(
+      ...(prepareFootballOverUnder2 as any)
+    );
+
+    await ballsToken
+      .connect(baller)
+      .approve(await poolHandlerProxy.getAddress(), oneMil);
+
+    //stake
+    await ballsToken
+      .connect(baller)
+      .approve(await poolHandlerProxy.getAddress(), oneMil);
+    await (poolHandlerProxy.connect(baller) as any).stake(
+      0,
+      winningPrediction1,
+      2,
+      ethers.ZeroAddress
+    );
+
+    await time.increaseTo(quaterMature);
+    await ballsToken
+      .connect(striker)
+      .approve(await poolHandlerProxy.getAddress(), oneMil);
+    await (poolHandlerProxy.connect(striker) as any).stake(
+      0,
+      loosingPrediction1,
+      2,
+      ethers.ZeroAddress
+    );
+
+    await time.increaseTo(halfMature);
+    await ballsToken.transfer(keeper, oneMil);
+    await ballsToken
+      .connect(keeper)
+      .approve(await poolHandlerProxy.getAddress(), oneMil);
+
+    await (poolHandlerProxy.connect(keeper) as any).stake(
+      0,
+      winningPrediction2,
+      2,
+      ethers.ZeroAddress
+    );
+
+    await (poolHandlerProxy.connect(striker) as any).stake(
+      0,
+      loosingPrediction2,
+      1,
+      ethers.ZeroAddress
+    );
+
+    await time.increaseTo(ch.maturity);
+    const provideDataParams = prepareFootballOverUnderProvision(
+      ch.matchId,
+      footballScore[0],
+      footballScore[1]
+    );
+    await registryProxy.provideData(...provideDataParams);
+
+    const provideDataParams2 = prepareFootballOverUnderProvision(
+      ch2.matchId,
+      footballScore2[0],
+      footballScore2[1]
+    );
+    await time.increaseTo(ch2.maturity + 3600);
+    await registryProxy.provideData(...provideDataParams2);
+
+    await poolHandlerProxy.evaluate(0);
+    await poolHandlerProxy.evaluate(1);
+    await expect(poolHandlerProxy.close(0)).revertedWithCustomError(
+      poolHandlerProxy,
+      "DisputePeriod"
+    );
+    await time.increase(60 * 60); // dispute period
+    await poolHandlerProxy.close(0);
+    await poolHandlerProxy.close(1);
+    const challenge = await getChallenge(poolViewProxy, 0);
+    const challenge2 = await getChallenge(poolViewProxy, 1);
+    console.log(
+      "DecodeOutcome: ",
+      coder.decode(["string"], challenge.outcome),
+      "prediction: ",
+      coder.decode(["string"], winningPrediction1)
+    );
+    console.log(
+      "DecodeOutcome2: ",
+      coder.decode(["string"], challenge2.outcome),
+      "prediction: ",
+      coder.decode(["string"], winningPrediction2)
     );
 
     //withdraw
