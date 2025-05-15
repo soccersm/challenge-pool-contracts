@@ -148,6 +148,8 @@ export function prepareCreateChallenge(
   } else {
     prediction = yesNo[create.prediction as YesNo];
   }
+  console.log('options',options);
+  
   return [
     events,
     options,

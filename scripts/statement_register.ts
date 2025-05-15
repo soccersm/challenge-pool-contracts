@@ -1,5 +1,6 @@
+import 'dotenv/config';
 import { ethers } from "hardhat";
-import { statements } from "./data/statements";
+import { statements } from "./data/zuafrique";
 
 async function main() {
   const registry = await ethers.getContractAt(
@@ -18,6 +19,8 @@ async function main() {
         s.options.map((o) => coder.encode(["string"], [o])),
       ]
     );
+    console.log(param);
+    
     const tx = await registry.registerEvent("Statement", param);
     await tx.wait();
     console.log(`Just registered statement with id ${s.id}`);

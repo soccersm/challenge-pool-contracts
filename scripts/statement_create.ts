@@ -1,5 +1,6 @@
+import 'dotenv/config';
 import { ethers } from "hardhat";
-import { statements } from "./data/statements";
+import { statements } from "./data/zuafrique";
 import {
   CreateChallenge,
   EventOption,
@@ -28,12 +29,14 @@ async function main() {
     const challenge: CreateChallenge = {
       events: [statement],
       options: opts,
-      stakeToken: process.env.STAKE_TOKEN!,
+      stakeToken: process.env.LSK_TOKEN!,
       prediction: s.prediction,
       quantity: 1,
-      basePrice: BigInt(3e18),
+      basePrice: BigInt(1e18),
       paymaster: ethers.ZeroAddress,
     };
+    console.log(challenge);
+    
     const params = prepareCreateChallenge(challenge);
     console.log(params);
     
