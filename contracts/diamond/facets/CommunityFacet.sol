@@ -135,4 +135,24 @@ contract CommunityFacet is
         }
         emit MemberRemoved(_communityId, _user);
     }
+
+    function transferCommunityOwner(
+        uint256 _communityId,
+        address _owner
+    )
+        external
+        override
+        onlyCommunityOwner(_communityId)
+        positiveAddress(_owner)
+        communityExists(_communityId)
+        isCommunityMember(_communityId, _owner)
+    {
+        CommunityStore storage s = CommunityStorage.load();
+        ICommunityFacet.Community storage community = s.communities[
+            _communityId
+        ];
+        require(_owner != msg.sender, "Cannot transfer to current owner");
+        community.owner = _owner;
+        emit CommunityOwnerTransferred(_communityId, msg.sender, _owner);
+    }
 }
