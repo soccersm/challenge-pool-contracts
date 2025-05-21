@@ -11,6 +11,8 @@ import "../interfaces/IChallengePoolDispute.sol";
 
 import "../interfaces/IDataProvider.sol";
 
+import "../diamond/interfaces/ICommunityFacet.sol";
+
 struct TRStore {
     mapping(string => ITopicRegistry.Topic) registry;
 }
@@ -94,6 +96,22 @@ library AirDropStorage {
 
     function load() internal pure returns (AirDropStore storage s) {
         bytes32 position = AIRDROP_STORAGE_POSITION;
+        assembly {
+            s.slot := position
+        }
+    }
+}
+struct CommunityStore{
+    uint256 nextCommunityId;
+    mapping(uint256 => ICommunityFacet.Community) communities; 
+    mapping(uint256 => mapping(address => bool)) isMember;
+}
+
+library CommunityStorage {
+    bytes32 constant COMMUNITY_STORAGE_POSITION = keccak256("soccersm.community.storage");
+
+    function load() internal pure returns (CommunityStore storage s) {
+        bytes32 position = COMMUNITY_STORAGE_POSITION;
         assembly {
             s.slot := position
         }
