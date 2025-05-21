@@ -22,7 +22,8 @@ abstract contract ICommunityFacet {
     event AdminRemoved(uint256 communityId, address caller, address admin);
     event MemberJoined(uint256 communityId, address member, uint256 timeAt);
     event MemberRemoved(uint256 communityId, address member);
-
+    event CommunityOwnerTransferred(uint256 _communityId, address oldOwner, address newOwner);
+    
     error CommunityIsBanned();
     error NotCommunityAdmin();
     error NotCommunityMember();
@@ -77,5 +78,17 @@ abstract contract ICommunityFacet {
     function removeCommunityMember(
         uint256 _communityId,
         address _user
+    ) external virtual;
+
+    /**
+     * @notice Transfers ownership of the specified community to a new owner.
+     * @dev Only callable by the current owner or an authorized entity.
+     * @param _communityId The unique identifier of the community whose ownership is being transferred.
+     * @param _owner The address of the new owner to transfer ownership to.
+     */
+
+    function transferCommunityOwner(
+        uint256 _communityId,
+        address _owner
     ) external virtual;
 }
