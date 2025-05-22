@@ -39,7 +39,7 @@ abstract contract CommunityFacetHelpers {
         }
 
         bool isAdmin = false;
-        for (uint256 i = 0; i < community.admins.length; i++) {
+        for (uint i = 0; i < community.admins.length; i++) {
             if (msg.sender == community.admins[i]) {
                 isAdmin = true;
                 break;
@@ -60,7 +60,7 @@ abstract contract CommunityFacetHelpers {
             _communityId
         ];
         bool isAdmin = false;
-        for (uint256 i = 0; i < community.admins.length; i++) {
+        for (uint i = 0; i < community.admins.length; i++) {
             if (msg.sender == community.admins[i]) {
                 isAdmin = true;
                 break;
@@ -102,7 +102,7 @@ abstract contract CommunityFacetHelpers {
             _communityId
         ];
         bool found = false;
-        for (uint256 i = 0; i < community.admins.length; i++) {
+        for (uint i = 0; i < community.admins.length; i++) {
             if (_admin == community.admins[i]) {
                 found = true;
                 break;
@@ -119,7 +119,7 @@ abstract contract CommunityFacetHelpers {
          ICommunityFacet.Community storage community = s.communities[
             _communityId
         ];
-        for (uint256 i = 0; i < community.admins.length; i++) {
+        for (uint i = 0; i < community.admins.length; i++) {
             if (_admin == community.admins[i]) {
                 revert ICommunityFacet.AlreadyCommunityAdmin(_communityId, _admin);
                 break;
