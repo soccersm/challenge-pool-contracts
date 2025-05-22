@@ -95,7 +95,9 @@ abstract contract IChallengePoolHandler is IChallengePoolCommon {
         bytes calldata _prediction,
         uint256 _quantity,
         uint256 _basePrice,
-        address _paymaster
+        address _paymaster,
+        uint256 _communityId,
+        ChallengeType _cType
     ) external virtual;
     /**
      * @notice  .
