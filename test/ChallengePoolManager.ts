@@ -628,7 +628,7 @@ describe("ChallengePoolManager", async function () {
     const btcChallenge = btcEvent(
       await ballsToken.getAddress(),
       1,
-      oneGrand,
+      oneGrand, 
       ethers.ZeroAddress
     );
     const preparedBTCChallenge = prepareCreateChallenge(btcChallenge.challenge);
