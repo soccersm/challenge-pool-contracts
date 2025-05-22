@@ -101,6 +101,7 @@ library AirDropStorage {
         }
     }
 }
+//map admins too
 struct CommunityStore{
     uint256 nextCommunityId;
     mapping(uint256 => ICommunityFacet.Community) communities; 
