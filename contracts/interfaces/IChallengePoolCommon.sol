@@ -13,6 +13,10 @@ abstract contract IChallengePoolCommon {
         settled,
         disputed
     }
+    enum ChallengeType {
+        standard,
+        custom
+    }
     struct Challenge {
         ChallengeState state;
         bool multi;
@@ -25,6 +29,8 @@ abstract contract IChallengePoolCommon {
         bytes[] options;
         bool disputed;
         uint256 lastOutcomeSet;
+        uint256 communityId;
+        ChallengeType cType; 
     }
 
     struct ChallengeEvent {
