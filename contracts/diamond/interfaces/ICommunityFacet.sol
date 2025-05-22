@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.28;
-
+import "../../interfaces/IChallengePoolHandler.sol";
 abstract contract ICommunityFacet {
     struct Community {
         string name;
@@ -22,8 +22,18 @@ abstract contract ICommunityFacet {
     event AdminRemoved(uint256 communityId, address caller, address admin);
     event MemberJoined(uint256 communityId, address member, uint256 timeAt);
     event MemberRemoved(uint256 communityId, address member);
-    event CommunityOwnerTransferred(uint256 _communityId, address oldOwner, address newOwner);
-    
+    event CommunityOwnerTransferred(
+        uint256 _communityId,
+        address oldOwner,
+        address newOwner
+    );
+    event EvaluateCommunityChallenge(
+        uint256 challengeId,
+        address evaluator,
+        IChallengePoolHandler.ChallengeState state,
+        bytes result
+    );
+
     error CommunityIsBanned();
     error NotCommunityAdmin();
     error NotCommunityMember();
@@ -31,6 +41,7 @@ abstract contract ICommunityFacet {
     error NotCommunityOwnerOrAdmin(uint256 id, address caller);
     error CommunityDoesNotExist(uint256 id);
     error AlreadyCommunityAdmin(uint256 id, address admin);
+    error CustomChallengeRequiresCommunity();
 
     /**
      * @dev Creates a new community with the specified name.
@@ -90,5 +101,10 @@ abstract contract ICommunityFacet {
     function transferCommunityOwner(
         uint256 _communityId,
         address _owner
+    ) external virtual;
+
+    function evaluateCustomChallenge(
+        uint256 _challengeId,
+        bytes memory _results
     ) external virtual;
 }
