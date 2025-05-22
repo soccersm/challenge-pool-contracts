@@ -6,12 +6,16 @@ import "../../libraries/LibData.sol";
 import "../../utils/CommunityFacetHelpers.sol";
 import "../../utils/Helpers.sol";
 import "../interfaces/SoccersmRoles.sol";
+import "../../interfaces/IChallengePoolCommon.sol";
+import "../../utils/ChallengePoolHelpers.sol";
 
 contract CommunityFacet is
     ICommunityFacet,
     CommunityFacetHelpers,
     Helpers,
-    SoccersmRoles
+    SoccersmRoles,
+    IChallengePoolCommon,
+    ChallengePoolHelpers
 {
     function createCommunity(
         string memory _name
@@ -70,7 +74,7 @@ contract CommunityFacet is
             _communityId
         ];
         uint256 adminLength = community.admins.length;
-        for (uint256 i = 0; i < adminLength; i++) {
+        for (uint i = 0; i < adminLength; i++) {
             if (_admin == community.admins[i]) {
                 community.admins[i] = community.admins[adminLength - 1];
                 community.admins.pop();
@@ -154,5 +158,41 @@ contract CommunityFacet is
         require(_owner != msg.sender, "Cannot transfer to current owner");
         community.owner = _owner;
         emit CommunityOwnerTransferred(_communityId, msg.sender, _owner);
+    }
+
+    function evaluateCustomChallenge(
+        uint256 _challengeId,
+        bytes memory _results
+    ) external override poolInState(_challengeId, ChallengeState.matured){
+        CommunityStore storage cs = CommunityStorage.load();
+        CPStore storage s = CPStorage.load();
+        IChallengePool.Challenge storage challenge = s.challenges[_challengeId];
+        uint256 communityId = challenge.communityId;
+        ICommunityFacet.Community storage community = cs.communities[
+            communityId
+        ];
+        if (challenge.cType != ChallengeType.custom) {
+            revert CustomChallengeRequiresCommunity();
+        }
+        if (community.owner == address(0)) {
+            revert CommunityDoesNotExist(communityId);
+        }
+        if (community.banned) {
+            revert CommunityIsBanned();
+        }
+        bool isAdmin = false;
+        for (uint i = 0; i < community.admins.length; i++) {
+            if (msg.sender == community.admins[i]) {
+                isAdmin = true;
+                break;
+            }
+        }
+        if (!isAdmin) {
+            revert ICommunityFacet.NotCommunityAdmin();
+        }
+        challenge.outcome = _results;
+        challenge.lastOutcomeSet = block.timestamp; 
+        challenge.state = ChallengeState.evaluated;
+        emit EvaluateCommunityChallenge(_challengeId, msg.sender, ChallengeState.evaluated, _results);
     }
 }
