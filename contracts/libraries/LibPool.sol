@@ -23,7 +23,7 @@ library LibPool {
         uint256 _totalAmount,
         uint256 _fee,
         address _caller,
-        uint256 _communityId,
+        string calldata _communityId,
         IChallengePoolCommon.ChallengeType _cType
     ) internal {
         CPStore storage s = CPStorage.load();
@@ -86,7 +86,9 @@ library LibPool {
             _events,
             _options,
             _stakeToken,
-            _multi
+            _multi,
+            _communityId,
+            _cType
         );
         s.challengeId += 1;
     }

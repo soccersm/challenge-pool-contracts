@@ -11,7 +11,7 @@ import "../interfaces/IChallengePoolDispute.sol";
 
 import "../interfaces/IDataProvider.sol";
 
-import "../diamond/interfaces/ICommunityFacet.sol";
+import "../interfaces/ICommunity.sol";
 
 struct TRStore {
     mapping(string => ITopicRegistry.Topic) registry;
@@ -103,9 +103,9 @@ library AirDropStorage {
 }
 //map admins too
 struct CommunityStore{
-    uint256 nextCommunityId;
-    mapping(uint256 => ICommunityFacet.Community) communities; 
-    mapping(uint256 => mapping(address => bool)) isMember;
+    mapping(string => ICommunity.Community) communities; 
+    mapping(string => mapping(address => bool)) isMember;
+    mapping(string => mapping(address => bool)) isAdmin;
 }
 
 library CommunityStorage {

@@ -35,7 +35,9 @@ abstract contract IChallengePoolHandler is IChallengePoolCommon {
         ChallengeEvent[] events,
         bytes[] options,
         address stakeToken,
-        bool multi
+        bool multi,
+        string communityId,
+        ChallengeType cType
     );
     event Stake(
         uint256 challengeId,
@@ -98,7 +100,7 @@ abstract contract IChallengePoolHandler is IChallengePoolCommon {
         uint256 _quantity,
         uint256 _basePrice,
         address _paymaster,
-        uint256 _communityId,
+        string calldata _communityId,
         ChallengeType _cType
     ) external virtual;
     /**

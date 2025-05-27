@@ -38,7 +38,9 @@ contract GelatoHandler is
         bytes calldata _prediction,
         uint256 _quantity,
         uint256 _basePrice,
-        address _paymaster
+        address _paymaster,
+        string calldata _communityId,
+        ChallengeType _cType
     )
         external
         override
@@ -51,6 +53,26 @@ contract GelatoHandler is
         validPrediction(_prediction)
     {
         CPStore storage s = CPStorage.load();
+        CommunityStore storage cs = CommunityStorage.load();
+        ICommunity.Community storage community = cs.communities[
+            _communityId
+        ];
+        if (bytes(_communityId).length == 0) {
+            if (_cType != ChallengeType.standard) {
+                revert ICommunity.CustomChallengeRequiresCommunity();
+            }
+        } else {
+            if (community.owner == address(0)) {
+                revert ICommunity.CommunityDoesNotExist(_communityId);
+            }
+            if (community.banned) {
+                revert ICommunity.CommunityIsBanned();
+            }
+            if (!cs.isAdmin[_communityId][msg.sender]) {
+                revert ICommunity.NotCommunityAdmin();
+            }
+        }
+
         if (_events.length < 1) {
             revert InvalidEventLength();
         }
@@ -60,6 +82,84 @@ contract GelatoHandler is
         if (_options.length > s.maxOptionsPerPool) {
             revert InvalidOptionsLength();
         }
+        //!Don't validate for custom challenges
+        if (_cType == ChallengeType.custom) {
+            bytes[] memory customPoolOptions;
+            bool customMulti;
+            if (_options.length == 0) {
+                customMulti = false;
+                customPoolOptions = HelpersLib.yesNoOptions();
+            } else {
+                customMulti = true;
+                if (_options.length < 2) {
+                    revert InvalidOptionsLength();
+                }
+                if (_events.length > 1) {
+                    revert InvalidEventLength();
+                }
+                customPoolOptions = _options;
+            }
+            bool customPredictionExists = false;
+            for (uint i = 0; i < customPoolOptions.length; i++) {
+                if (
+                    HelpersLib.compareBytes(
+                        HelpersLib.emptyBytes,
+                        customPoolOptions[i]
+                    )
+                ) {
+                    revert InvalidPoolOption();
+                }
+                if (
+                    HelpersLib.compareBytes(_prediction, customPoolOptions[i])
+                ) {
+                    customPredictionExists = true;
+                }
+                s
+                .optionSupply[s.challengeId][keccak256(customPoolOptions[i])]
+                    .exists = true;
+            }
+            if (!customPredictionExists) {
+                revert InvalidPrediction();
+            }
+            uint256 customMaturity = HelpersLib.largestInt;
+            for (uint i = 0; i < _events.length; i++) {
+                if (
+                    _events[i].maturity <
+                    (block.timestamp + s.minMaturityPeriod)
+                ) {
+                    revert InvalidEventMaturity();
+                }
+                if (customMaturity > _events[i].maturity) {
+                    customMaturity = _events[i].maturity;
+                }
+            }
+            uint256 customTotalAmount = _basePrice * _quantity;
+            uint256 customFee = LibPrice._computeCreateFee(customTotalAmount);
+            LibPool._recordFee(_stakeToken, customFee);
+
+            LibPool._initPool(
+                _stakeToken,
+                _events,
+                customPoolOptions,
+                customMulti,
+                _prediction,
+                customMaturity,
+                _basePrice,
+                _quantity,
+                customTotalAmount,
+                customFee,
+                msg.sender,
+                _communityId,
+                _cType
+            );
+            LibTransfer._depositOrPaymaster(
+                _paymaster,
+                _stakeToken,
+                customTotalAmount + customFee,
+                msg.sender
+            );
+        }
+
         TRStore storage t = TRStorage.load();
         bytes[] memory poolOptions;
         bool multi;
@@ -110,9 +210,9 @@ contract GelatoHandler is
             }
             LibPool._validateEvent(t, _events[i]);
         }
-        uint256 fee = LibPrice._computeCreateFee(_basePrice);
-        LibPool._recordFee(_stakeToken, fee);
         uint256 totalAmount = _basePrice * _quantity;
+        uint256 fee = LibPrice._computeCreateFee(totalAmount);
+        LibPool._recordFee(_stakeToken, fee);
 
         LibPool._initPool(
             _stakeToken,
@@ -125,13 +225,15 @@ contract GelatoHandler is
             _quantity,
             totalAmount,
             fee,
-            _msgSender()
+            msg.sender,
+            _communityId,
+            _cType
         );
         LibTransfer._depositOrPaymaster(
             _paymaster,
             _stakeToken,
             totalAmount + fee,
-            _msgSender()
+            msg.sender
         );
     }
 

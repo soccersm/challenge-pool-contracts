@@ -19,7 +19,7 @@ import "./TopicRegistry.sol";
 
 import "../diamond/interfaces/SoccersmRoles.sol";
 import "../utils/ChallengePoolHelpers.sol";
-import "../diamond/interfaces/ICommunityFacet.sol";
+import "../interfaces/ICommunity.sol";
 
 contract ChallengePoolHandler is
     IChallengePoolHandler,
@@ -37,7 +37,7 @@ contract ChallengePoolHandler is
         uint256 _quantity,
         uint256 _basePrice,
         address _paymaster,
-        uint256 _communityId,
+        string calldata _communityId,
         ChallengeType _cType
     )
         external
@@ -52,29 +52,22 @@ contract ChallengePoolHandler is
     {
         CPStore storage s = CPStorage.load();
         CommunityStore storage cs = CommunityStorage.load();
-        ICommunityFacet.Community storage community = cs.communities[
+        ICommunity.Community storage community = cs.communities[
             _communityId
         ];
-        if (_communityId == 0) {
+        if (bytes(_communityId).length == 0) {
             if (_cType != ChallengeType.standard) {
-                revert ICommunityFacet.CustomChallengeRequiresCommunity();
+                revert ICommunity.CustomChallengeRequiresCommunity();
             }
         } else {
             if (community.owner == address(0)) {
-                revert ICommunityFacet.CommunityDoesNotExist(_communityId);
+                revert ICommunity.CommunityDoesNotExist(_communityId);
             }
             if (community.banned) {
-                revert ICommunityFacet.CommunityIsBanned();
+                revert ICommunity.CommunityIsBanned();
             }
-            bool isAdmin = false;
-            for (uint i = 0; i < community.admins.length; i++) {
-                if (community.admins[i] == msg.sender) {
-                    isAdmin = true;
-                    break;
-                }
-            }
-            if (!isAdmin) {
-                revert ICommunityFacet.NotCommunityAdmin();
+            if (!cs.isAdmin[_communityId][msg.sender]) {
+                revert ICommunity.NotCommunityAdmin();
             }
         }
 

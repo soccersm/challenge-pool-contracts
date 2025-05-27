@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.28;
 import "./IChallengePoolCommon.sol";
+
 abstract contract IGelatoHandler is IChallengePoolCommon {
     /**
      * @notice  .
@@ -12,6 +13,8 @@ abstract contract IGelatoHandler is IChallengePoolCommon {
      * @param   _quantity  how many stakes user is purchasing for this prediction
      * @param   _basePrice  the base price of a stake. total amount to be transferred is _basePrice * _quantity
      * @param   _paymaster  a contract the pays the total amount on behalf of the user set to 0x if none
+     * @param   _communityId community responsible for creating the challenge, id 0 for no community backed challenge
+     * @param   _cType challenge type of the created challenge. standard for normal challenges and custom for community only challenges
      */
     function createChallengeRelay(
         ChallengeEvent[] calldata _events,
@@ -20,8 +23,11 @@ abstract contract IGelatoHandler is IChallengePoolCommon {
         bytes calldata _prediction,
         uint256 _quantity,
         uint256 _basePrice,
-        address _paymaster
+        address _paymaster,
+        string calldata _communityId,
+        ChallengeType _cType
     ) external virtual;
+
     /**
      * @notice  .
      * @dev     stake on a pool
@@ -58,6 +64,7 @@ abstract contract IGelatoHandler is IChallengePoolCommon {
      * @param   _challengeId  .
      */
     function withdrawRelay(uint256 _challengeId) external virtual;
+
     /**
      * @notice  .
      * @dev     bulk withdrawal
