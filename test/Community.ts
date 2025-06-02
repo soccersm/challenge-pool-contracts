@@ -1,5 +1,4 @@
 import { toUtf8Bytes } from "ethers";
-import { CommunityInterface } from "./../typechain-types/contracts/modules/Community";
 import { ethers } from "hardhat";
 import { expect } from "chai";
 import {
