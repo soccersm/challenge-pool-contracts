@@ -109,7 +109,15 @@ export enum ChallengeType {
   standard,
   custom,
 }
-
+export enum ChallengeState {
+  open,
+  closed,
+  cancelled,
+  matured,
+  evaluated,
+  settled,
+  disputed,
+}
 export type PrepareCreateChallenge = [
   ParamEncodedEventChallenge[],
   string[],
