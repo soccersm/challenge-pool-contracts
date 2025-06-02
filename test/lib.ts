@@ -101,7 +101,14 @@ export type CreateChallenge = {
   quantity: number;
   basePrice: BigInt;
   paymaster: string;
+  communityId: string;
+  challengeType: ChallengeType;
 };
+
+export enum ChallengeType {
+  standard,
+  custom,
+}
 
 export type PrepareCreateChallenge = [
   ParamEncodedEventChallenge[],
@@ -110,7 +117,9 @@ export type PrepareCreateChallenge = [
   string,
   BigInt,
   BigInt,
-  string
+  string,
+  string,
+  ChallengeType
 ];
 export const coder = new ethers.AbiCoder();
 
@@ -158,6 +167,8 @@ export function prepareCreateChallenge(
     BigInt(create.quantity),
     create.basePrice,
     create.paymaster,
+    create.communityId,
+    create.challengeType,
   ];
 }
 
