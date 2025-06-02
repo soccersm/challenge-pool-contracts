@@ -101,11 +101,12 @@ library AirDropStorage {
         }
     }
 }
-//map admins too
+
 struct CommunityStore{
     mapping(string => ICommunity.Community) communities; 
     mapping(string => mapping(address => bool)) isMember;
     mapping(string => mapping(address => bool)) isAdmin;
+    mapping(string => mapping(address => bool)) isBanned;
 }
 
 library CommunityStorage {
