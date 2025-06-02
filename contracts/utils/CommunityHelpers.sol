@@ -23,14 +23,6 @@ abstract contract CommunityHelpers {
         _;
     }
 
-    modifier memberBanned(string calldata _communityId, address _user){
-        CommunityStore storage s = CommunityStorage.load();
-        if(s.isBanned[_communityId][_user]){
-            revert ICommunity.UserIsBanned(_communityId, _user);
-        }
-        _;
-    }
-
     modifier onlyCommunityOwner(string calldata _communityId) {
         CommunityStore storage s = CommunityStorage.load();
         ICommunity.Community storage community = s.communities[_communityId];
@@ -54,22 +46,6 @@ abstract contract CommunityHelpers {
                 _communityId,
                 msg.sender
             );
-        }
-        _;
-    }
-    modifier onlyCommunityAdmin(string calldata _communityId) {
-        CommunityStore storage s = CommunityStorage.load();
-        ICommunity.Community storage community = s.communities[_communityId];
-        if (!s.isAdmin[_communityId][msg.sender]) {
-            revert ICommunity.NotCommunityAdmin();
-        }
-        _;
-    }
-
-    modifier onlyCommunityMember(string calldata _communityId) {
-        CommunityStore storage s = CommunityStorage.load();
-        if (!s.isMember[_communityId][msg.sender]) {
-            revert ICommunity.NotCommunityMember();
         }
         _;
     }
