@@ -17,7 +17,6 @@ import {
 import { getChallenge } from "./test_helpers";
 import { anyValue } from "@nomicfoundation/hardhat-chai-matchers/withArgs";
 import { expect } from "chai";
-import { getTsBuildInfoEmitOutputFilePath } from "typescript";
 
 describe("Evaluate Community Custom Challenge", async function () {
   async function deployCommunity() {
