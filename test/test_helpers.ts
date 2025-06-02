@@ -11,6 +11,8 @@ export async function getChallenge(poolViewProxy: any, challengeId: number) {
     options,
     disputed,
     lastOutcomeSet,
+    communityId,
+    challengeType,
   ] = await poolViewProxy.challenges(BigInt(challengeId));
   return {
     state,
@@ -24,6 +26,8 @@ export async function getChallenge(poolViewProxy: any, challengeId: number) {
     options,
     disputed,
     lastOutcomeSet,
+    communityId,
+    challengeType
   };
 }
 
@@ -118,7 +122,7 @@ export async function getPoolDisputes(poolViewProxy: any, challengeId: number) {
   return dispute;
 }
 
-export async function getChallengeState(
+export async function  getChallengeState(
   poolViewProxy: any,
   challengeId: number,
   player: string,
