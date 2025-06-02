@@ -5,11 +5,28 @@ import "../interfaces/ICommunity.sol";
 import "../libraries/LibData.sol";
 
 abstract contract CommunityHelpers {
-    modifier notBanned(string calldata _communityId) {
+    modifier communityNotBanned(string calldata _communityId) {
         CommunityStore storage s = CommunityStorage.load();
         ICommunity.Community storage community = s.communities[_communityId];
         if (community.banned) {
             revert ICommunity.CommunityIsBanned();
+        }
+        _;
+    }
+
+    modifier communityBanned(string calldata _communityId) {
+        CommunityStore storage s = CommunityStorage.load();
+        ICommunity.Community storage community = s.communities[_communityId];
+        if (!community.banned) {
+            revert ICommunity.CommunityNotBanned();
+        }
+        _;
+    }
+
+    modifier memberBanned(string calldata _communityId, address _user){
+        CommunityStore storage s = CommunityStorage.load();
+        if(s.isBanned[_communityId][_user]){
+            revert ICommunity.UserIsBanned(_communityId, _user);
         }
         _;
     }

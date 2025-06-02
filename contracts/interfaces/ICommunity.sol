@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.28;
 import "../interfaces/IChallengePoolHandler.sol";
+
 abstract contract ICommunity {
     struct Community {
         string communityId;
@@ -10,13 +11,10 @@ abstract contract ICommunity {
         bool banned;
     }
 
-    event NewCommunity(
-        string communityId,
-        address owner,
-        uint256 createdAt
-    );
+    event NewCommunity(string communityId, address owner, uint256 createdAt);
 
     event CommunityBanned(string communityId, address council);
+    event CommunityUnBanned(string communityId, address council);
     event AdminAdded(string communityId, address caller, address newAdmin);
     event AdminRemoved(string communityId, address caller, address admin);
     event MemberJoined(string communityId, address member, uint256 timeAt);
@@ -32,8 +30,13 @@ abstract contract ICommunity {
         IChallengePoolHandler.ChallengeState state,
         bytes result
     );
+    event MemberIsBanned(string communityId, address user);
+    event MemberUnbanned(string communityId, address user);
+    event MemberLeftCommunity(string communityId, address user);
 
     error CommunityIsBanned();
+    error UserIsBanned(string communityId, address user);
+    error CommunityNotBanned();
     error NotCommunityAdmin();
     error NotCommunityMember();
     error AlreadyCommunityMember();
@@ -44,12 +47,13 @@ abstract contract ICommunity {
     error MustBeCommunityAdmin();
     error CustomChallengeRequiresCommunity();
     error CommunityAlreadyExists();
+    error CommunityUserBanned(string communityId, address user);
 
     /**
      * @dev Creates a new community with the specified name.
      * @param _communityId The id of the community to be created.
      */
-    function createCommunity(string calldata _communityId ) external virtual;
+    function createCommunity(string calldata _communityId) external virtual;
 
     /**
      * @dev adds an admin to the community
@@ -78,10 +82,43 @@ abstract contract ICommunity {
     function banCommunity(string calldata _communityId) external virtual;
 
     /**
+     * @dev unban a banned community
+     * @param _communityId of the banned community to unban
+     */
+    function unBanCommunity(string calldata _communityId) external virtual;
+
+    /**
+     * @dev ban a user and prevent user from joining community
+     * @param _communityId community user belongs to
+     * @param _user address of user to ban
+     */
+    function banMember(
+        string calldata _communityId,
+        address _user
+    ) external virtual;
+
+    /**
+     * @dev unban a banned user
+     * @param _communityId community user belongs to
+     * @param _user address of user to unban
+     */
+    function unBanMember(
+        string calldata _communityId,
+        address _user
+    ) external virtual;
+
+    /**
      * @dev user joins a community
      * @param _communityId community to join
      */
     function joinCommunity(string calldata _communityId) external virtual;
+
+    /**
+     * @dev enables a user to leave a community
+     * @param _communityId id of the community the user wants to leave
+     */
+
+    function leaveCommunity(string calldata _communityId) external virtual;
 
     /**
      * @dev removes a user from a community;
