@@ -245,5 +245,9 @@ describe("Evaluate Community Custom Challenge", async function () {
       "challenge after outcome: ",
       coder.decode(["string"], challengeAfter.outcome)
     );
+    await expect((poolHandlerProxy.connect(baller) as any).withdraw(0)).to.emit(
+      poolHandlerProxy,
+      "WinningsWithdrawn"
+    );
   });
 });
