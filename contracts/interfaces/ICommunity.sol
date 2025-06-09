@@ -9,6 +9,7 @@ abstract contract ICommunity {
         address pendingOwner;
         uint256 memberCount;
         bool banned;
+        bytes32 tournamentId;
     }
 
     event NewCommunity(bytes communityId, address owner, uint256 memberCount, bool bannedStatus, uint256 createdAt);
