@@ -29,12 +29,21 @@ contract Community is
             owner: msg.sender,
             pendingOwner: address(0),
             memberCount: 1,
-            banned: false
+            banned: false,
+            tournamentId: bytes32(0)
         });
         s.isMember[keccak256(_communityId)][msg.sender] = true;
-        uint256 memberCount = s.communities[keccak256(_communityId)].memberCount;
+        uint256 memberCount = s
+            .communities[keccak256(_communityId)]
+            .memberCount;
         bool bannedStatus = s.communities[keccak256(_communityId)].banned;
-        emit NewCommunity(_communityId, msg.sender, memberCount, bannedStatus,  block.timestamp);
+        emit NewCommunity(
+            _communityId,
+            msg.sender,
+            memberCount,
+            bannedStatus,
+            block.timestamp
+        );
     }
 
     function addCommunityAdmin(
@@ -227,9 +236,14 @@ contract Community is
         communityOwnerOrAdmin(_communityId)
     {
         CommunityStore storage s = CommunityStorage.load();
-        ICommunity.Community storage community = s.communities[keccak256(_communityId)];
+        ICommunity.Community storage community = s.communities[
+            keccak256(_communityId)
+        ];
         require(_user != community.owner, "Cannot remove owner");
-        require(!s.isAdmin[keccak256(_communityId)][_user], "Cannot remove admin");
+        require(
+            !s.isAdmin[keccak256(_communityId)][_user],
+            "Cannot remove admin"
+        );
         delete s.isMember[keccak256(_communityId)][_user];
         if (community.memberCount > 0) {
             community.memberCount -= 1;
@@ -249,20 +263,39 @@ contract Community is
         isCommunityMember(_communityId, _newOwner)
     {
         CommunityStore storage s = CommunityStorage.load();
-        ICommunity.Community storage community = s.communities[keccak256(_communityId)];
-        require(_newOwner != msg.sender, "Cannot initiate transfer to current owner");
+        ICommunity.Community storage community = s.communities[
+            keccak256(_communityId)
+        ];
+        require(
+            _newOwner != msg.sender,
+            "Cannot initiate transfer to current owner"
+        );
         community.pendingOwner = _newOwner;
-        emit CommunityOwnerTransferInitiated(_communityId, msg.sender, _newOwner, block.timestamp);
+        emit CommunityOwnerTransferInitiated(
+            _communityId,
+            msg.sender,
+            _newOwner,
+            block.timestamp
+        );
     }
 
-    function acceptCommunityOwnership(bytes calldata _communityId) external override communityExists(_communityId) {
+    function acceptCommunityOwnership(
+        bytes calldata _communityId
+    ) external override communityExists(_communityId) {
         CommunityStore storage s = CommunityStorage.load();
-        ICommunity.Community storage community = s.communities[keccak256(_communityId)];
+        ICommunity.Community storage community = s.communities[
+            keccak256(_communityId)
+        ];
         require(msg.sender == community.pendingOwner, "Not pending owner");
         address previousOwner = community.owner;
         community.owner = msg.sender;
         delete community.pendingOwner;
-        emit CommunityOwnerTransferAccepted(_communityId, previousOwner, msg.sender, block.timestamp);
+        emit CommunityOwnerTransferAccepted(
+            _communityId,
+            previousOwner,
+            msg.sender,
+            block.timestamp
+        );
     }
 
     function evaluateCustomChallenge(
@@ -273,7 +306,9 @@ contract Community is
         CPStore storage s = CPStorage.load();
         IChallengePool.Challenge storage challenge = s.challenges[_challengeId];
         bytes memory communityId = challenge.communityId;
-        ICommunity.Community storage community = cs.communities[keccak256(communityId)];
+        ICommunity.Community storage community = cs.communities[
+            keccak256(communityId)
+        ];
         if (challenge.cType != ChallengeType.community) {
             revert CommunityChallengeRequiresCommunity();
         }
@@ -284,7 +319,10 @@ contract Community is
             revert CommunityIsBanned();
         }
 
-        if (!cs.isAdmin[keccak256(communityId)][msg.sender] && community.owner != msg.sender) {
+        if (
+            !cs.isAdmin[keccak256(communityId)][msg.sender] &&
+            community.owner != msg.sender
+        ) {
             revert NotCommunityOwnerOrAdmin(communityId, msg.sender);
         }
         challenge.outcome = _results;
