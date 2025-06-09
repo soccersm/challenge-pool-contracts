@@ -107,7 +107,8 @@ export type CreateChallenge = {
 
 export enum ChallengeType {
   standard,
-  custom,
+  community,
+  tournament,
 }
 export enum ChallengeState {
   open,
@@ -165,8 +166,8 @@ export function prepareCreateChallenge(
   } else {
     prediction = yesNo[create.prediction as YesNo];
   }
-  console.log('options',options);
-  
+  console.log("options", options);
+
   return [
     events,
     options,
@@ -216,7 +217,7 @@ export function encodeMultiOptionByTopic(
     case TopicId.AssetPriceTarget:
     case TopicId.FootBallCorrectScore:
     case TopicId.FootBallOutcome:
-      // return coder.encode(["string"], [option as StringOption]);
+    // return coder.encode(["string"], [option as StringOption]);
     case TopicId.FootballOverUnder:
     default:
       throw new Error("Invalid Event Topic, must be a multi event");
@@ -501,3 +502,8 @@ export function prepareFootballOverUnderProvision(
   );
   return ["FootballOverUnder", params];
 }
+
+export function encodeCommunityId(communityId: string): string {
+  return coder.encode(["string"], [communityId]);
+}
+
