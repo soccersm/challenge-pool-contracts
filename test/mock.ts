@@ -57,7 +57,7 @@ export function btcEvent(
     quantity,
     basePrice,
     paymaster,
-    communityId: communityId ?? "",
+    communityId: communityId ?? "0x",
     challengeType: challengeType ?? ChallengeType.standard,
   };
 
@@ -113,7 +113,7 @@ export function matchEvent(
     quantity,
     basePrice,
     paymaster,
-    communityId: communityId ?? "",
+    communityId: communityId ?? "0x",
     challengeType: challengeType ?? ChallengeType.standard,
   };
 
@@ -155,7 +155,7 @@ export function footBallCorrectScore(
     quantity,
     basePrice,
     paymaster,
-    communityId: communityId ?? "",
+    communityId: communityId ?? "0x",
     challengeType: challengeType ?? ChallengeType.standard,
   };
 
@@ -235,7 +235,7 @@ export function assetMatchComboEvent(
     quantity,
     basePrice,
     paymaster,
-    communityId: communityId ?? "",
+    communityId: communityId ?? "0x",
     challengeType: challengeType ?? ChallengeType.standard,
   };
 
@@ -283,7 +283,7 @@ export function ethPriceRange(
     quantity,
     basePrice,
     paymaster,
-    communityId: communityId ?? "",
+    communityId: communityId ?? "0x",
     challengeType: challengeType ?? ChallengeType.standard,
   };
 
@@ -331,7 +331,7 @@ export function multiCorrectScore(
     quantity,
     basePrice,
     paymaster,
-    communityId: communityId ?? "",
+    communityId: communityId ?? "0x",
     challengeType: challengeType ?? ChallengeType.standard,
   };
 
@@ -375,7 +375,7 @@ export function multiOutcome(
     quantity,
     basePrice,
     paymaster,
-    communityId: communityId ?? "",
+    communityId: communityId ?? "0x",
     challengeType: challengeType ?? ChallengeType.standard,
   };
 
@@ -419,7 +419,7 @@ export function multiTotalExact(
     quantity,
     basePrice,
     paymaster,
-    communityId: communityId ?? "",
+    communityId: communityId ?? "0x",
     challengeType: challengeType ?? ChallengeType.standard,
   };
 
@@ -467,7 +467,7 @@ export function multiTotalScoreRange(
     quantity,
     basePrice,
     paymaster,
-    communityId: communityId ?? "",
+    communityId: communityId ?? "0x",
     challengeType: challengeType ?? ChallengeType.standard,
   };
 
@@ -513,7 +513,7 @@ export function ghanaElectionEvent(
     quantity,
     basePrice,
     paymaster,
-    communityId: communityId ?? "",
+    communityId: communityId ?? "0x",
     challengeType: challengeType ?? ChallengeType.standard,
   };
 
@@ -561,7 +561,7 @@ export function soccersmEvent(
     quantity,
     basePrice,
     paymaster,
-    communityId: communityId ?? "",
+    communityId: communityId ?? "0x",
     challengeType: challengeType ?? ChallengeType.standard,
   };
 
@@ -606,7 +606,7 @@ export function targetEvent(
     quantity,
     basePrice,
     paymaster,
-    communityId: communityId ?? "",
+    communityId: communityId ?? "0x",
     challengeType: challengeType ?? ChallengeType.standard,
   };
 
@@ -648,7 +648,7 @@ export function footballOutcomeEvent(
     quantity,
     basePrice,
     paymaster,
-    communityId: communityId ?? "",
+    communityId: communityId ?? "0x",
     challengeType: challengeType ?? ChallengeType.standard,
   };
 
@@ -692,7 +692,7 @@ export function footballOverUnderEvent(
     quantity,
     basePrice,
     paymaster,
-    communityId: communityId ?? "",
+    communityId: communityId ?? "0x",
     challengeType: challengeType ?? ChallengeType.standard,
   };
 
