@@ -5,43 +5,43 @@ import "../interfaces/ICommunity.sol";
 import "../libraries/LibData.sol";
 
 abstract contract CommunityHelpers {
-    modifier communityNotBanned(string calldata _communityId) {
+    modifier communityNotBanned(bytes calldata _communityId) {
         CommunityStore storage s = CommunityStorage.load();
-        ICommunity.Community storage community = s.communities[_communityId];
+        ICommunity.Community storage community = s.communities[keccak256(_communityId)];
         if (community.banned) {
             revert ICommunity.CommunityIsBanned();
         }
         _;
     }
 
-    modifier communityBanned(string calldata _communityId) {
+    modifier communityBanned(bytes calldata _communityId) {
         CommunityStore storage s = CommunityStorage.load();
-        ICommunity.Community storage community = s.communities[_communityId];
+        ICommunity.Community storage community = s.communities[keccak256(_communityId)];
         if (!community.banned) {
             revert ICommunity.CommunityNotBanned();
         }
         _;
     }
 
-    modifier onlyCommunityOwner(string calldata _communityId) {
+    modifier onlyCommunityOwner(bytes calldata _communityId) {
         CommunityStore storage s = CommunityStorage.load();
-        ICommunity.Community storage community = s.communities[_communityId];
-        if (msg.sender != s.communities[_communityId].owner) {
+        ICommunity.Community storage community = s.communities[keccak256(_communityId)];
+        if (msg.sender != s.communities[keccak256(_communityId)].owner) {
             revert ICommunity.NotCommunityOwner();
         }
         _;
     }
 
-    modifier communityOwnerOrAdmin(string calldata _communityId) {
+    modifier communityOwnerOrAdmin(bytes calldata _communityId) {
         CommunityStore storage s = CommunityStorage.load();
-        ICommunity.Community storage community = s.communities[_communityId];
+        ICommunity.Community storage community = s.communities[keccak256(_communityId)];
 
         if (msg.sender == community.owner) {
             _;
             return;
         }
 
-        if (!s.isAdmin[_communityId][msg.sender]) {
+        if (!s.isAdmin[keccak256(_communityId)][msg.sender]) {
             revert ICommunity.NotCommunityOwnerOrAdmin(
                 _communityId,
                 msg.sender
@@ -50,17 +50,17 @@ abstract contract CommunityHelpers {
         _;
     }
 
-    modifier isCommunityMember(string calldata _communityId, address _member) {
+    modifier isCommunityMember(bytes calldata _communityId, address _member) {
         CommunityStore storage s = CommunityStorage.load();
-        if (!s.isMember[_communityId][_member]) {
+        if (!s.isMember[keccak256(_communityId)][_member]) {
             revert ICommunity.NotCommunityMember();
         }
         _;
     }
 
-    modifier communityExists(string calldata _communityId) {
+    modifier communityExists(bytes calldata _communityId) {
         CommunityStore storage s = CommunityStorage.load();
-        if (s.communities[_communityId].owner == address(0)) {
+        if (s.communities[keccak256(_communityId)].owner == address(0)) {
             revert ICommunity.CommunityDoesNotExist(_communityId);
         }
         _;

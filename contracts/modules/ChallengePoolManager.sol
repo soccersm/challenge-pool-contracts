@@ -225,15 +225,4 @@ contract ChallengePoolManager is
         emit SetMinPoolMaturity(msg.sender, oldMinPoolMaturity, _minPoolMaturity);
     }
 
-    function setGelatoForwarder(
-        address _gelatoForwarder
-    ) external override onlyPoolManager positiveAddress(_gelatoForwarder) {
-        address oldGelatoForwarder = CPStorage.load().gelatoTrustedForwarder;
-        CPStorage.load().gelatoTrustedForwarder = _gelatoForwarder;
-        emit SetGelatoForwarder(
-            msg.sender,
-            oldGelatoForwarder,
-            _gelatoForwarder
-        );
-    }
 }

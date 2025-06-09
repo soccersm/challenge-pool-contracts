@@ -50,7 +50,6 @@ struct CPStore {
     address feeAddress;
     uint256 disputePeriod;
     uint256 disputeStake;
-    address gelatoTrustedForwarder;
 }
 
 library CPStorage {
@@ -103,10 +102,10 @@ library AirDropStorage {
 }
 
 struct CommunityStore{
-    mapping(string => ICommunity.Community) communities; 
-    mapping(string => mapping(address => bool)) isMember;
-    mapping(string => mapping(address => bool)) isAdmin;
-    mapping(string => mapping(address => bool)) isBanned;
+    mapping(bytes32 => ICommunity.Community) communities; 
+    mapping(bytes32 => mapping(address => bool)) isMember;
+    mapping(bytes32 => mapping(address => bool)) isAdmin;
+    mapping(bytes32 => mapping(address => bool)) memberBanned;
 }
 
 library CommunityStorage {

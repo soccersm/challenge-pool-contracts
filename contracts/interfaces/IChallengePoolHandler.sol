@@ -36,7 +36,7 @@ abstract contract IChallengePoolHandler is IChallengePoolCommon {
         bytes[] options,
         address stakeToken,
         bool multi,
-        string communityId,
+        bytes communityId,
         ChallengeType cType
     );
     event Stake(
@@ -89,7 +89,7 @@ abstract contract IChallengePoolHandler is IChallengePoolCommon {
      * @param   _quantity  how many stakes user is purchasing for this prediction
      * @param   _basePrice  the base price of a stake. total amount to be transferred is _basePrice * _quantity
      * @param   _paymaster  a contract the pays the total amount on behalf of the user set to 0x if none
-     * @param _communityId community responsible for creating the challenge, id 0 for no community backed challenge
+     * @param _communityId community responsible for creating the challenge, empty string for no community backed challenge
      * @param _cType challenge type of the created challenge. standard for normal challenges and custom for community only challenges
      */
     function createChallenge(
@@ -100,7 +100,7 @@ abstract contract IChallengePoolHandler is IChallengePoolCommon {
         uint256 _quantity,
         uint256 _basePrice,
         address _paymaster,
-        string calldata _communityId,
+        bytes calldata _communityId,
         ChallengeType _cType
     ) external virtual;
     /**

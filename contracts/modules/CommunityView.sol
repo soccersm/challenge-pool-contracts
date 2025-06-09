@@ -6,39 +6,45 @@ import "../utils/CommunityHelpers.sol";
 
 contract CommunityView is ICommunityView {
     function getCommunity(
-        string calldata _communityId
+        bytes calldata _communityId
     ) external view override returns (ICommunity.Community memory) {
-        return CommunityStorage.load().communities[_communityId];
+        return CommunityStorage.load().communities[keccak256(_communityId)];
     }
 
     function getIsAdmin(
-        string calldata _communityId,
+        bytes calldata _communityId,
         address _admin
     ) external view override returns (bool) {
-        return CommunityStorage.load().isAdmin[_communityId][_admin];
+        return CommunityStorage.load().isAdmin[keccak256(_communityId)][_admin];
     }
     function getIsMember(
-        string calldata _communityId,
+        bytes calldata _communityId,
         address _member
     ) external view override returns (bool) {
-        return CommunityStorage.load().isMember[_communityId][_member];
+        return CommunityStorage.load().isMember[keccak256(_communityId)][_member];
     }
 
     function getBanStatus(
-        string calldata _communityId
+        bytes calldata _communityId
     ) external view returns (bool) {
-        return CommunityStorage.load().communities[_communityId].banned;
+        return CommunityStorage.load().communities[keccak256(_communityId)].banned;
     }
 
     function getMembersCount(
-        string calldata _communityId
+        bytes calldata _communityId
     ) external view override returns (uint256) {
-        return CommunityStorage.load().communities[_communityId].memberCount;
+        return CommunityStorage.load().communities[keccak256(_communityId)].memberCount;
     }
 
     function getOwnerAddress(
-        string calldata _communityId
+        bytes calldata _communityId
     ) external view returns (address) {
-        return CommunityStorage.load().communities[_communityId].owner;
+        return CommunityStorage.load().communities[keccak256(_communityId)].owner;
+    }
+
+    function getPendingOwnerAddress(
+        bytes calldata _communityId
+    ) external view returns (address) {
+        return CommunityStorage.load().communities[keccak256(_communityId)].pendingOwner;
     }
 }

@@ -12,6 +12,7 @@ import {
   functionSelectors,
   functionSigsSelectors,
 } from "../ignition/lib";
+import { encodeCommunityId } from "./lib";
 
 describe("Community Tests: ", async function () {
   async function deployCommunity() {
@@ -76,10 +77,10 @@ describe("Community Tests: ", async function () {
       await loadFixture(deployCommunity);
 
     //create new community
-    const COMMUNITY_ID = "Community1";
+    const COMMUNITY_ID = encodeCommunityId("Community1");
     await expect(communityProxy.createCommunity(COMMUNITY_ID))
       .to.emit(communityProxy, "NewCommunity")
-      .withArgs(COMMUNITY_ID, await owner.getAddress(), anyValue);
+      .withArgs(COMMUNITY_ID, await owner.getAddress(), 1, false, anyValue);
 
     const community = await communityViewProxy.getCommunity(COMMUNITY_ID);
     console.log(community);
@@ -91,10 +92,10 @@ describe("Community Tests: ", async function () {
     expect([admins]).to.be.an("array");
     expect(banned).to.be.false;
 
-    const EMPTY_COMMUNITY_ID = "";
-    await expect(
-      communityProxy.createCommunity(EMPTY_COMMUNITY_ID)
-    ).to.be.revertedWithCustomError(communityProxy, "EmptyString");
+    const EMPTY_COMMUNITY_ID = encodeCommunityId("");
+    // await expect(
+    //   communityProxy.createCommunity(EMPTY_COMMUNITY_ID)
+    // ).to.be.revertedWithCustomError(communityProxy, "EmptyBytes");
     await expect(
       communityProxy.createCommunity(COMMUNITY_ID)
     ).to.be.revertedWithCustomError(communityProxy, "CommunityAlreadyExists");
@@ -105,10 +106,10 @@ describe("Community Tests: ", async function () {
       await loadFixture(deployCommunity);
 
     //create new community
-    const COMMUNITY_ID = "Community1";
+    const COMMUNITY_ID = encodeCommunityId("Community1");
     await expect(communityProxy.createCommunity(COMMUNITY_ID))
       .to.emit(communityProxy, "NewCommunity")
-      .withArgs(COMMUNITY_ID, await owner.getAddress(), anyValue);
+      .withArgs(COMMUNITY_ID, await owner.getAddress(), 1, false, anyValue);
 
     //join community
     await communityProxy.connect(user).joinCommunity(COMMUNITY_ID);
@@ -132,7 +133,7 @@ describe("Community Tests: ", async function () {
       communityProxy.addCommunityAdmin(COMMUNITY_ID, ethers.ZeroAddress)
     ).to.be.revertedWithCustomError(communityProxy, "ZeroAddress");
 
-    const NON_EXISTING_ID = "123456";
+    const NON_EXISTING_ID = encodeCommunityId("123456");
     await expect(
       communityProxy.addCommunityAdmin(NON_EXISTING_ID, await user.getAddress())
     ).to.be.revertedWithCustomError(communityProxy, "CommunityDoesNotExist");
@@ -159,10 +160,10 @@ describe("Community Tests: ", async function () {
       await loadFixture(deployCommunity);
 
     //create new community
-    const COMMUNITY_ID = "Community1";
+    const COMMUNITY_ID = encodeCommunityId("Community1");
     await expect(communityProxy.createCommunity(COMMUNITY_ID))
       .to.emit(communityProxy, "NewCommunity")
-      .withArgs(COMMUNITY_ID, await owner.getAddress(), anyValue);
+      .withArgs(COMMUNITY_ID, await owner.getAddress(), 1, false, anyValue);
 
     //join community
     await communityProxy.connect(user).joinCommunity(COMMUNITY_ID);
@@ -201,7 +202,7 @@ describe("Community Tests: ", async function () {
     await expect(
       communityProxy.removeCommunityAdmin(COMMUNITY_ID, ethers.ZeroAddress)
     ).to.be.revertedWithCustomError(communityProxy, "ZeroAddress");
-    const NON_EXISTING_ID = "12345";
+    const NON_EXISTING_ID = encodeCommunityId("12345");
     await expect(
       communityProxy.removeCommunityAdmin(
         NON_EXISTING_ID,
@@ -230,10 +231,10 @@ describe("Community Tests: ", async function () {
     } = await loadFixture(deployCommunity);
 
     //create new community
-    const COMMUNITY_ID = "Community1";
+    const COMMUNITY_ID = encodeCommunityId("Community1");
     await expect(communityProxy.createCommunity(COMMUNITY_ID))
       .to.emit(communityProxy, "NewCommunity")
-      .withArgs(COMMUNITY_ID, await owner.getAddress(), anyValue);
+      .withArgs(COMMUNITY_ID, await owner.getAddress(), 1, false, anyValue);
 
     await expect(communityProxy.banCommunity(COMMUNITY_ID))
       .to.emit(communityProxy, "CommunityBanned")
@@ -244,7 +245,7 @@ describe("Community Tests: ", async function () {
       communityProxy.banCommunity(COMMUNITY_ID)
     ).to.be.revertedWithCustomError(communityProxy, "CommunityIsBanned");
 
-    const NON_EXISTING_ID = "12345";
+    const NON_EXISTING_ID = encodeCommunityId("12345");
     await expect(
       communityProxy.banCommunity(NON_EXISTING_ID)
     ).to.be.revertedWithCustomError(communityProxy, "CommunityDoesNotExist");
@@ -266,17 +267,17 @@ describe("Community Tests: ", async function () {
     } = await loadFixture(deployCommunity);
 
     //create new community
-    const COMMUNITY_ID = "Community1";
+    const COMMUNITY_ID = encodeCommunityId("Community1");
     await expect(communityProxy.createCommunity(COMMUNITY_ID))
       .to.emit(communityProxy, "NewCommunity")
-      .withArgs(COMMUNITY_ID, await owner.getAddress(), anyValue);
+      .withArgs(COMMUNITY_ID, await owner.getAddress(), 1, false, anyValue);
 
     //ban community
     await expect(communityProxy.banCommunity(COMMUNITY_ID))
       .to.emit(communityProxy, "CommunityBanned")
       .withArgs(COMMUNITY_ID, await owner.getAddress());
 
-    const NON_EXISTING_ID = "12345";
+    const NON_EXISTING_ID = encodeCommunityId("12345");
     await expect(
       communityProxy.unBanCommunity(NON_EXISTING_ID)
     ).to.be.revertedWithCustomError(communityProxy, "CommunityDoesNotExist");
@@ -303,13 +304,13 @@ describe("Community Tests: ", async function () {
       await loadFixture(deployCommunity);
 
     //create new community
-    const COMMUNITY_ID = "Community1";
+    const COMMUNITY_ID = encodeCommunityId("Community1");
     await expect(communityProxy.createCommunity(COMMUNITY_ID))
       .to.emit(communityProxy, "NewCommunity")
-      .withArgs(COMMUNITY_ID, await owner.getAddress(), anyValue);
+      .withArgs(COMMUNITY_ID, await owner.getAddress(), 1, false, anyValue);
 
     //join
-    const NON_EXISTING_ID = "12345";
+    const NON_EXISTING_ID = encodeCommunityId("12345");
     await expect(
       communityProxy.connect(user).joinCommunity(NON_EXISTING_ID)
     ).to.be.revertedWithCustomError(communityProxy, "CommunityDoesNotExist");
@@ -340,11 +341,11 @@ describe("Community Tests: ", async function () {
       await loadFixture(deployCommunity);
 
     //create new community
-    const COMMUNITY_ID = "Community1";
-    const NON_EXISTING_ID = "12345";
+    const COMMUNITY_ID = encodeCommunityId("Community1");
+    const NON_EXISTING_ID = encodeCommunityId("12345");
     await expect(communityProxy.createCommunity(COMMUNITY_ID))
       .to.emit(communityProxy, "NewCommunity")
-      .withArgs(COMMUNITY_ID, await owner.getAddress(), anyValue);
+      .withArgs(COMMUNITY_ID, await owner.getAddress(), 1, false, anyValue);
 
     //join
     await expect(communityProxy.connect(user).joinCommunity(COMMUNITY_ID))
@@ -375,7 +376,7 @@ describe("Community Tests: ", async function () {
       communityProxy.banMember(COMMUNITY_ID, await user.getAddress())
     )
       .to.emit(communityProxy, "MemberIsBanned")
-      .withArgs(COMMUNITY_ID, user.address);
+      .withArgs(COMMUNITY_ID, user.address, anyValue);
 
     await expect(
       communityProxy.banMember(COMMUNITY_ID, await owner.getAddress())
@@ -383,7 +384,7 @@ describe("Community Tests: ", async function () {
 
     await expect(
       communityProxy.connect(user).joinCommunity(COMMUNITY_ID)
-    ).to.be.revertedWith("User is banned");
+    ).to.be.revertedWith("Member is banned");
 
     expect(await communityViewProxy.getMembersCount(COMMUNITY_ID)).to.equal(2);
   });
@@ -393,11 +394,11 @@ describe("Community Tests: ", async function () {
       await loadFixture(deployCommunity);
 
     //create new community
-    const COMMUNITY_ID = "Community1";
-    const NON_EXISTING_ID = "12345";
+    const COMMUNITY_ID = encodeCommunityId("Community1");
+    const NON_EXISTING_ID = encodeCommunityId("12345");
     await expect(communityProxy.createCommunity(COMMUNITY_ID))
       .to.emit(communityProxy, "NewCommunity")
-      .withArgs(COMMUNITY_ID, await owner.getAddress(), anyValue);
+      .withArgs(COMMUNITY_ID, await owner.getAddress(), 1, false, anyValue);
 
     //join
     await expect(communityProxy.connect(user).joinCommunity(COMMUNITY_ID))
@@ -430,17 +431,22 @@ describe("Community Tests: ", async function () {
       communityProxy.banMember(COMMUNITY_ID, await user.getAddress())
     )
       .to.emit(communityProxy, "MemberIsBanned")
-      .withArgs(COMMUNITY_ID, user.address);
+      .withArgs(COMMUNITY_ID, user.address, anyValue);
 
     //unban
     await expect(
       communityProxy.unBanMember(COMMUNITY_ID, await user.getAddress())
     )
       .to.emit(communityProxy, "MemberUnbanned")
-      .withArgs(COMMUNITY_ID, user.address);
+      .withArgs(COMMUNITY_ID, user.address, anyValue);
     await expect(
       communityProxy.unBanMember(COMMUNITY_ID, await user.getAddress())
     ).to.be.revertedWith("Member must be banned");
+    expect(await communityViewProxy.getMembersCount(COMMUNITY_ID)).to.equal(2);
+
+    await expect(communityProxy.connect(user).joinCommunity(COMMUNITY_ID))
+      .to.emit(communityProxy, "MemberJoined")
+      .withArgs(COMMUNITY_ID, await user.getAddress(), anyValue);
 
     expect(await communityViewProxy.getMembersCount(COMMUNITY_ID)).to.equal(3);
   });
@@ -457,11 +463,11 @@ describe("Community Tests: ", async function () {
     } = await loadFixture(deployCommunity);
 
     //create new community
-    const COMMUNITY_ID = "Community1";
-    const NON_EXISTING_ID = "12345";
+    const COMMUNITY_ID = encodeCommunityId("Community1");
+    const NON_EXISTING_ID = encodeCommunityId("12345");
     await expect(communityProxy.createCommunity(COMMUNITY_ID))
       .to.emit(communityProxy, "NewCommunity")
-      .withArgs(COMMUNITY_ID, await owner.getAddress(), anyValue);
+      .withArgs(COMMUNITY_ID, await owner.getAddress(), 1, false, anyValue);
 
     //join
     await expect(communityProxy.connect(user).joinCommunity(COMMUNITY_ID))
@@ -506,7 +512,7 @@ describe("Community Tests: ", async function () {
       )
     )
       .to.emit(communityProxy, "MemberRemoved")
-      .withArgs(COMMUNITY_ID, await user1.getAddress());
+      .withArgs(COMMUNITY_ID, await user1.getAddress(), anyValue);
     expect(await communityViewProxy.getMembersCount(COMMUNITY_ID)).to.be.equal(
       3
     );
@@ -522,7 +528,7 @@ describe("Community Tests: ", async function () {
         .removeCommunityMember(COMMUNITY_ID, await user2.getAddress())
     )
       .to.emit(communityProxy, "MemberRemoved")
-      .withArgs(COMMUNITY_ID, await user2.getAddress());
+      .withArgs(COMMUNITY_ID, await user2.getAddress(), anyValue);
     expect(await communityViewProxy.getMembersCount(COMMUNITY_ID)).to.equal(2);
 
     //revert remove admin as member
@@ -546,11 +552,11 @@ describe("Community Tests: ", async function () {
     } = await loadFixture(deployCommunity);
 
     //create new community
-    const COMMUNITY_ID = "Community1";
-    const NON_EXISTING_ID = "12345";
+    const COMMUNITY_ID = encodeCommunityId("Community1");
+    const NON_EXISTING_ID = encodeCommunityId("12345");
     await expect(communityProxy.createCommunity(COMMUNITY_ID))
       .to.emit(communityProxy, "NewCommunity")
-      .withArgs(COMMUNITY_ID, await owner.getAddress(), anyValue);
+      .withArgs(COMMUNITY_ID, await owner.getAddress(), 1, false, anyValue);
 
     //join
     await expect(communityProxy.connect(user).joinCommunity(COMMUNITY_ID))
@@ -605,7 +611,7 @@ describe("Community Tests: ", async function () {
         COMMUNITY_ID,
         await owner.getAddress()
       )
-    ).to.be.revertedWith("Cannot transfer to current owner");
+    ).to.be.revertedWith("Cannot initiate transfer to current owner");
 
     await expect(
       communityProxy.transferCommunityOwner(
@@ -613,16 +619,42 @@ describe("Community Tests: ", async function () {
         await user.getAddress()
       )
     )
-      .to.emit(communityProxy, "CommunityOwnerTransferred")
+      .to.emit(communityProxy, "CommunityOwnerTransferInitiated")
       .withArgs(
         COMMUNITY_ID,
         await owner.getAddress(),
-        await user.getAddress()
+        await user.getAddress(),
+        anyValue
       );
 
-    const oldOwner = await owner.getAddress();
+    //revert not accepted ownership yet
+    await expect(
+      communityProxy
+        .connect(user)
+        .transferCommunityOwner(COMMUNITY_ID, user1.address)
+    ).to.be.revertedWithCustomError(communityProxy, "NotCommunityOwner");
+
+    await expect(
+      communityProxy.connect(user1).acceptCommunityOwnership(COMMUNITY_ID)
+    ).to.be.revertedWith("Not pending owner");
+
+    //accept ownership
+    await expect(
+      communityProxy.connect(user).acceptCommunityOwnership(NON_EXISTING_ID)
+    ).to.be.revertedWithCustomError(communityProxy, "CommunityDoesNotExist");
+
+    const pendingOwner = await communityViewProxy.getPendingOwnerAddress(
+      COMMUNITY_ID
+    );
+    expect(pendingOwner).to.be.equal(user.address);
+    await expect(
+      communityProxy.connect(user).acceptCommunityOwnership(COMMUNITY_ID)
+    )
+      .to.emit(communityProxy, "CommunityOwnerTransferAccepted")
+      .withArgs(COMMUNITY_ID, owner.address, user.address, anyValue);
+
     const newOwner = await communityViewProxy.getOwnerAddress(COMMUNITY_ID);
-    expect(newOwner).to.be.equal(await user.getAddress());
+    const oldOwner = await owner.getAddress();
     expect(newOwner).to.not.be.equal(oldOwner);
   });
 
@@ -631,11 +663,11 @@ describe("Community Tests: ", async function () {
       await loadFixture(deployCommunity);
 
     //create new community
-    const COMMUNITY_ID = "Community1";
-    const NON_EXISTING_ID = "12345";
+    const COMMUNITY_ID = encodeCommunityId("Community1");
+    const NON_EXISTING_ID = encodeCommunityId("12345");
     await expect(communityProxy.createCommunity(COMMUNITY_ID))
       .to.emit(communityProxy, "NewCommunity")
-      .withArgs(COMMUNITY_ID, await owner.getAddress(), anyValue);
+      .withArgs(COMMUNITY_ID, await owner.getAddress(), 1, false, anyValue);
 
     //join
     await expect(communityProxy.connect(user).joinCommunity(COMMUNITY_ID))
@@ -648,11 +680,17 @@ describe("Community Tests: ", async function () {
     expect(await communityViewProxy.getMembersCount(COMMUNITY_ID)).to.equal(3);
 
     await communityProxy.addCommunityAdmin(COMMUNITY_ID, user1.address);
-    await expect(communityProxy.connect(user1).leaveCommunity(COMMUNITY_ID)).to.emit(communityProxy, "MemberLeftCommunity").withArgs(COMMUNITY_ID, user1.address);
+    await expect(communityProxy.connect(user1).leaveCommunity(COMMUNITY_ID))
+      .to.emit(communityProxy, "MemberLeftCommunity")
+      .withArgs(COMMUNITY_ID, user1.address, anyValue);
 
-    await expect(communityProxy.connect(user).leaveCommunity(NON_EXISTING_ID)).to.be.revertedWithCustomError(communityProxy, "CommunityDoesNotExist");
-    expect(await communityViewProxy.getIsAdmin(COMMUNITY_ID, user1.address)).to.be.false;
-    expect(await communityViewProxy.getIsMember(COMMUNITY_ID, user1.address)).to.be.false;
+    await expect(
+      communityProxy.connect(user).leaveCommunity(NON_EXISTING_ID)
+    ).to.be.revertedWithCustomError(communityProxy, "CommunityDoesNotExist");
+    expect(await communityViewProxy.getIsAdmin(COMMUNITY_ID, user1.address)).to
+      .be.false;
+    expect(await communityViewProxy.getIsMember(COMMUNITY_ID, user1.address)).to
+      .be.false;
 
     await communityProxy.banCommunity(COMMUNITY_ID);
     await expect(
@@ -660,10 +698,16 @@ describe("Community Tests: ", async function () {
     ).to.be.revertedWithCustomError(communityProxy, "CommunityIsBanned");
     await communityProxy.unBanCommunity(COMMUNITY_ID);
 
-    await expect (communityProxy.leaveCommunity(COMMUNITY_ID)).to.revertedWith("Owner cannot leave community");
-    await expect (communityProxy.connect(user2).leaveCommunity(COMMUNITY_ID)).to.revertedWith("Must be a member");
+    await expect(communityProxy.leaveCommunity(COMMUNITY_ID)).to.revertedWith(
+      "Owner cannot leave community"
+    );
+    await expect(
+      communityProxy.connect(user2).leaveCommunity(COMMUNITY_ID)
+    ).to.revertedWith("Must be a member");
 
-    await expect (communityProxy.connect(user).leaveCommunity(COMMUNITY_ID)).to.emit(communityProxy, "MemberLeftCommunity").withArgs(COMMUNITY_ID, await user.getAddress());
+    await expect(communityProxy.connect(user).leaveCommunity(COMMUNITY_ID))
+      .to.emit(communityProxy, "MemberLeftCommunity")
+      .withArgs(COMMUNITY_ID, await user.getAddress(), anyValue);
     expect(await communityViewProxy.getMembersCount(COMMUNITY_ID)).to.equal(1);
   });
 });

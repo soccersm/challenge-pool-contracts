@@ -37,7 +37,7 @@ contract ChallengePoolHandler is
         uint256 _quantity,
         uint256 _basePrice,
         address _paymaster,
-        string calldata _communityId,
+        bytes calldata _communityId,
         ChallengeType _cType
     )
         external
@@ -51,23 +51,30 @@ contract ChallengePoolHandler is
         validPrediction(_prediction)
     {
         CPStore storage s = CPStorage.load();
-        CommunityStore storage cs = CommunityStorage.load();
-        ICommunity.Community storage community = cs.communities[
-            _communityId
-        ];
-        if (bytes(_communityId).length == 0) {
+
+        if (_communityId.length == 0) {
             if (_cType != ChallengeType.standard) {
-                revert ICommunity.CustomChallengeRequiresCommunity();
+                revert ICommunity.CommunityChallengeRequiresCommunity();
             }
         } else {
+            CommunityStore storage cs = CommunityStorage.load();
+            ICommunity.Community storage community = cs.communities[
+                keccak256(_communityId)
+            ];
             if (community.owner == address(0)) {
                 revert ICommunity.CommunityDoesNotExist(_communityId);
             }
             if (community.banned) {
                 revert ICommunity.CommunityIsBanned();
             }
-            if (!cs.isAdmin[_communityId][msg.sender]) {
-                revert ICommunity.NotCommunityAdmin();
+            if (
+                !cs.isAdmin[keccak256(_communityId)][msg.sender] &&
+                community.owner != msg.sender
+            ) {
+                revert ICommunity.NotCommunityOwnerOrAdmin(
+                    _communityId,
+                    msg.sender
+                );
             }
         }
 
@@ -79,83 +86,6 @@ contract ChallengePoolHandler is
         }
         if (_options.length > s.maxOptionsPerPool) {
             revert InvalidOptionsLength();
-        }
-        //!Don't validate for custom challenges
-        if (_cType == ChallengeType.custom) {
-            bytes[] memory customPoolOptions;
-            bool customMulti;
-            if (_options.length == 0) {
-                customMulti = false;
-                customPoolOptions = HelpersLib.yesNoOptions();
-            } else {
-                customMulti = true;
-                if (_options.length < 2) {
-                    revert InvalidOptionsLength();
-                }
-                if (_events.length > 1) {
-                    revert InvalidEventLength();
-                }
-                customPoolOptions = _options;
-            }
-            bool customPredictionExists = false;
-            for (uint i = 0; i < customPoolOptions.length; i++) {
-                if (
-                    HelpersLib.compareBytes(
-                        HelpersLib.emptyBytes,
-                        customPoolOptions[i]
-                    )
-                ) {
-                    revert InvalidPoolOption();
-                }
-                if (
-                    HelpersLib.compareBytes(_prediction, customPoolOptions[i])
-                ) {
-                    customPredictionExists = true;
-                }
-                s
-                .optionSupply[s.challengeId][keccak256(customPoolOptions[i])]
-                    .exists = true;
-            }
-            if (!customPredictionExists) {
-                revert InvalidPrediction();
-            }
-            uint256 customMaturity = HelpersLib.largestInt;
-            for (uint i = 0; i < _events.length; i++) {
-                if (
-                    _events[i].maturity <
-                    (block.timestamp + s.minMaturityPeriod)
-                ) {
-                    revert InvalidEventMaturity();
-                }
-                if (customMaturity > _events[i].maturity) {
-                    customMaturity = _events[i].maturity;
-                }
-            }
-            uint256 customTotalAmount = _basePrice * _quantity;
-            uint256 customFee = LibPrice._computeCreateFee(customTotalAmount);
-            LibPool._recordFee(_stakeToken, customFee);
-
-            LibPool._initPool(
-                _stakeToken,
-                _events,
-                customPoolOptions,
-                customMulti,
-                _prediction,
-                customMaturity,
-                _basePrice,
-                _quantity,
-                customTotalAmount,
-                customFee,
-                msg.sender,
-                _communityId,
-                _cType
-            );
-            LibTransfer._depositOrPaymaster(
-                _paymaster,
-                _stakeToken,
-                customTotalAmount + customFee,
-                msg.sender
-            );
         }
 
         TRStore storage t = TRStorage.load();
@@ -194,19 +124,24 @@ contract ChallengePoolHandler is
         }
         uint256 maturity = HelpersLib.largestInt;
         for (uint i = 0; i < _events.length; i++) {
-            if (
-                t.registry[_events[i].topicId].state ==
-                ITopicRegistry.TopicState.disabled
-            ) {
-                revert InvalidEventTopic();
-            }
             if (_events[i].maturity < (block.timestamp + s.minMaturityPeriod)) {
                 revert InvalidEventMaturity();
             }
+
             if (maturity > _events[i].maturity) {
                 maturity = _events[i].maturity;
             }
-            LibPool._validateEvent(t, _events[i]);
+
+            if (_cType != ChallengeType.community) {
+                if (
+                    t.registry[_events[i].topicId].state ==
+                    ITopicRegistry.TopicState.disabled
+                ) {
+                    revert InvalidEventTopic();
+                }
+
+                LibPool._validateEvent(t, _events[i]);
+            }
         }
         uint256 totalAmount = _basePrice * _quantity;
         uint256 fee = LibPrice._computeCreateFee(totalAmount);

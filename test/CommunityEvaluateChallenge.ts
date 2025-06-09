@@ -11,6 +11,7 @@ import {
   ChallengeState,
   ChallengeType,
   coder,
+  encodeCommunityId,
   prepareCreateChallenge,
   yesNo,
 } from "./lib";
@@ -86,7 +87,6 @@ describe("Evaluate Community Custom Challenge", async function () {
   it("Should create Standard and Custom challenge", async function () {
     const {
       poolHandlerProxy,
-      communityViewProxy,
       communityProxy,
       poolViewProxy,
       oneGrand,
@@ -94,7 +94,6 @@ describe("Evaluate Community Custom Challenge", async function () {
       baller,
       keeper,
       ballsToken,
-      paymaster,
       owner,
     } = await loadFixture(deployCommunity);
 
@@ -115,7 +114,7 @@ describe("Evaluate Community Custom Challenge", async function () {
           await poolViewProxy.createFee(oneMil)
         )[1]
       );
-    await (poolHandlerProxy.connect(baller) as any).createChallenge(
+    await(poolHandlerProxy.connect(baller) as any).createChallenge(
       ...(preparedBTCChallenge as any)
     );
 
@@ -124,10 +123,10 @@ describe("Evaluate Community Custom Challenge", async function () {
     console.log("Challenge: ", challenge);
 
     //create new community
-    const COMMUNITY_ID = "Community1";
+    const COMMUNITY_ID = encodeCommunityId("Community1");
     await expect(communityProxy.createCommunity(COMMUNITY_ID))
       .to.emit(communityProxy, "NewCommunity")
-      .withArgs(COMMUNITY_ID, await owner.getAddress(), anyValue);
+      .withArgs(COMMUNITY_ID, await owner.getAddress(), 1, false, anyValue);
     //make baller admin
     await communityProxy.connect(baller).joinCommunity(COMMUNITY_ID);
     await communityProxy.addCommunityAdmin(COMMUNITY_ID, baller.address);
@@ -140,7 +139,7 @@ describe("Evaluate Community Custom Challenge", async function () {
       ethers.ZeroAddress,
       undefined,
       COMMUNITY_ID,
-      ChallengeType.custom
+      ChallengeType.community
     );
     const preparedCustomBTCChallenge = prepareCreateChallenge(
       customBtcChallenge.challenge
@@ -154,32 +153,30 @@ describe("Evaluate Community Custom Challenge", async function () {
       (poolHandlerProxy.connect(keeper) as any).createChallenge(
         ...(preparedCustomBTCChallenge as any)
       )
-    ).to.be.revertedWithCustomError(communityProxy, "NotCommunityAdmin");
+    ).to.be.revertedWithCustomError(communityProxy, "NotCommunityOwnerOrAdmin");
 
     const customChallenge = await getChallenge(poolViewProxy, 1);
     console.log("Custom Challenge: ", customChallenge);
   });
 
-  it("Should create Custom challenge and Evaluate", async function () {
+  it("Should create Community challenge and Evaluate", async function () {
     const {
       poolHandlerProxy,
-      communityViewProxy,
       communityProxy,
       poolViewProxy,
       oneGrand,
       oneMil,
       baller,
-      keeper,
       ballsToken,
-      paymaster,
       owner,
+      keeper,
     } = await loadFixture(deployCommunity);
 
     //create new community
-    const COMMUNITY_ID = "Community1";
+    const COMMUNITY_ID = encodeCommunityId("Community1");
     await expect(communityProxy.createCommunity(COMMUNITY_ID))
       .to.emit(communityProxy, "NewCommunity")
-      .withArgs(COMMUNITY_ID, await owner.getAddress(), anyValue);
+      .withArgs(COMMUNITY_ID, await owner.getAddress(), 1, false, anyValue);
     //make baller admin
     await communityProxy.connect(baller).joinCommunity(COMMUNITY_ID);
     await communityProxy.addCommunityAdmin(COMMUNITY_ID, baller.address);
@@ -192,7 +189,7 @@ describe("Evaluate Community Custom Challenge", async function () {
       ethers.ZeroAddress,
       undefined,
       COMMUNITY_ID,
-      ChallengeType.custom
+      ChallengeType.community
     );
     const preparedCustomBTCChallenge = prepareCreateChallenge(
       customBtcChallenge.challenge
@@ -226,15 +223,16 @@ describe("Evaluate Community Custom Challenge", async function () {
     await time.increaseTo(customBtcChallenge.maturity);
     const result = yesNo.yes;
 
-    //evaluate
+    //admin/owner can evaluate
     await expect(
-      communityProxy.evaluateCustomChallenge(0, result)
-    ).to.be.revertedWithCustomError(communityProxy, "NotCommunityAdmin");
-    await expect(
-      communityProxy.connect(baller).evaluateCustomChallenge(0, result)
+      communityProxy.connect(keeper).evaluateCustomChallenge(0, result)
     )
+      .to.be.revertedWithCustomError(communityProxy, "NotCommunityOwnerOrAdmin")
+      .withArgs(COMMUNITY_ID, keeper.address);
+
+    await expect(communityProxy.evaluateCustomChallenge(0, result))
       .to.emit(communityProxy, "EvaluateCommunityChallenge")
-      .withArgs(0, baller.address, ChallengeState.evaluated, result);
+      .withArgs(0, owner.address, ChallengeState.evaluated, result);
 
     await time.increase(60 * 60);
     await poolHandlerProxy.close(0);
