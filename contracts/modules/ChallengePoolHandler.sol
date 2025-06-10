@@ -132,7 +132,7 @@ contract ChallengePoolHandler is
                 maturity = _events[i].maturity;
             }
 
-            if (_cType != ChallengeType.community) {
+            if (_cType == ChallengeType.standard) {
                 if (
                     t.registry[_events[i].topicId].state ==
                     ITopicRegistry.TopicState.disabled
