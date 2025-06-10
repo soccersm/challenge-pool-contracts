@@ -6,45 +6,45 @@ import "../utils/CommunityHelpers.sol";
 
 contract CommunityView is ICommunityView {
     function getCommunity(
-        bytes calldata _communityId
+        bytes32 _communityId
     ) external view override returns (ICommunity.Community memory) {
-        return CommunityStorage.load().communities[keccak256(_communityId)];
+        return CommunityStorage.load().communities[_communityId];
     }
 
     function getIsAdmin(
-        bytes calldata _communityId,
+        bytes32 _communityId,
         address _admin
     ) external view override returns (bool) {
-        return CommunityStorage.load().isAdmin[keccak256(_communityId)][_admin];
+        return CommunityStorage.load().isAdmin[_communityId][_admin];
     }
     function getIsMember(
-        bytes calldata _communityId,
+        bytes32 _communityId,
         address _member
     ) external view override returns (bool) {
-        return CommunityStorage.load().isMember[keccak256(_communityId)][_member];
+        return CommunityStorage.load().isMember[_communityId][_member];
     }
 
     function getBanStatus(
-        bytes calldata _communityId
+        bytes32 _communityId
     ) external view returns (bool) {
-        return CommunityStorage.load().communities[keccak256(_communityId)].banned;
+        return CommunityStorage.load().communities[_communityId].banned;
     }
 
     function getMembersCount(
-        bytes calldata _communityId
+        bytes32 _communityId
     ) external view override returns (uint256) {
-        return CommunityStorage.load().communities[keccak256(_communityId)].memberCount;
+        return CommunityStorage.load().communities[_communityId].memberCount;
     }
 
     function getOwnerAddress(
-        bytes calldata _communityId
+        bytes32 _communityId
     ) external view returns (address) {
-        return CommunityStorage.load().communities[keccak256(_communityId)].owner;
+        return CommunityStorage.load().communities[_communityId].owner;
     }
 
     function getPendingOwnerAddress(
-        bytes calldata _communityId
+        bytes32 _communityId
     ) external view returns (address) {
-        return CommunityStorage.load().communities[keccak256(_communityId)].pendingOwner;
+        return CommunityStorage.load().communities[_communityId].pendingOwner;
     }
 }
