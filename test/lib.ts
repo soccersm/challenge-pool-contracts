@@ -503,7 +503,6 @@ export function prepareFootballOverUnderProvision(
   return ["FootballOverUnder", params];
 }
 
-export function encodeCommunityId(communityId: string): string {
-  return coder.encode(["string"], [communityId]);
+export function getCommunityIdHash(communityId: string): string {
+  return ethers.keccak256(ethers.toUtf8Bytes(communityId));
 }
-
