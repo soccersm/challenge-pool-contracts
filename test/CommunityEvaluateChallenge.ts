@@ -11,7 +11,7 @@ import {
   ChallengeState,
   ChallengeType,
   coder,
-  encodeCommunityId,
+  getCommunityIdHash,
   prepareCreateChallenge,
   yesNo,
 } from "./lib";
@@ -114,7 +114,7 @@ describe("Evaluate Community Custom Challenge", async function () {
           await poolViewProxy.createFee(oneMil)
         )[1]
       );
-    await(poolHandlerProxy.connect(baller) as any).createChallenge(
+    await (poolHandlerProxy.connect(baller) as any).createChallenge(
       ...(preparedBTCChallenge as any)
     );
 
@@ -123,22 +123,30 @@ describe("Evaluate Community Custom Challenge", async function () {
     console.log("Challenge: ", challenge);
 
     //create new community
-    const COMMUNITY_ID = encodeCommunityId("Community1");
+    const COMMUNITY_ID = "Community1";
+    const COMMUNITY_ID_HASH = getCommunityIdHash(COMMUNITY_ID);
     await expect(communityProxy.createCommunity(COMMUNITY_ID))
       .to.emit(communityProxy, "NewCommunity")
-      .withArgs(COMMUNITY_ID, await owner.getAddress(), 1, false, anyValue);
+      .withArgs(
+        COMMUNITY_ID,
+        COMMUNITY_ID_HASH,
+        await owner.getAddress(),
+        1,
+        false,
+        anyValue
+      );
     //make baller admin
-    await communityProxy.connect(baller).joinCommunity(COMMUNITY_ID);
-    await communityProxy.addCommunityAdmin(COMMUNITY_ID, baller.address);
+    await communityProxy.connect(baller).joinCommunity(COMMUNITY_ID_HASH);
+    await communityProxy.addCommunityAdmin(COMMUNITY_ID_HASH, baller.address);
 
-    //customChallenge
+    //customChallenge: maturity->default
     const customBtcChallenge = btcEvent(
       await ballsToken.getAddress(),
       1,
       oneGrand,
       ethers.ZeroAddress,
       undefined,
-      COMMUNITY_ID,
+      COMMUNITY_ID_HASH,
       ChallengeType.community
     );
     const preparedCustomBTCChallenge = prepareCreateChallenge(
@@ -173,13 +181,21 @@ describe("Evaluate Community Custom Challenge", async function () {
     } = await loadFixture(deployCommunity);
 
     //create new community
-    const COMMUNITY_ID = encodeCommunityId("Community1");
+    const COMMUNITY_ID = "Community1";
+    const COMMUNITY_ID_HASH = getCommunityIdHash(COMMUNITY_ID);
     await expect(communityProxy.createCommunity(COMMUNITY_ID))
       .to.emit(communityProxy, "NewCommunity")
-      .withArgs(COMMUNITY_ID, await owner.getAddress(), 1, false, anyValue);
+      .withArgs(
+        COMMUNITY_ID,
+        COMMUNITY_ID_HASH,
+        await owner.getAddress(),
+        1,
+        false,
+        anyValue
+      );
     //make baller admin
-    await communityProxy.connect(baller).joinCommunity(COMMUNITY_ID);
-    await communityProxy.addCommunityAdmin(COMMUNITY_ID, baller.address);
+    await communityProxy.connect(baller).joinCommunity(COMMUNITY_ID_HASH);
+    await communityProxy.addCommunityAdmin(COMMUNITY_ID_HASH, baller.address);
 
     //customChallenge
     const customBtcChallenge = btcEvent(
@@ -188,7 +204,7 @@ describe("Evaluate Community Custom Challenge", async function () {
       oneGrand,
       ethers.ZeroAddress,
       undefined,
-      COMMUNITY_ID,
+      COMMUNITY_ID_HASH,
       ChallengeType.community
     );
     const preparedCustomBTCChallenge = prepareCreateChallenge(
@@ -228,11 +244,17 @@ describe("Evaluate Community Custom Challenge", async function () {
       communityProxy.connect(keeper).evaluateCustomChallenge(0, result)
     )
       .to.be.revertedWithCustomError(communityProxy, "NotCommunityOwnerOrAdmin")
-      .withArgs(COMMUNITY_ID, keeper.address);
+      .withArgs(COMMUNITY_ID_HASH, keeper.address);
 
     await expect(communityProxy.evaluateCustomChallenge(0, result))
       .to.emit(communityProxy, "EvaluateCommunityChallenge")
-      .withArgs(0, owner.address, ChallengeState.evaluated, result);
+      .withArgs(
+        0,
+        COMMUNITY_ID_HASH,
+        owner.address,
+        ChallengeState.evaluated,
+        result
+      );
 
     await time.increase(60 * 60);
     await poolHandlerProxy.close(0);
