@@ -30,7 +30,7 @@ abstract contract IChallengePoolCommon {
         bytes[] options;
         bool disputed;
         uint256 lastOutcomeSet;
-        bytes communityId;
+        bytes32 communityId;
         ChallengeType cType; 
     }
 
