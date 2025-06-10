@@ -18,13 +18,14 @@ contract Community is
     ChallengePoolHelpers
 {
     function createCommunity(
-        bytes calldata _communityId
-    ) external override nonEmptyBytes(_communityId) {
+        string calldata _communityId
+    ) external override nonEmptyString(_communityId) {
         CommunityStore storage s = CommunityStorage.load();
-        if (s.communities[keccak256(_communityId)].communityId.length > 0) {
+        bytes32 communityId = keccak256(bytes(_communityId));
+        if (bytes(s.communities[communityId].communityId).length > 0) {
             revert CommunityAlreadyExists();
         }
-        s.communities[keccak256(_communityId)] = ICommunity.Community({
+        s.communities[communityId] = ICommunity.Community({
             communityId: _communityId,
             owner: msg.sender,
             pendingOwner: address(0),
@@ -32,13 +33,12 @@ contract Community is
             banned: false,
             tournamentId: bytes32(0)
         });
-        s.isMember[keccak256(_communityId)][msg.sender] = true;
-        uint256 memberCount = s
-            .communities[keccak256(_communityId)]
-            .memberCount;
-        bool bannedStatus = s.communities[keccak256(_communityId)].banned;
+        s.isMember[communityId][msg.sender] = true;
+        uint256 memberCount = s.communities[communityId].memberCount;
+        bool bannedStatus = s.communities[communityId].banned;
         emit NewCommunity(
             _communityId,
+            communityId,
             msg.sender,
             memberCount,
             bannedStatus,
@@ -47,7 +47,7 @@ contract Community is
     }
 
     function addCommunityAdmin(
-        bytes calldata _communityId,
+        bytes32 _communityId,
         address _admin
     )
         external
@@ -55,19 +55,19 @@ contract Community is
         positiveAddress(_admin)
         communityExists(_communityId)
         communityNotBanned(_communityId)
-        communityOwnerOrAdmin(_communityId)
+        onlyCommunityOwner(_communityId)
         isCommunityMember(_communityId, _admin)
     {
         CommunityStore storage s = CommunityStorage.load();
-        if (s.isAdmin[keccak256(_communityId)][_admin]) {
-            revert ICommunity.AlreadyCommunityAdmin(_communityId, _admin);
+        if (s.isAdmin[_communityId][_admin]) {
+            revert ICommunity.AlreadyCommunityAdmin();
         }
-        s.isAdmin[keccak256(_communityId)][_admin] = true;
+        s.isAdmin[_communityId][_admin] = true;
         emit AdminAdded(_communityId, msg.sender, _admin);
     }
 
     function removeCommunityAdmin(
-        bytes calldata _communityId,
+        bytes32 _communityId,
         address _admin
     )
         external
@@ -75,18 +75,18 @@ contract Community is
         positiveAddress(_admin)
         communityExists(_communityId)
         communityNotBanned(_communityId)
-        communityOwnerOrAdmin(_communityId)
+        onlyCommunityOwner(_communityId)
     {
         CommunityStore storage s = CommunityStorage.load();
-        if (!s.isAdmin[keccak256(_communityId)][_admin]) {
+        if (!s.isAdmin[_communityId][_admin]) {
             revert MustBeCommunityAdmin();
         }
-        delete s.isAdmin[keccak256(_communityId)][_admin];
+        delete s.isAdmin[_communityId][_admin];
         emit AdminRemoved(_communityId, msg.sender, _admin);
     }
 
     function banCommunity(
-        bytes calldata _communityId
+        bytes32 _communityId
     )
         external
         override
@@ -95,15 +95,13 @@ contract Community is
         communityNotBanned(_communityId)
     {
         CommunityStore storage s = CommunityStorage.load();
-        ICommunity.Community storage community = s.communities[
-            keccak256(_communityId)
-        ];
+        ICommunity.Community storage community = s.communities[_communityId];
         community.banned = true;
         emit CommunityBanned(_communityId, msg.sender);
     }
 
     function unBanCommunity(
-        bytes calldata _communityId
+        bytes32 _communityId
     )
         external
         override
@@ -112,15 +110,13 @@ contract Community is
         communityBanned(_communityId)
     {
         CommunityStore storage s = CommunityStorage.load();
-        ICommunity.Community storage community = s.communities[
-            keccak256(_communityId)
-        ];
+        ICommunity.Community storage community = s.communities[_communityId];
         community.banned = false;
         emit CommunityUnBanned(_communityId, msg.sender);
     }
 
     function banMember(
-        bytes calldata _communityId,
+        bytes32 _communityId,
         address _user
     )
         external
@@ -133,13 +129,11 @@ contract Community is
         isCommunityMember(_communityId, _user)
     {
         CommunityStore storage s = CommunityStorage.load();
-        ICommunity.Community storage community = s.communities[
-            keccak256(_communityId)
-        ];
+        ICommunity.Community storage community = s.communities[_communityId];
         require(_user != community.owner, "Cannot ban or unban owner");
-        s.memberBanned[keccak256(_communityId)][_user] = true;
-        if (s.isMember[keccak256(_communityId)][_user]) {
-            s.isMember[keccak256(_communityId)][_user] = false;
+        s.memberBanned[_communityId][_user] = true;
+        if (s.isMember[_communityId][_user]) {
+            s.isMember[_communityId][_user] = false;
             if (community.memberCount > 0) {
                 community.memberCount -= 1;
             }
@@ -148,7 +142,7 @@ contract Community is
     }
 
     function unBanMember(
-        bytes calldata _communityId,
+        bytes32 _communityId,
         address _user
     )
         external
@@ -160,20 +154,15 @@ contract Community is
         communityOwnerOrAdmin(_communityId)
     {
         CommunityStore storage s = CommunityStorage.load();
-        ICommunity.Community storage community = s.communities[
-            keccak256(_communityId)
-        ];
+        ICommunity.Community storage community = s.communities[_communityId];
         require(_user != community.owner, "Cannot ban or unban owner");
-        require(
-            s.memberBanned[keccak256(_communityId)][_user],
-            "Member must be banned"
-        );
-        s.memberBanned[keccak256(_communityId)][_user] = false;
+        require(s.memberBanned[_communityId][_user], "Member must be banned");
+        s.memberBanned[_communityId][_user] = false;
         emit MemberUnbanned(_communityId, _user, block.timestamp);
     }
 
     function joinCommunity(
-        bytes calldata _communityId
+        bytes32 _communityId
     )
         external
         override
@@ -181,23 +170,18 @@ contract Community is
         communityNotBanned(_communityId)
     {
         CommunityStore storage s = CommunityStorage.load();
-        ICommunity.Community storage community = s.communities[
-            keccak256(_communityId)
-        ];
-        require(
-            !s.memberBanned[keccak256(_communityId)][msg.sender],
-            "Member is banned"
-        );
-        if (s.isMember[keccak256(_communityId)][msg.sender]) {
+        ICommunity.Community storage community = s.communities[_communityId];
+        require(!s.memberBanned[_communityId][msg.sender], "Member is banned");
+        if (s.isMember[_communityId][msg.sender]) {
             revert AlreadyCommunityMember();
         }
-        s.isMember[keccak256(_communityId)][msg.sender] = true;
+        s.isMember[_communityId][msg.sender] = true;
         community.memberCount += 1;
         emit MemberJoined(_communityId, msg.sender, block.timestamp);
     }
 
     function leaveCommunity(
-        bytes calldata _communityId
+        bytes32 _communityId
     )
         external
         override
@@ -205,18 +189,13 @@ contract Community is
         communityNotBanned(_communityId)
     {
         CommunityStore storage s = CommunityStorage.load();
-        ICommunity.Community storage community = s.communities[
-            keccak256(_communityId)
-        ];
+        ICommunity.Community storage community = s.communities[_communityId];
         require(msg.sender != community.owner, "Owner cannot leave community");
-        require(
-            s.isMember[keccak256(_communityId)][msg.sender],
-            "Must be a member"
-        );
-        if (s.isAdmin[keccak256(_communityId)][msg.sender]) {
-            delete s.isAdmin[keccak256(_communityId)][msg.sender];
+        require(s.isMember[_communityId][msg.sender], "Must be a member");
+        if (s.isAdmin[_communityId][msg.sender]) {
+            delete s.isAdmin[_communityId][msg.sender];
         }
-        delete s.isMember[keccak256(_communityId)][msg.sender];
+        delete s.isMember[_communityId][msg.sender];
         if (community.memberCount > 0) {
             community.memberCount -= 1;
         }
@@ -224,35 +203,30 @@ contract Community is
     }
 
     function removeCommunityMember(
-        bytes calldata _communityId,
-        address _user
+        bytes32 _communityId,
+        address _member
     )
         external
         override
-        positiveAddress(_user)
+        positiveAddress(_member)
         communityExists(_communityId)
         communityNotBanned(_communityId)
-        isCommunityMember(_communityId, _user)
+        isCommunityMember(_communityId, _member)
         communityOwnerOrAdmin(_communityId)
     {
         CommunityStore storage s = CommunityStorage.load();
-        ICommunity.Community storage community = s.communities[
-            keccak256(_communityId)
-        ];
-        require(_user != community.owner, "Cannot remove owner");
-        require(
-            !s.isAdmin[keccak256(_communityId)][_user],
-            "Cannot remove admin"
-        );
-        delete s.isMember[keccak256(_communityId)][_user];
+        ICommunity.Community storage community = s.communities[_communityId];
+        require(_member != community.owner, "Cannot remove owner");
+        require(!s.isAdmin[_communityId][_member], "Cannot remove admin");
+        delete s.isMember[_communityId][_member];
         if (community.memberCount > 0) {
             community.memberCount -= 1;
         }
-        emit MemberRemoved(_communityId, _user, block.timestamp);
+        emit MemberRemoved(_communityId, _member, block.timestamp);
     }
 
     function transferCommunityOwner(
-        bytes calldata _communityId,
+        bytes32 _communityId,
         address _newOwner
     )
         external
@@ -263,9 +237,7 @@ contract Community is
         isCommunityMember(_communityId, _newOwner)
     {
         CommunityStore storage s = CommunityStorage.load();
-        ICommunity.Community storage community = s.communities[
-            keccak256(_communityId)
-        ];
+        ICommunity.Community storage community = s.communities[_communityId];
         require(
             _newOwner != msg.sender,
             "Cannot initiate transfer to current owner"
@@ -280,12 +252,10 @@ contract Community is
     }
 
     function acceptCommunityOwnership(
-        bytes calldata _communityId
+        bytes32 _communityId
     ) external override communityExists(_communityId) {
         CommunityStore storage s = CommunityStorage.load();
-        ICommunity.Community storage community = s.communities[
-            keccak256(_communityId)
-        ];
+        ICommunity.Community storage community = s.communities[_communityId];
         require(msg.sender == community.pendingOwner, "Not pending owner");
         address previousOwner = community.owner;
         community.owner = msg.sender;
@@ -305,10 +275,8 @@ contract Community is
         CommunityStore storage cs = CommunityStorage.load();
         CPStore storage s = CPStorage.load();
         IChallengePool.Challenge storage challenge = s.challenges[_challengeId];
-        bytes memory communityId = challenge.communityId;
-        ICommunity.Community storage community = cs.communities[
-            keccak256(communityId)
-        ];
+        bytes32 communityId = challenge.communityId;
+        ICommunity.Community storage community = cs.communities[communityId];
         if (challenge.cType != ChallengeType.community) {
             revert CommunityChallengeRequiresCommunity();
         }
@@ -320,7 +288,7 @@ contract Community is
         }
 
         if (
-            !cs.isAdmin[keccak256(communityId)][msg.sender] &&
+            !cs.isAdmin[communityId][msg.sender] &&
             community.owner != msg.sender
         ) {
             revert NotCommunityOwnerOrAdmin(communityId, msg.sender);
@@ -330,6 +298,7 @@ contract Community is
         challenge.state = ChallengeState.evaluated;
         emit EvaluateCommunityChallenge(
             _challengeId,
+            communityId,
             msg.sender,
             ChallengeState.evaluated,
             _results
