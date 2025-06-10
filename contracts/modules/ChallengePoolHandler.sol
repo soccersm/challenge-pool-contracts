@@ -37,7 +37,7 @@ contract ChallengePoolHandler is
         uint256 _quantity,
         uint256 _basePrice,
         address _paymaster,
-        bytes calldata _communityId,
+        bytes32 _communityId,
         ChallengeType _cType
     )
         external
@@ -52,14 +52,14 @@ contract ChallengePoolHandler is
     {
         CPStore storage s = CPStorage.load();
 
-        if (_communityId.length == 0) {
+        if (_communityId == bytes32(0)) {
             if (_cType != ChallengeType.standard) {
                 revert ICommunity.CommunityChallengeRequiresCommunity();
             }
         } else {
             CommunityStore storage cs = CommunityStorage.load();
             ICommunity.Community storage community = cs.communities[
-                keccak256(_communityId)
+                _communityId
             ];
             if (community.owner == address(0)) {
                 revert ICommunity.CommunityDoesNotExist(_communityId);
@@ -68,7 +68,7 @@ contract ChallengePoolHandler is
                 revert ICommunity.CommunityIsBanned();
             }
             if (
-                !cs.isAdmin[keccak256(_communityId)][msg.sender] &&
+                !cs.isAdmin[_communityId][msg.sender] &&
                 community.owner != msg.sender
             ) {
                 revert ICommunity.NotCommunityOwnerOrAdmin(
