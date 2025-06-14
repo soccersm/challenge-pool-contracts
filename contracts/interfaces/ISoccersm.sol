@@ -5,10 +5,14 @@ import "./IChallengePool.sol";
 import "./ITopicRegistry.sol";
 import "./IDataProvider.sol";
 import "./IPoolResolver.sol";
+import "./ICommunity.sol";
+import "./ICommunityView.sol";
 
 abstract contract ISoccersm is
     IChallengePool,
     ITopicRegistry,
     IDataProvider,
-    IPoolResolver
+    IPoolResolver,
+    ICommunity,
+    ICommunityView
 {}
