@@ -21,8 +21,12 @@ abstract contract ICommunity {
         uint256 createdAt
     );
 
-    event CommunityBanned(bytes32 communityId, address council);
-    event CommunityUnBanned(bytes32 communityId, address council);
+    event CommunityBanned(bytes32 communityId, address council, bool banned);
+    event CommunityUnBanned(
+        bytes32 communityId,
+        address council,
+        bool unbanned
+    );
     event AdminAdded(bytes32 communityId, address caller, address newAdmin);
     event AdminRemoved(bytes32 communityId, address caller, address admin);
 
@@ -45,11 +49,31 @@ abstract contract ICommunity {
         IChallengePoolHandler.ChallengeState state,
         bytes result
     );
-    event MemberIsBanned(bytes32 communityId, address user, uint256 timeAt);
+    event MemberIsBanned(
+        bytes32 communityId,
+        address user,
+        uint256 memberCount,
+        uint256 timeAt
+    );
     event MemberUnbanned(bytes32 communityId, address user, uint256 timeAt);
-    event MemberJoined(bytes32 communityId, address member, uint256 timeAt);
-    event MemberLeftCommunity(bytes32 communityId, address user, uint256 timeAt);
-    event MemberRemoved(bytes32 communityId, address member, uint256 timeAt);
+    event MemberJoined(
+        bytes32 communityId,
+        address member,
+        uint256 memberCount,
+        uint256 timeAt
+    );
+    event MemberLeftCommunity(
+        bytes32 communityId,
+        address user,
+        uint256 memberCount,
+        uint256 timeAt
+    );
+    event MemberRemoved(
+        bytes32 communityId,
+        address member,
+        uint256 memberCount,
+        uint256 timeAt
+    );
 
     error CommunityIsBanned();
     error CommunityNotBanned();
