@@ -97,7 +97,7 @@ contract Community is
         CommunityStore storage s = CommunityStorage.load();
         ICommunity.Community storage community = s.communities[_communityId];
         community.banned = true;
-        emit CommunityBanned(_communityId, msg.sender);
+        emit CommunityBanned(_communityId, msg.sender, community.banned);
     }
 
     function unBanCommunity(
@@ -112,7 +112,7 @@ contract Community is
         CommunityStore storage s = CommunityStorage.load();
         ICommunity.Community storage community = s.communities[_communityId];
         community.banned = false;
-        emit CommunityUnBanned(_communityId, msg.sender);
+        emit CommunityUnBanned(_communityId, msg.sender, community.banned);
     }
 
     function banMember(
@@ -138,7 +138,12 @@ contract Community is
                 community.memberCount -= 1;
             }
         }
-        emit MemberIsBanned(_communityId, _user, block.timestamp);
+        emit MemberIsBanned(
+            _communityId,
+            _user,
+            community.memberCount,
+            block.timestamp
+        );
     }
 
     function unBanMember(
@@ -177,7 +182,12 @@ contract Community is
         }
         s.isMember[_communityId][msg.sender] = true;
         community.memberCount += 1;
-        emit MemberJoined(_communityId, msg.sender, block.timestamp);
+        emit MemberJoined(
+            _communityId,
+            msg.sender,
+            community.memberCount,
+            block.timestamp
+        );
     }
 
     function leaveCommunity(
@@ -199,7 +209,12 @@ contract Community is
         if (community.memberCount > 0) {
             community.memberCount -= 1;
         }
-        emit MemberLeftCommunity(_communityId, msg.sender, block.timestamp);
+        emit MemberLeftCommunity(
+            _communityId,
+            msg.sender,
+            community.memberCount,
+            block.timestamp
+        );
     }
 
     function removeCommunityMember(
@@ -222,7 +237,12 @@ contract Community is
         if (community.memberCount > 0) {
             community.memberCount -= 1;
         }
-        emit MemberRemoved(_communityId, _member, block.timestamp);
+        emit MemberRemoved(
+            _communityId,
+            _member,
+            community.memberCount,
+            block.timestamp
+        );
     }
 
     function transferCommunityOwner(
