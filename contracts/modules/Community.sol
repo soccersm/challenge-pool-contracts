@@ -8,6 +8,7 @@ import "../utils/Helpers.sol";
 import "../diamond/interfaces/SoccersmRoles.sol";
 import "../interfaces/IChallengePoolCommon.sol";
 import "../utils/ChallengePoolHelpers.sol";
+import "../interfaces/IChallengePoolHandler.sol";
 
 contract Community is
     ICommunity,
@@ -316,9 +317,8 @@ contract Community is
         challenge.outcome = _results;
         challenge.lastOutcomeSet = block.timestamp;
         challenge.state = ChallengeState.evaluated;
-        emit EvaluateCommunityChallenge(
+        emit IChallengePoolHandler.EvaluateChallenge(
             _challengeId,
-            communityId,
             msg.sender,
             ChallengeState.evaluated,
             _results

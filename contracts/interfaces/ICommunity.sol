@@ -42,13 +42,7 @@ abstract contract ICommunity {
         address newOwner,
         uint256 timeAt
     );
-    event EvaluateCommunityChallenge(
-        uint256 challengeId,
-        bytes32 communityId,
-        address evaluator,
-        IChallengePoolHandler.ChallengeState state,
-        bytes result
-    );
+
     event MemberIsBanned(
         bytes32 communityId,
         address user,
