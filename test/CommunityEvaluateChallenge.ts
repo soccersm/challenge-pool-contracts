@@ -23,47 +23,18 @@ describe("Evaluate Community Custom Challenge", async function () {
   async function deployCommunity() {
     const {
       poolHandlerProxy,
-      poolViewProxy,
       cutProxy,
+      communityProxy,
+      communityViewProxy,
+      poolViewProxy,
       oneGrand,
+      oneMil,
       baller,
-      owner,
       keeper,
       ballsToken,
-      oneMil,
-      paymaster,
     } = await loadFixture(deploySoccersm);
 
-    const Community = await ethers.getContractFactory("Community");
-    const community = await Community.deploy();
-
-    const CommunityView = await ethers.getContractFactory("CommunityView");
-    const communityView = await CommunityView.deploy();
-
-    const selectors = functionSelectors("Community");
-    const viewSelectors = functionSelectors("CommunityView");
-    const communityCut = [
-      {
-        facetAddress: await community.getAddress(),
-        action: FacetCutAction.Add,
-        functionSelectors: selectors,
-      },
-      {
-        facetAddress: await communityView.getAddress(),
-        action: FacetCutAction.Add,
-        functionSelectors: viewSelectors,
-      },
-    ];
-
-    await cutProxy.diamondCut(communityCut, ethers.ZeroAddress, "0x");
-    const communityProxy = await ethers.getContractAt(
-      "Community",
-      await cutProxy.getAddress()
-    );
-    const communityViewProxy = await ethers.getContractAt(
-      "CommunityView",
-      await cutProxy.getAddress()
-    );
+    const [owner, user, user1, user2, user3] = await ethers.getSigners();
 
     const SOCCERSM_COUNCIL = ethers.keccak256(toUtf8Bytes("SOCCERSM_COUNCIL"));
 
@@ -73,13 +44,16 @@ describe("Evaluate Community Custom Challenge", async function () {
       communityProxy,
       communityViewProxy,
       owner,
-      keeper,
-      baller,
+      user,
+      user1,
+      user2,
+      user3,
       SOCCERSM_COUNCIL,
       oneGrand,
       oneMil,
+      baller,
+      keeper,
       ballsToken,
-      paymaster,
       poolViewProxy,
     };
   }
@@ -136,7 +110,9 @@ describe("Evaluate Community Custom Challenge", async function () {
         anyValue
       );
     //make baller admin
-    await communityProxy.connect(baller).joinCommunity(COMMUNITY_ID_HASH);
+    await (communityProxy.connect(baller) as any).joinCommunity(
+      COMMUNITY_ID_HASH
+    );
     await communityProxy.addCommunityAdmin(COMMUNITY_ID_HASH, baller.address);
 
     //customChallenge: maturity->default
@@ -194,7 +170,9 @@ describe("Evaluate Community Custom Challenge", async function () {
         anyValue
       );
     //make baller admin
-    await communityProxy.connect(baller).joinCommunity(COMMUNITY_ID_HASH);
+    await (communityProxy.connect(baller) as any).joinCommunity(
+      COMMUNITY_ID_HASH
+    );
     await communityProxy.addCommunityAdmin(COMMUNITY_ID_HASH, baller.address);
 
     //customChallenge
@@ -241,16 +219,15 @@ describe("Evaluate Community Custom Challenge", async function () {
 
     //admin/owner can evaluate
     await expect(
-      communityProxy.connect(keeper).evaluateCustomChallenge(0, result)
+      (communityProxy.connect(keeper) as any).evaluateCustomChallenge(0, result)
     )
       .to.be.revertedWithCustomError(communityProxy, "NotCommunityOwnerOrAdmin")
       .withArgs(COMMUNITY_ID_HASH, keeper.address);
 
     await expect(communityProxy.evaluateCustomChallenge(0, result))
-      .to.emit(communityProxy, "EvaluateCommunityChallenge")
+      .to.emit(communityProxy, "EvaluateChallenge")
       .withArgs(
         0,
-        COMMUNITY_ID_HASH,
         owner.address,
         ChallengeState.evaluated,
         result
