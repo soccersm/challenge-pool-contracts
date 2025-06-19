@@ -1,3 +1,4 @@
+import { CommunityView } from "./../typechain-types/contracts/modules/CommunityView";
 import { toUtf8Bytes } from "ethers";
 import { ethers } from "hardhat";
 import { expect } from "chai";
@@ -16,39 +17,9 @@ import { getCommunityIdHash } from "./lib";
 
 describe("Community Tests: ", async function () {
   async function deployCommunity() {
-    const { poolHandlerProxy, cutProxy } = await loadFixture(deploySoccersm);
+    const { poolHandlerProxy, cutProxy, communityProxy, communityViewProxy } =
+      await loadFixture(deploySoccersm);
     const [owner, user, user1, user2, user3] = await ethers.getSigners();
-
-    const Community = await ethers.getContractFactory("Community");
-    const community = await Community.deploy();
-
-    const CommunityView = await ethers.getContractFactory("CommunityView");
-    const communityView = await CommunityView.deploy();
-
-    const selectors = functionSelectors("Community");
-    const viewSelectors = functionSelectors("CommunityView");
-    const communityCut = [
-      {
-        facetAddress: await community.getAddress(),
-        action: FacetCutAction.Add,
-        functionSelectors: selectors,
-      },
-      {
-        facetAddress: await communityView.getAddress(),
-        action: FacetCutAction.Add,
-        functionSelectors: viewSelectors,
-      },
-    ];
-
-    await cutProxy.diamondCut(communityCut, ethers.ZeroAddress, "0x");
-    const communityProxy = await ethers.getContractAt(
-      "Community",
-      await cutProxy.getAddress()
-    );
-    const communityViewProxy = await ethers.getContractAt(
-      "CommunityView",
-      await cutProxy.getAddress()
-    );
 
     const SOCCERSM_COUNCIL = ethers.keccak256(toUtf8Bytes("SOCCERSM_COUNCIL"));
 
@@ -127,8 +98,10 @@ describe("Community Tests: ", async function () {
       );
 
     //join community
-    await communityProxy.connect(user).joinCommunity(COMMUNITY_ID_HASH);
-    await communityProxy.connect(user1).joinCommunity(COMMUNITY_ID_HASH);
+    await(communityProxy.connect(user) as any).joinCommunity(COMMUNITY_ID_HASH);
+    await(communityProxy.connect(user1) as any).joinCommunity(
+      COMMUNITY_ID_HASH
+    );
 
     //add user as community admin
     await expect(
@@ -174,9 +147,10 @@ describe("Community Tests: ", async function () {
 
     await communityProxy.unBanCommunity(COMMUNITY_ID_HASH);
     await expect(
-      communityProxy
-        .connect(user1)
-        .addCommunityAdmin(COMMUNITY_ID_HASH, await user1.getAddress())
+      (communityProxy.connect(user1) as any).addCommunityAdmin(
+        COMMUNITY_ID_HASH,
+        await user1.getAddress()
+      )
     ).to.be.revertedWithCustomError(communityProxy, "NotCommunityOwner");
 
     await expect(
@@ -188,9 +162,10 @@ describe("Community Tests: ", async function () {
 
     //admin cannot add admin
     await expect(
-      communityProxy
-        .connect(user)
-        .addCommunityAdmin(COMMUNITY_ID_HASH, await user2.getAddress())
+      (communityProxy.connect(user) as any).addCommunityAdmin(
+        COMMUNITY_ID_HASH,
+        await user2.getAddress()
+      )
     ).to.be.revertedWithCustomError(communityProxy, "NotCommunityOwner");
   });
 
@@ -213,7 +188,7 @@ describe("Community Tests: ", async function () {
       );
 
     //join community
-    await communityProxy.connect(user).joinCommunity(COMMUNITY_ID_HASH);
+    await(communityProxy.connect(user) as any).joinCommunity(COMMUNITY_ID_HASH);
 
     //add user as community admin
     await expect(
@@ -273,9 +248,10 @@ describe("Community Tests: ", async function () {
       )
     ).to.be.revertedWithCustomError(communityProxy, "CommunityDoesNotExist");
     await expect(
-      communityProxy
-        .connect(user1)
-        .removeCommunityAdmin(COMMUNITY_ID_HASH, await user.getAddress())
+      (communityProxy.connect(user1) as any).removeCommunityAdmin(
+        COMMUNITY_ID_HASH,
+        await user.getAddress()
+      )
     ).to.be.revertedWithCustomError(communityProxy, "NotCommunityOwner");
 
     await communityProxy.banCommunity(COMMUNITY_ID_HASH);
@@ -312,7 +288,7 @@ describe("Community Tests: ", async function () {
 
     await expect(communityProxy.banCommunity(COMMUNITY_ID_HASH))
       .to.emit(communityProxy, "CommunityBanned")
-      .withArgs(COMMUNITY_ID_HASH, await owner.getAddress());
+      .withArgs(COMMUNITY_ID_HASH, await owner.getAddress(), true);
     expect(await communityViewProxy.getBanStatus(COMMUNITY_ID_HASH)).to.be.true;
 
     await expect(
@@ -326,7 +302,7 @@ describe("Community Tests: ", async function () {
     ).to.be.revertedWithCustomError(communityProxy, "CommunityDoesNotExist");
 
     await expect(
-      communityProxy.connect(user).banCommunity(COMMUNITY_ID_HASH)
+      (communityProxy.connect(user) as any).banCommunity(COMMUNITY_ID_HASH)
     ).to.be.revertedWith(
       `AccessControl: account ${user.address.toLowerCase()} is missing role ${SOCCERSM_COUNCIL}`
     );
@@ -358,7 +334,7 @@ describe("Community Tests: ", async function () {
     //ban community
     await expect(communityProxy.banCommunity(COMMUNITY_ID_HASH))
       .to.emit(communityProxy, "CommunityBanned")
-      .withArgs(COMMUNITY_ID_HASH, await owner.getAddress());
+      .withArgs(COMMUNITY_ID_HASH, await owner.getAddress(), true);
 
     const NON_EXISTING_ID = "12345";
     const NON_EXISTING_ID_HASH = getCommunityIdHash(NON_EXISTING_ID);
@@ -367,7 +343,7 @@ describe("Community Tests: ", async function () {
     ).to.be.revertedWithCustomError(communityProxy, "CommunityDoesNotExist");
 
     await expect(
-      communityProxy.connect(user).unBanCommunity(COMMUNITY_ID_HASH)
+      (communityProxy.connect(user) as any).unBanCommunity(COMMUNITY_ID_HASH)
     ).to.be.revertedWith(
       `AccessControl: account ${user.address.toLowerCase()} is missing role ${SOCCERSM_COUNCIL}`
     );
@@ -375,7 +351,7 @@ describe("Community Tests: ", async function () {
     //pass unban
     await expect(communityProxy.unBanCommunity(COMMUNITY_ID_HASH))
       .to.emit(communityProxy, "CommunityUnBanned")
-      .withArgs(COMMUNITY_ID_HASH, await owner.getAddress());
+      .withArgs(COMMUNITY_ID_HASH, await owner.getAddress(), false);
     expect(await communityViewProxy.getBanStatus(COMMUNITY_ID_HASH)).to.be
       .false;
 
@@ -406,20 +382,26 @@ describe("Community Tests: ", async function () {
     const NON_EXISTING_ID = "12345";
     const NON_EXISTING_ID_HASH = getCommunityIdHash(NON_EXISTING_ID);
     await expect(
-      communityProxy.connect(user).joinCommunity(NON_EXISTING_ID_HASH)
+      (communityProxy.connect(user) as any).joinCommunity(NON_EXISTING_ID_HASH)
     ).to.be.revertedWithCustomError(communityProxy, "CommunityDoesNotExist");
 
-    await expect(communityProxy.connect(user).joinCommunity(COMMUNITY_ID_HASH))
-      .to.emit(communityProxy, "MemberJoined")
-      .withArgs(COMMUNITY_ID_HASH, await user.getAddress(), anyValue);
-    await expect(communityProxy.connect(user1).joinCommunity(COMMUNITY_ID_HASH))
-      .to.emit(communityProxy, "MemberJoined")
-      .withArgs(COMMUNITY_ID_HASH, await user1.getAddress(), anyValue);
-    await expect(communityProxy.connect(user2).joinCommunity(COMMUNITY_ID_HASH))
-      .to.emit(communityProxy, "MemberJoined")
-      .withArgs(COMMUNITY_ID_HASH, await user2.getAddress(), anyValue);
     await expect(
-      communityProxy.connect(user2).joinCommunity(COMMUNITY_ID_HASH)
+      (communityProxy.connect(user) as any).joinCommunity(COMMUNITY_ID_HASH)
+    )
+      .to.emit(communityProxy, "MemberJoined")
+      .withArgs(COMMUNITY_ID_HASH, await user.getAddress(), 2, anyValue);
+    await expect(
+      (communityProxy.connect(user1) as any).joinCommunity(COMMUNITY_ID_HASH)
+    )
+      .to.emit(communityProxy, "MemberJoined")
+      .withArgs(COMMUNITY_ID_HASH, await user1.getAddress(), 3, anyValue);
+    await expect(
+      (communityProxy.connect(user2) as any).joinCommunity(COMMUNITY_ID_HASH)
+    )
+      .to.emit(communityProxy, "MemberJoined")
+      .withArgs(COMMUNITY_ID_HASH, await user2.getAddress(), 4, anyValue);
+    await expect(
+      (communityProxy.connect(user2) as any).joinCommunity(COMMUNITY_ID_HASH)
     ).to.be.revertedWithCustomError(communityProxy, "AlreadyCommunityMember");
 
     expect(
@@ -453,12 +435,16 @@ describe("Community Tests: ", async function () {
       );
 
     //join
-    await expect(communityProxy.connect(user).joinCommunity(COMMUNITY_ID_HASH))
+    await expect(
+      (communityProxy.connect(user) as any).joinCommunity(COMMUNITY_ID_HASH)
+    )
       .to.emit(communityProxy, "MemberJoined")
-      .withArgs(COMMUNITY_ID_HASH, await user.getAddress(), anyValue);
-    await expect(communityProxy.connect(user1).joinCommunity(COMMUNITY_ID_HASH))
+      .withArgs(COMMUNITY_ID_HASH, await user.getAddress(), 2, anyValue);
+    await expect(
+      (communityProxy.connect(user1) as any).joinCommunity(COMMUNITY_ID_HASH)
+    )
       .to.emit(communityProxy, "MemberJoined")
-      .withArgs(COMMUNITY_ID_HASH, await user1.getAddress(), anyValue);
+      .withArgs(COMMUNITY_ID_HASH, await user1.getAddress(), 3, anyValue);
 
     expect(
       await communityViewProxy.getMembersCount(COMMUNITY_ID_HASH)
@@ -472,7 +458,10 @@ describe("Community Tests: ", async function () {
       communityProxy.banMember(COMMUNITY_ID_HASH, ethers.ZeroAddress)
     ).to.be.revertedWithCustomError(communityProxy, "ZeroAddress");
     await expect(
-      communityProxy.connect(user).banMember(COMMUNITY_ID_HASH, user1.address)
+      (communityProxy.connect(user) as any).banMember(
+        COMMUNITY_ID_HASH,
+        user1.address
+      )
     ).to.be.revertedWithCustomError(communityProxy, "NotCommunityOwnerOrAdmin");
     await expect(
       communityProxy.banMember(COMMUNITY_ID_HASH, user2.address)
@@ -483,14 +472,14 @@ describe("Community Tests: ", async function () {
       communityProxy.banMember(COMMUNITY_ID_HASH, await user.getAddress())
     )
       .to.emit(communityProxy, "MemberIsBanned")
-      .withArgs(COMMUNITY_ID_HASH, user.address, anyValue);
+      .withArgs(COMMUNITY_ID_HASH, user.address, 2, anyValue);
 
     await expect(
       communityProxy.banMember(COMMUNITY_ID_HASH, await owner.getAddress())
     ).to.be.revertedWith("Cannot ban or unban owner");
 
     await expect(
-      communityProxy.connect(user).joinCommunity(COMMUNITY_ID_HASH)
+      (communityProxy.connect(user) as any).joinCommunity(COMMUNITY_ID_HASH)
     ).to.be.revertedWith("Member is banned");
 
     expect(
@@ -519,12 +508,16 @@ describe("Community Tests: ", async function () {
       );
 
     //join
-    await expect(communityProxy.connect(user).joinCommunity(COMMUNITY_ID_HASH))
+    await expect(
+      (communityProxy.connect(user) as any).joinCommunity(COMMUNITY_ID_HASH)
+    )
       .to.emit(communityProxy, "MemberJoined")
-      .withArgs(COMMUNITY_ID_HASH, await user.getAddress(), anyValue);
-    await expect(communityProxy.connect(user1).joinCommunity(COMMUNITY_ID_HASH))
+      .withArgs(COMMUNITY_ID_HASH, await user.getAddress(), 2, anyValue);
+    await expect(
+      (communityProxy.connect(user1) as any).joinCommunity(COMMUNITY_ID_HASH)
+    )
       .to.emit(communityProxy, "MemberJoined")
-      .withArgs(COMMUNITY_ID_HASH, await user1.getAddress(), anyValue);
+      .withArgs(COMMUNITY_ID_HASH, await user1.getAddress(), 3, anyValue);
 
     expect(
       await communityViewProxy.getMembersCount(COMMUNITY_ID_HASH)
@@ -538,7 +531,10 @@ describe("Community Tests: ", async function () {
       communityProxy.unBanMember(COMMUNITY_ID_HASH, ethers.ZeroAddress)
     ).to.be.revertedWithCustomError(communityProxy, "ZeroAddress");
     await expect(
-      communityProxy.connect(user).unBanMember(COMMUNITY_ID_HASH, user1.address)
+      (communityProxy.connect(user) as any).unBanMember(
+        COMMUNITY_ID_HASH,
+        user1.address
+      )
     ).to.be.revertedWithCustomError(communityProxy, "NotCommunityOwnerOrAdmin");
     await expect(
       communityProxy.unBanMember(COMMUNITY_ID_HASH, user2.address)
@@ -551,7 +547,7 @@ describe("Community Tests: ", async function () {
       communityProxy.banMember(COMMUNITY_ID_HASH, await user.getAddress())
     )
       .to.emit(communityProxy, "MemberIsBanned")
-      .withArgs(COMMUNITY_ID_HASH, user.address, anyValue);
+      .withArgs(COMMUNITY_ID_HASH, user.address,2, anyValue);
 
     //unban
     await expect(
@@ -566,9 +562,11 @@ describe("Community Tests: ", async function () {
       await communityViewProxy.getMembersCount(COMMUNITY_ID_HASH)
     ).to.equal(2);
 
-    await expect(communityProxy.connect(user).joinCommunity(COMMUNITY_ID_HASH))
+    await expect(
+      (communityProxy.connect(user) as any).joinCommunity(COMMUNITY_ID_HASH)
+    )
       .to.emit(communityProxy, "MemberJoined")
-      .withArgs(COMMUNITY_ID_HASH, await user.getAddress(), anyValue);
+      .withArgs(COMMUNITY_ID_HASH, await user.getAddress(), 3, anyValue);
 
     expect(
       await communityViewProxy.getMembersCount(COMMUNITY_ID_HASH)
@@ -603,15 +601,21 @@ describe("Community Tests: ", async function () {
       );
 
     //join
-    await expect(communityProxy.connect(user).joinCommunity(COMMUNITY_ID_HASH))
+    await expect(
+      (communityProxy.connect(user) as any).joinCommunity(COMMUNITY_ID_HASH)
+    )
       .to.emit(communityProxy, "MemberJoined")
-      .withArgs(COMMUNITY_ID_HASH, await user.getAddress(), anyValue);
-    await expect(communityProxy.connect(user1).joinCommunity(COMMUNITY_ID_HASH))
+      .withArgs(COMMUNITY_ID_HASH, await user.getAddress(), 2, anyValue);
+    await expect(
+      (communityProxy.connect(user1) as any).joinCommunity(COMMUNITY_ID_HASH)
+    )
       .to.emit(communityProxy, "MemberJoined")
-      .withArgs(COMMUNITY_ID_HASH, await user1.getAddress(), anyValue);
-    await expect(communityProxy.connect(user2).joinCommunity(COMMUNITY_ID_HASH))
+      .withArgs(COMMUNITY_ID_HASH, await user1.getAddress(), 3, anyValue);
+    await expect(
+      (communityProxy.connect(user2) as any).joinCommunity(COMMUNITY_ID_HASH)
+    )
       .to.emit(communityProxy, "MemberJoined")
-      .withArgs(COMMUNITY_ID_HASH, await user2.getAddress(), anyValue);
+      .withArgs(COMMUNITY_ID_HASH, await user2.getAddress(), 4, anyValue);
     expect(
       await communityViewProxy.getMembersCount(COMMUNITY_ID_HASH)
     ).to.equal(4);
@@ -638,9 +642,10 @@ describe("Community Tests: ", async function () {
     ).to.be.revertedWithCustomError(communityProxy, "CommunityDoesNotExist");
 
     await expect(
-      communityProxy
-        .connect(user)
-        .removeCommunityMember(COMMUNITY_ID_HASH, await user.getAddress())
+      (communityProxy.connect(user) as any).removeCommunityMember(
+        COMMUNITY_ID_HASH,
+        await user.getAddress()
+      )
     ).to.be.revertedWithCustomError(communityProxy, "NotCommunityOwnerOrAdmin");
 
     await expect(
@@ -650,7 +655,7 @@ describe("Community Tests: ", async function () {
       )
     )
       .to.emit(communityProxy, "MemberRemoved")
-      .withArgs(COMMUNITY_ID_HASH, await user1.getAddress(), anyValue);
+      .withArgs(COMMUNITY_ID_HASH, await user1.getAddress(),3, anyValue);
     expect(
       await communityViewProxy.getMembersCount(COMMUNITY_ID_HASH)
     ).to.be.equal(3);
@@ -661,12 +666,13 @@ describe("Community Tests: ", async function () {
     );
 
     await expect(
-      communityProxy
-        .connect(user)
-        .removeCommunityMember(COMMUNITY_ID_HASH, await user2.getAddress())
+      (communityProxy.connect(user) as any).removeCommunityMember(
+        COMMUNITY_ID_HASH,
+        await user2.getAddress()
+      )
     )
       .to.emit(communityProxy, "MemberRemoved")
-      .withArgs(COMMUNITY_ID_HASH, await user2.getAddress(), anyValue);
+      .withArgs(COMMUNITY_ID_HASH, await user2.getAddress(), 2, anyValue);
     expect(
       await communityViewProxy.getMembersCount(COMMUNITY_ID_HASH)
     ).to.equal(2);
@@ -708,17 +714,23 @@ describe("Community Tests: ", async function () {
       );
 
     //join
-    await expect(communityProxy.connect(user).joinCommunity(COMMUNITY_ID_HASH))
+    await expect(
+      (communityProxy.connect(user) as any).joinCommunity(COMMUNITY_ID_HASH)
+    )
       .to.emit(communityProxy, "MemberJoined")
-      .withArgs(COMMUNITY_ID_HASH, await user.getAddress(), anyValue);
+      .withArgs(COMMUNITY_ID_HASH, await user.getAddress(), 2, anyValue);
 
-    await expect(communityProxy.connect(user1).joinCommunity(COMMUNITY_ID_HASH))
+    await expect(
+      (communityProxy.connect(user1) as any).joinCommunity(COMMUNITY_ID_HASH)
+    )
       .to.emit(communityProxy, "MemberJoined")
-      .withArgs(COMMUNITY_ID_HASH, await user1.getAddress(), anyValue);
+      .withArgs(COMMUNITY_ID_HASH, await user1.getAddress(), 3, anyValue);
 
-    await expect(communityProxy.connect(user2).joinCommunity(COMMUNITY_ID_HASH))
+    await expect(
+      (communityProxy.connect(user2) as any).joinCommunity(COMMUNITY_ID_HASH)
+    )
       .to.emit(communityProxy, "MemberJoined")
-      .withArgs(COMMUNITY_ID_HASH, await user2.getAddress(), anyValue);
+      .withArgs(COMMUNITY_ID_HASH, await user2.getAddress(), 4, anyValue);
 
     //transfer owner
     await expect(
@@ -729,9 +741,10 @@ describe("Community Tests: ", async function () {
     ).to.be.revertedWithCustomError(communityProxy, "ZeroAddress");
 
     await expect(
-      communityProxy
-        .connect(user)
-        .transferCommunityOwner(COMMUNITY_ID_HASH, await user.getAddress())
+      (communityProxy.connect(user) as any).transferCommunityOwner(
+        COMMUNITY_ID_HASH,
+        await user.getAddress()
+      )
     ).to.be.revertedWithCustomError(communityProxy, "NotCommunityOwner");
 
     await communityProxy.addCommunityAdmin(
@@ -739,9 +752,10 @@ describe("Community Tests: ", async function () {
       await user2.getAddress()
     );
     await expect(
-      communityProxy
-        .connect(user2)
-        .transferCommunityOwner(COMMUNITY_ID_HASH, await user2.getAddress())
+      (communityProxy.connect(user2) as any).transferCommunityOwner(
+        COMMUNITY_ID_HASH,
+        await user2.getAddress()
+      )
     ).to.be.revertedWithCustomError(communityProxy, "NotCommunityOwner");
 
     await expect(
@@ -781,20 +795,23 @@ describe("Community Tests: ", async function () {
 
     //revert not accepted ownership yet
     await expect(
-      communityProxy
-        .connect(user)
-        .transferCommunityOwner(COMMUNITY_ID_HASH, user1.address)
+      (communityProxy.connect(user) as any).transferCommunityOwner(
+        COMMUNITY_ID_HASH,
+        user1.address
+      )
     ).to.be.revertedWithCustomError(communityProxy, "NotCommunityOwner");
 
     await expect(
-      communityProxy.connect(user1).acceptCommunityOwnership(COMMUNITY_ID_HASH)
+      (communityProxy.connect(user1) as any).acceptCommunityOwnership(
+        COMMUNITY_ID_HASH
+      )
     ).to.be.revertedWith("Not pending owner");
 
     //accept ownership
     await expect(
-      communityProxy
-        .connect(user)
-        .acceptCommunityOwnership(NON_EXISTING_ID_HASH)
+      (communityProxy.connect(user) as any).acceptCommunityOwnership(
+        NON_EXISTING_ID_HASH
+      )
     ).to.be.revertedWithCustomError(communityProxy, "CommunityDoesNotExist");
 
     const pendingOwner = await communityViewProxy.getPendingOwnerAddress(
@@ -802,7 +819,9 @@ describe("Community Tests: ", async function () {
     );
     expect(pendingOwner).to.be.equal(user.address);
     await expect(
-      communityProxy.connect(user).acceptCommunityOwnership(COMMUNITY_ID_HASH)
+      (communityProxy.connect(user) as any).acceptCommunityOwnership(
+        COMMUNITY_ID_HASH
+      )
     )
       .to.emit(communityProxy, "CommunityOwnerTransferAccepted")
       .withArgs(COMMUNITY_ID_HASH, owner.address, user.address, anyValue);
@@ -835,12 +854,16 @@ describe("Community Tests: ", async function () {
       );
 
     //join
-    await expect(communityProxy.connect(user).joinCommunity(COMMUNITY_ID_HASH))
+    await expect(
+      (communityProxy.connect(user) as any).joinCommunity(COMMUNITY_ID_HASH)
+    )
       .to.emit(communityProxy, "MemberJoined")
-      .withArgs(COMMUNITY_ID_HASH, await user.getAddress(), anyValue);
-    await expect(communityProxy.connect(user1).joinCommunity(COMMUNITY_ID_HASH))
+      .withArgs(COMMUNITY_ID_HASH, await user.getAddress(), 2, anyValue);
+    await expect(
+      (communityProxy.connect(user1) as any).joinCommunity(COMMUNITY_ID_HASH)
+    )
       .to.emit(communityProxy, "MemberJoined")
-      .withArgs(COMMUNITY_ID_HASH, await user1.getAddress(), anyValue);
+      .withArgs(COMMUNITY_ID_HASH, await user1.getAddress(), 3, anyValue);
 
     expect(
       await communityViewProxy.getMembersCount(COMMUNITY_ID_HASH)
@@ -848,13 +871,13 @@ describe("Community Tests: ", async function () {
 
     await communityProxy.addCommunityAdmin(COMMUNITY_ID_HASH, user1.address);
     await expect(
-      communityProxy.connect(user1).leaveCommunity(COMMUNITY_ID_HASH)
+      (communityProxy.connect(user1) as any).leaveCommunity(COMMUNITY_ID_HASH)
     )
       .to.emit(communityProxy, "MemberLeftCommunity")
-      .withArgs(COMMUNITY_ID_HASH, user1.address, anyValue);
+      .withArgs(COMMUNITY_ID_HASH, user1.address, 2, anyValue);
 
     await expect(
-      communityProxy.connect(user).leaveCommunity(NON_EXISTING_ID_HASH)
+      (communityProxy.connect(user) as any).leaveCommunity(NON_EXISTING_ID_HASH)
     ).to.be.revertedWithCustomError(communityProxy, "CommunityDoesNotExist");
     expect(
       await communityViewProxy.getIsAdmin(COMMUNITY_ID_HASH, user1.address)
@@ -865,7 +888,7 @@ describe("Community Tests: ", async function () {
 
     await communityProxy.banCommunity(COMMUNITY_ID_HASH);
     await expect(
-      communityProxy.connect(user).leaveCommunity(COMMUNITY_ID_HASH)
+      (communityProxy.connect(user) as any).leaveCommunity(COMMUNITY_ID_HASH)
     ).to.be.revertedWithCustomError(communityProxy, "CommunityIsBanned");
     await communityProxy.unBanCommunity(COMMUNITY_ID_HASH);
 
@@ -873,12 +896,14 @@ describe("Community Tests: ", async function () {
       communityProxy.leaveCommunity(COMMUNITY_ID_HASH)
     ).to.revertedWith("Owner cannot leave community");
     await expect(
-      communityProxy.connect(user2).leaveCommunity(COMMUNITY_ID_HASH)
+      (communityProxy.connect(user2) as any).leaveCommunity(COMMUNITY_ID_HASH)
     ).to.revertedWith("Must be a member");
 
-    await expect(communityProxy.connect(user).leaveCommunity(COMMUNITY_ID_HASH))
+    await expect(
+      (communityProxy.connect(user) as any).leaveCommunity(COMMUNITY_ID_HASH)
+    )
       .to.emit(communityProxy, "MemberLeftCommunity")
-      .withArgs(COMMUNITY_ID_HASH, await user.getAddress(), anyValue);
+      .withArgs(COMMUNITY_ID_HASH, await user.getAddress(), 1, anyValue);
     expect(
       await communityViewProxy.getMembersCount(COMMUNITY_ID_HASH)
     ).to.equal(1);
