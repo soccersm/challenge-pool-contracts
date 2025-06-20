@@ -76,3 +76,4 @@ export function findAddressWithAllSignatures(functionMap: {[key: string]: string
 
     return null;
 }
+// console.log(functionSigsSelectors("ChallengePoolHandler"));

@@ -102,10 +102,10 @@ library AirDropStorage {
 }
 
 struct CommunityStore{
-    mapping(bytes32 => ICommunity.Community) communities; 
-    mapping(bytes32 => mapping(address => bool)) isMember;
-    mapping(bytes32 => mapping(address => bool)) isAdmin;
-    mapping(bytes32 => mapping(address => bool)) memberBanned;
+    mapping(bytes32 => ICommunity.Community) communities; // communityId -> Community
+    mapping(bytes32 => mapping(address => bool)) isMember; // communityId -> player -> bool
+    mapping(bytes32 => mapping(address => bool)) isAdmin; // communityId -> player -> bool
+    mapping(bytes32 => mapping(address => bool)) memberBanned; // communityId -> player -> bool
 }
 
 library CommunityStorage {
