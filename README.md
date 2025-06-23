@@ -1,12 +1,3 @@
-# challenge-pool-contracts
-
-Soccersm prediction markets are called challenge pools, since players are challenging each other in a peer-to-peer manner faciliated by smart contracts.
-This repo holds the code for soccersm challenge pool smart contracts. Contracts are implemented using the diamond pattern (<https://eips.ethereum.org/EIPS/eip-2535>, <https://github.com/mudgen/awesome-diamonds>) and good old hardhat for framework. Access control library from <https://github.com/solidstate-network/solidstate-solidity>.
-
-# Core Components Diagram
-
-![Core](./assets/corecomponent.jpg)
-
 ## Quickstart
 
 1. `bun install` to  install dependencies
@@ -63,6 +54,15 @@ This features a collection of contracts and offchain backend applications that w
 - Security and Redundancy:
   - Aggregates data from multiple sources.
   - Incorporates fallback mechanisms to mitigate single points of failure.
+
+# challenge-pool-contracts
+
+Soccersm prediction markets are called challenge pools, since players are challenging each other in a peer-to-peer manner faciliated by smart contracts.
+This repo holds the code for soccersm challenge pool smart contracts. Contracts are implemented using the diamond pattern (<https://eips.ethereum.org/EIPS/eip-2535>, <https://github.com/mudgen/awesome-diamonds>) and good old hardhat for framework. Access control library from <https://github.com/solidstate-network/solidstate-solidity>.
+
+## Core Components Diagram
+
+![Core](./assets/corecomponent.jpg)
 
 ## Concepts
 
