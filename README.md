@@ -3,6 +3,10 @@
 Soccersm prediction markets are called challenge pools, since players are challenging each other in a peer-to-peer manner faciliated by smart contracts.
 This repo holds the code for soccersm challenge pool smart contracts. Contracts are implemented using the diamond pattern (<https://eips.ethereum.org/EIPS/eip-2535>, <https://github.com/mudgen/awesome-diamonds>) and good old hardhat for framework. Access control library from <https://github.com/solidstate-network/solidstate-solidity>.
 
+# Core Components Diagram
+
+![Core](./assets/corecomponent.jpg)
+
 ## Quickstart
 
 1. `bun install` to  install dependencies
@@ -56,7 +60,7 @@ Once outcome is finalized, the pool is closed an participants can withdraw their
 
 ## Architecture Summary
 
-![Fill](./assets/bullocks.png)
+![Fill](./assets/soccersmarchitecture.jpg)
 
 This features a collection of contracts and offchain backend applications that work to ensure users have a smooth challenge staking experience.
 
@@ -104,9 +108,17 @@ This features a collection of contracts and offchain backend applications that w
   - Aggregates data from multiple sources.
   - Incorporates fallback mechanisms to mitigate single points of failure.
 
+## Flows
+
+### User Flow
+
+This describes the journey of the user on the platform.
+
+![User](./assets/userflow.jpg)
+
 ### Process Flow
 
-![Flow](./assets/flow.png)
+![Process](./assets/flow.png)
 
 ### Access Control
 
@@ -117,3 +129,9 @@ Within the protocol there are the following access control roles
 3. `SOCCERSM_COUNCIL:` Soccersm council account steps in to resolve dispute and incorrect oracle data provided.
 4. `CHALLENGE_POOL_MANAGER:` Manages challenge pool.
 5. `TOPIC_REGISTRAR`: Manages topic registrations.
+
+# Balls Token & Utility
+The platform will be powered by the balls token.This depict the current utility. All features added in the future will utilize the $Balls token.
+
+![Balls](./assets/tokenutility.jpg)
+

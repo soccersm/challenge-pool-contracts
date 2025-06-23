@@ -628,7 +628,7 @@ describe("ChallengePoolManager", async function () {
     const btcChallenge = btcEvent(
       await ballsToken.getAddress(),
       1,
-      oneGrand,
+      oneGrand, 
       ethers.ZeroAddress
     );
     const preparedBTCChallenge = prepareCreateChallenge(btcChallenge.challenge);
@@ -821,36 +821,4 @@ describe("ChallengePoolManager", async function () {
     //revert zero setMinPoolMaturity?
   });
 
-  it("Should setGelatoForwarder", async function() {
-    const {
-      poolManagerProxy,
-      poolViewProxy,
-      owner,
-      user,
-      CHALLENGE_POOL_MANAGER,
-    } = await loadFixture(deployPoolManager);
-    const oldGelatoForwarder = await poolViewProxy.gelatoForwarder();
-    const newGelatoForwarder = ethers.Wallet.createRandom();
-
-    await expect(poolManagerProxy.setGelatoForwarder(newGelatoForwarder)).to.emit(poolManagerProxy, "SetGelatoForwarder").withArgs(owner.address, oldGelatoForwarder, newGelatoForwarder); 
-    expect(await poolViewProxy.gelatoForwarder()).to.be.equal(newGelatoForwarder);
-  });
-
-  it("Should reverts for setGelatoForwarder", async function() {
-    const {
-      poolManagerProxy,
-      poolViewProxy,
-      owner,
-      user,
-      CHALLENGE_POOL_MANAGER,
-    } = await loadFixture(deployPoolManager);
-    const oldGelatoForwarder = await poolViewProxy.gelatoForwarder();
-    const newGelatoForwarder = ethers.Wallet.createRandom();
-    //revert for onlyPoolManager
-    await expect((poolManagerProxy.connect(user) as any).setGelatoForwarder(newGelatoForwarder)).to.be.revertedWith(`AccessControl: account ${user.address.toLowerCase()} is missing role ${CHALLENGE_POOL_MANAGER}`);
-
-    //revert for positiveAddress
-    const zeroGelato = ethers.ZeroAddress;
-    await expect(poolManagerProxy.setGelatoForwarder(zeroGelato)).to.be.revertedWithCustomError(poolManagerProxy, "ZeroAddress"); 
-  });
 });

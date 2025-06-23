@@ -18,6 +18,7 @@ export const statements: Statement[] = [
       "https://res.cloudinary.com/djyedjeuc/image/upload/v1738155110/GERMANY_knvzey.png",
     maturity: 1740268800,
     prediction: "CDU/CSU",
+    answer: "CDU/CSU",
   },
   {
     id: "Canadianfederalelection2025",
@@ -44,6 +45,7 @@ export const statements: Statement[] = [
       "https://res.cloudinary.com/djyedjeuc/image/upload/v1738155109/Ecuador_qiqtdb.png",
     maturity: 1739059200,
     prediction: "Daniel Noboa",
+    answer: "Daniel Noboa",
   },
   {
     id: "PolandElection2025",
@@ -60,6 +62,7 @@ export const statements: Statement[] = [
       "https://res.cloudinary.com/djyedjeuc/image/upload/v1738155110/Poland_yqktmd.png",
     maturity: 1739059200,
     prediction: "Rafał Trzaskowski",
+    answer: "Karol Nawrocki",
   },
   {
     id: "UEFAChampions2025",
@@ -78,6 +81,7 @@ export const statements: Statement[] = [
       "https://res.cloudinary.com/djyedjeuc/image/upload/v1738154973/UEFA_ethaz8.png",
     maturity: 1748217600,
     prediction: "Liverpool",
+
   },
   {
     id: "ArsenalUEFA2025",
@@ -88,6 +92,7 @@ export const statements: Statement[] = [
       "https://res.cloudinary.com/djyedjeuc/image/upload/v1738154973/UEFA-_Arsenal_wzq06u.png",
     maturity: 1744675200,
     prediction: "no",
+    answer: "no"
   },
   {
     id: "LaLigaWinner2025",
@@ -98,6 +103,7 @@ export const statements: Statement[] = [
       "https://res.cloudinary.com/djyedjeuc/image/upload/v1738155001/La_Liga_loerhe.png",
     maturity: 1746057600,
     prediction: "Real Madrid",
+    answer: "Barcelona"
   },
   {
     id: "EPLWinner2025",
@@ -115,6 +121,7 @@ export const statements: Statement[] = [
       "https://res.cloudinary.com/djyedjeuc/image/upload/v1738155146/EPL_uz9dxu.png",
     maturity: 1744675200,
     prediction: "Liverpool",
+    answer: "Liverpool"
   },
   {
     id: "EPLTopscorer2025",
@@ -125,6 +132,7 @@ export const statements: Statement[] = [
       "https://res.cloudinary.com/djyedjeuc/image/upload/v1738155146/EPL_uz9dxu.png",
     maturity: 1744675200,
     prediction: "Salah",
+    answer: "Salah"
   },
   {
     id: "GPT5Q12025",
@@ -197,5 +205,6 @@ export const statements: Statement[] = [
       "https://res.cloudinary.com/djyedjeuc/image/upload/v1738155156/Dollar_to_Cedi_zacgo9.png",
     maturity: 1742428800,
     prediction: "no",
+    answer: 'no',
   },
 ];

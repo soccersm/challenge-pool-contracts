@@ -1,6 +1,8 @@
+import { ChallengePoolDispute } from "../typechain-types";
 import {
   AssetPriceBoundedEvent,
   AssetPriceTargetEvent,
+  ChallengeType,
   CreateChallenge,
   EventOption,
   FootballCorrectScoreEvent,
@@ -14,13 +16,16 @@ import {
   StatementEvent,
   TopicId,
 } from "./lib";
+import { ethers } from "hardhat";
 
 export function btcEvent(
   stakeToken: string,
   quantity: number,
   basePrice: BigInt,
   paymaster: string,
-  deadline?: number
+  deadline?: number,
+  communityId?: string,
+  challengeType?: ChallengeType
 ): {
   challenge: CreateChallenge;
   maturity: number;
@@ -53,6 +58,8 @@ export function btcEvent(
     quantity,
     basePrice,
     paymaster,
+    communityId: communityId ?? ethers.ZeroHash,
+    challengeType: challengeType ?? ChallengeType.standard,
   };
 
   return {
@@ -67,7 +74,9 @@ export function matchEvent(
   quantity: number,
   basePrice: BigInt,
   paymaster: string,
-  deadline?: number
+  deadline?: number,
+  communityId?: string,
+  challengeType?: ChallengeType
 ): {
   challenge: CreateChallenge;
   maturity: number;
@@ -105,6 +114,8 @@ export function matchEvent(
     quantity,
     basePrice,
     paymaster,
+    communityId: communityId ?? ethers.ZeroHash,
+    challengeType: challengeType ?? ChallengeType.standard,
   };
 
   return {
@@ -119,7 +130,9 @@ export function footBallCorrectScore(
   quantity: number,
   basePrice: BigInt,
   paymaster: string,
-  deadline?: number
+  deadline?: number,
+  communityId?: string,
+  challengeType?: ChallengeType
 ): {
   challenge: CreateChallenge;
   maturity: number;
@@ -143,6 +156,8 @@ export function footBallCorrectScore(
     quantity,
     basePrice,
     paymaster,
+    communityId: communityId ?? ethers.ZeroHash,
+    challengeType: challengeType ?? ChallengeType.standard,
   };
 
   return {
@@ -157,7 +172,9 @@ export function assetMatchComboEvent(
   quantity: number,
   basePrice: BigInt,
   paymaster: string,
-  deadline?: number
+  deadline?: number,
+  communityId?: string,
+  challengeType?: ChallengeType
 ): {
   challenge: CreateChallenge;
   maturity: number;
@@ -219,6 +236,8 @@ export function assetMatchComboEvent(
     quantity,
     basePrice,
     paymaster,
+    communityId: communityId ?? ethers.ZeroHash,
+    challengeType: challengeType ?? ChallengeType.standard,
   };
 
   return {
@@ -234,7 +253,9 @@ export function ethPriceRange(
   quantity: number,
   basePrice: BigInt,
   paymaster: string,
-  deadline?: number
+  deadline?: number,
+  communityId?: string,
+  challengeType?: ChallengeType
 ): {
   challenge: CreateChallenge;
   maturity: number;
@@ -263,6 +284,8 @@ export function ethPriceRange(
     quantity,
     basePrice,
     paymaster,
+    communityId: communityId ?? ethers.ZeroHash,
+    challengeType: challengeType ?? ChallengeType.standard,
   };
 
   return {
@@ -278,7 +301,9 @@ export function multiCorrectScore(
   quantity: number,
   basePrice: BigInt,
   paymaster: string,
-  deadline?: number
+  deadline?: number,
+  communityId?: string,
+  challengeType?: ChallengeType
 ): {
   challenge: CreateChallenge;
   maturity: number;
@@ -307,6 +332,8 @@ export function multiCorrectScore(
     quantity,
     basePrice,
     paymaster,
+    communityId: communityId ?? ethers.ZeroHash,
+    challengeType: challengeType ?? ChallengeType.standard,
   };
 
   return {
@@ -322,7 +349,9 @@ export function multiOutcome(
   quantity: number,
   basePrice: BigInt,
   paymaster: string,
-  deadline?: number
+  deadline?: number,
+  communityId?: string,
+  challengeType?: ChallengeType
 ): {
   challenge: CreateChallenge;
   maturity: number;
@@ -347,6 +376,8 @@ export function multiOutcome(
     quantity,
     basePrice,
     paymaster,
+    communityId: communityId ?? ethers.ZeroHash,
+    challengeType: challengeType ?? ChallengeType.standard,
   };
 
   return {
@@ -362,7 +393,9 @@ export function multiTotalExact(
   quantity: number,
   basePrice: BigInt,
   paymaster: string,
-  deadline?: number
+  deadline?: number,
+  communityId?: string,
+  challengeType?: ChallengeType
 ): {
   challenge: CreateChallenge;
   maturity: number;
@@ -387,6 +420,8 @@ export function multiTotalExact(
     quantity,
     basePrice,
     paymaster,
+    communityId: communityId ?? ethers.ZeroHash,
+    challengeType: challengeType ?? ChallengeType.standard,
   };
 
   return {
@@ -402,7 +437,9 @@ export function multiTotalScoreRange(
   quantity: number,
   basePrice: BigInt,
   paymaster: string,
-  deadline?: number
+  deadline?: number,
+  communityId?: string,
+  challengeType?: ChallengeType
 ): {
   challenge: CreateChallenge;
   maturity: number;
@@ -431,6 +468,8 @@ export function multiTotalScoreRange(
     quantity,
     basePrice,
     paymaster,
+    communityId: communityId ?? ethers.ZeroHash,
+    challengeType: challengeType ?? ChallengeType.standard,
   };
 
   return {
@@ -445,7 +484,9 @@ export function ghanaElectionEvent(
   stakeToken: string,
   quantity: number,
   basePrice: BigInt,
-  paymaster: string
+  paymaster: string,
+  communityId?: string,
+  challengeType?: ChallengeType
 ): {
   challenge: CreateChallenge;
   statement: string;
@@ -473,6 +514,8 @@ export function ghanaElectionEvent(
     quantity,
     basePrice,
     paymaster,
+    communityId: communityId ?? ethers.ZeroHash,
+    challengeType: challengeType ?? ChallengeType.standard,
   };
 
   return {
@@ -489,7 +532,9 @@ export function soccersmEvent(
   stakeToken: string,
   quantity: number,
   basePrice: BigInt,
-  paymaster: string
+  paymaster: string,
+  communityId?: string,
+  challengeType?: ChallengeType
 ): {
   challenge: CreateChallenge;
   statement: string;
@@ -517,6 +562,8 @@ export function soccersmEvent(
     quantity,
     basePrice,
     paymaster,
+    communityId: communityId ?? ethers.ZeroHash,
+    challengeType: challengeType ?? ChallengeType.standard,
   };
 
   return {
@@ -534,7 +581,9 @@ export function targetEvent(
   quantity: number,
   basePrice: bigint,
   paymaster: string,
-  deadline?: number
+  deadline?: number,
+  communityId?: string,
+  challengeType?: ChallengeType
 ): {
   challenge: CreateChallenge;
   maturity: number;
@@ -558,6 +607,8 @@ export function targetEvent(
     quantity,
     basePrice,
     paymaster,
+    communityId: communityId ?? ethers.ZeroHash,
+    challengeType: challengeType ?? ChallengeType.standard,
   };
 
   return {
@@ -573,7 +624,9 @@ export function footballOutcomeEvent(
   basePrice: bigint,
   paymaster: string,
   outcome: "draw" | "home" | "away" | "home-away" | "home-draw" | "away-draw",
-  deadline?: number
+  deadline?: number,
+  communityId?: string,
+  challengeType?: ChallengeType
 ): {
   challenge: CreateChallenge;
   maturity: number;
@@ -596,6 +649,8 @@ export function footballOutcomeEvent(
     quantity,
     basePrice,
     paymaster,
+    communityId: communityId ?? ethers.ZeroHash,
+    challengeType: challengeType ?? ChallengeType.standard,
   };
 
   return {
@@ -612,7 +667,9 @@ export function footballOverUnderEvent(
   paymaster: string,
   outcome: "over" | "under",
   matchId: string,
-  deadline?: number
+  deadline?: number,
+  communityId?: string,
+  challengeType?: ChallengeType
 ): {
   challenge: CreateChallenge;
   maturity: number;
@@ -636,6 +693,8 @@ export function footballOverUnderEvent(
     quantity,
     basePrice,
     paymaster,
+    communityId: communityId ?? ethers.ZeroHash,
+    challengeType: challengeType ?? ChallengeType.standard,
   };
 
   return {

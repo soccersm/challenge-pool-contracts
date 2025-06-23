@@ -8,7 +8,7 @@ async function main() {
     "TopicRegistry",
     process.env.SOCCERSM_CONTRACT!
   );
-  const id = "UnemploymentUSMarch2025";
+  const id = "GermanyParliamentaryElection2025";
   const s = statements.find((s) => s.id == id);
   console.log(s);
 
@@ -33,7 +33,7 @@ async function main() {
   // return;
   const tx = await registry.provideData("Statement", param);
   await tx.wait();
-  console.log(`Just registered statement with id ${s.id}`);
+  console.log(`Just provided statement with id ${s.id}`);
 }
 
 // We recommend this pattern to be able to use async/await everywhere

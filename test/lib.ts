@@ -101,8 +101,24 @@ export type CreateChallenge = {
   quantity: number;
   basePrice: BigInt;
   paymaster: string;
+  communityId: string;
+  challengeType: ChallengeType;
 };
 
+export enum ChallengeType {
+  standard,
+  community,
+  tournament,
+}
+export enum ChallengeState {
+  open,
+  closed,
+  cancelled,
+  matured,
+  evaluated,
+  settled,
+  disputed,
+}
 export type PrepareCreateChallenge = [
   ParamEncodedEventChallenge[],
   string[],
@@ -110,7 +126,9 @@ export type PrepareCreateChallenge = [
   string,
   BigInt,
   BigInt,
-  string
+  string,
+  string,
+  ChallengeType
 ];
 export const coder = new ethers.AbiCoder();
 
@@ -148,8 +166,8 @@ export function prepareCreateChallenge(
   } else {
     prediction = yesNo[create.prediction as YesNo];
   }
-  console.log('options',options);
-  
+  console.log("options", options);
+
   return [
     events,
     options,
@@ -158,6 +176,8 @@ export function prepareCreateChallenge(
     BigInt(create.quantity),
     create.basePrice,
     create.paymaster,
+    create.communityId,
+    create.challengeType,
   ];
 }
 
@@ -197,7 +217,7 @@ export function encodeMultiOptionByTopic(
     case TopicId.AssetPriceTarget:
     case TopicId.FootBallCorrectScore:
     case TopicId.FootBallOutcome:
-      // return coder.encode(["string"], [option as StringOption]);
+    // return coder.encode(["string"], [option as StringOption]);
     case TopicId.FootballOverUnder:
     default:
       throw new Error("Invalid Event Topic, must be a multi event");
@@ -481,4 +501,8 @@ export function prepareFootballOverUnderProvision(
     [matchId, BigInt(homeScore), BigInt(awayScore)]
   );
   return ["FootballOverUnder", params];
+}
+
+export function getCommunityIdHash(communityId: string): string {
+  return ethers.keccak256(ethers.toUtf8Bytes(communityId));
 }

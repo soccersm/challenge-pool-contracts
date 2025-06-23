@@ -22,7 +22,9 @@ library LibPool {
         uint256 _quantity,
         uint256 _totalAmount,
         uint256 _fee,
-        address _caller
+        address _caller,
+        bytes32 _communityId,
+        IChallengePoolCommon.ChallengeType _cType
     ) internal {
         CPStore storage s = CPStorage.load();
         uint256 rewardPoints = LibPrice._stakeRewardPoints(
@@ -64,7 +66,9 @@ library LibPool {
             _events,
             _options,
             false,
-            0
+            0,
+            _communityId,
+            _cType
         );
         emit IChallengePoolHandler.NewChallenge(
             s.challengeId,
@@ -82,7 +86,9 @@ library LibPool {
             _events,
             _options,
             _stakeToken,
-            _multi
+            _multi,
+            _communityId,
+            _cType
         );
         s.challengeId += 1;
     }

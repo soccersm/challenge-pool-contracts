@@ -68,5 +68,12 @@
   "ChallengePoolHandler_GelatoModule#ChallengePoolHandler": "0xBD838260dd96Ee6a7f7a158B8809876a874636cF",
   "ChallengePoolHandler_GelatoModule#ChallengePoolManager": "0x834C2af8B615C2Cb4659dC956ab3d85066323028",
   "ChallengePoolHandler_GelatoModule#ChallengePoolView": "0xeC5CEd3C21De2F02e6cD19a7B6CC0f3535e6190a",
-  "ChallengePoolHandler_GelatoModule#GelatoHandler": "0x1622d71f813c67da1D3a6E248B99EdDFfd462EaC"
+  "ChallengePoolHandler_GelatoModule#GelatoHandler": "0x1622d71f813c67da1D3a6E248B99EdDFfd462EaC",
+  "ChallengePoolHandler_RemoveGelatoHandler#DiamondCutFacet": "0x56d3719CcB48124d7CeE71F70B3e0bAa860E7FB6",
+  "ChallengePoolHandler_CommunityModule#DiamondCutFacet": "0x56d3719CcB48124d7CeE71F70B3e0bAa860E7FB6",
+  "ChallengePoolHandler_CommunityModule#SoccersmChallengePoolHandler": "0x56d3719CcB48124d7CeE71F70B3e0bAa860E7FB6",
+  "ChallengePoolHandler_CommunityModule#Community": "0x3705EE508C2a9D41EE797179060c7A494001440c",
+  "ChallengePoolHandler_CommunityModule#CommunityView": "0x72C88dd21b94C02293387a169efb4c67a8D5D91a",
+  "ChallengePoolHandler_CommunityChallengeUpdates#DiamondCutFacet": "0x56d3719CcB48124d7CeE71F70B3e0bAa860E7FB6",
+  "ChallengePoolHandler_CommunityChallengeUpdates#ChallengePoolHandler": "0xB7ec86b3B180A3D0FBa2161d798D4fe7EcCDcA98"
 }

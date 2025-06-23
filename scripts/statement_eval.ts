@@ -6,10 +6,10 @@ async function main() {
     "ChallengePoolHandler",
     process.env.SOCCERSM_CONTRACT!
   );
-  const ids = [13,17];
+  const ids = [7,6,4];
   for (const id of ids) {
     const tx = await handler.evaluate(id);
-    await tx.wait(5);
+    await tx.wait(10);
     console.log(`successfully evaluated pool with id ${id} with tx ${tx.hash} ...`);
   }
 }

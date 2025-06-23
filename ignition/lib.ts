@@ -54,7 +54,6 @@ export const INIT_SIG: string = "init()";
 export const INIT_ADDRESS_SIG: string = "init(address)";
 export const INIT: string = "init";
 
-console.log(functionSigsSelectors("GelatoHandler"));
 
 export function findAddressWithAllSignatures(functionMap: {[key: string]: string}, facetList: any): null | string {
     const targetSignatures = new Set(Object.values(functionMap));
@@ -77,3 +76,4 @@ export function findAddressWithAllSignatures(functionMap: {[key: string]: string
 
     return null;
 }
+// console.log(functionSigsSelectors("ChallengePoolHandler"));

@@ -11,6 +11,8 @@ import "../interfaces/IChallengePoolDispute.sol";
 
 import "../interfaces/IDataProvider.sol";
 
+import "../interfaces/ICommunity.sol";
+
 struct TRStore {
     mapping(string => ITopicRegistry.Topic) registry;
 }
@@ -48,7 +50,6 @@ struct CPStore {
     address feeAddress;
     uint256 disputePeriod;
     uint256 disputeStake;
-    address gelatoTrustedForwarder;
 }
 
 library CPStorage {
@@ -94,6 +95,24 @@ library AirDropStorage {
 
     function load() internal pure returns (AirDropStore storage s) {
         bytes32 position = AIRDROP_STORAGE_POSITION;
+        assembly {
+            s.slot := position
+        }
+    }
+}
+
+struct CommunityStore{
+    mapping(bytes32 => ICommunity.Community) communities; // communityId -> Community
+    mapping(bytes32 => mapping(address => bool)) isMember; // communityId -> player -> bool
+    mapping(bytes32 => mapping(address => bool)) isAdmin; // communityId -> player -> bool
+    mapping(bytes32 => mapping(address => bool)) memberBanned; // communityId -> player -> bool
+}
+
+library CommunityStorage {
+    bytes32 constant COMMUNITY_STORAGE_POSITION = keccak256("soccersm.community.storage");
+
+    function load() internal pure returns (CommunityStore storage s) {
+        bytes32 position = COMMUNITY_STORAGE_POSITION;
         assembly {
             s.slot := position
         }

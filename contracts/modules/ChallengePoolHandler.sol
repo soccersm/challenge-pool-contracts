@@ -19,6 +19,7 @@ import "./TopicRegistry.sol";
 
 import "../diamond/interfaces/SoccersmRoles.sol";
 import "../utils/ChallengePoolHelpers.sol";
+import "../interfaces/ICommunity.sol";
 
 contract ChallengePoolHandler is
     IChallengePoolHandler,
@@ -35,7 +36,9 @@ contract ChallengePoolHandler is
         bytes calldata _prediction,
         uint256 _quantity,
         uint256 _basePrice,
-        address _paymaster
+        address _paymaster,
+        bytes32 _communityId,
+        ChallengeType _cType
     )
         external
         override
@@ -48,6 +51,33 @@ contract ChallengePoolHandler is
         validPrediction(_prediction)
     {
         CPStore storage s = CPStorage.load();
+
+        if (_communityId == bytes32(0)) {
+            if (_cType != ChallengeType.standard) {
+                revert ICommunity.CommunityChallengeRequiresCommunity();
+            }
+        } else {
+            CommunityStore storage cs = CommunityStorage.load();
+            ICommunity.Community storage community = cs.communities[
+                _communityId
+            ];
+            if (community.owner == address(0)) {
+                revert ICommunity.CommunityDoesNotExist(_communityId);
+            }
+            if (community.banned) {
+                revert ICommunity.CommunityIsBanned();
+            }
+            if (
+                !cs.isAdmin[_communityId][msg.sender] &&
+                community.owner != msg.sender
+            ) {
+                revert ICommunity.NotCommunityOwnerOrAdmin(
+                    _communityId,
+                    msg.sender
+                );
+            }
+        }
+
         if (_events.length < 1) {
             revert InvalidEventLength();
         }
@@ -57,6 +87,7 @@ contract ChallengePoolHandler is
         if (_options.length > s.maxOptionsPerPool) {
             revert InvalidOptionsLength();
         }
+
         TRStore storage t = TRStorage.load();
         bytes[] memory poolOptions;
         bool multi;
@@ -93,19 +124,24 @@ contract ChallengePoolHandler is
         }
         uint256 maturity = HelpersLib.largestInt;
         for (uint i = 0; i < _events.length; i++) {
-            if (
-                t.registry[_events[i].topicId].state ==
-                ITopicRegistry.TopicState.disabled
-            ) {
-                revert InvalidEventTopic();
-            }
             if (_events[i].maturity < (block.timestamp + s.minMaturityPeriod)) {
                 revert InvalidEventMaturity();
             }
+
             if (maturity > _events[i].maturity) {
                 maturity = _events[i].maturity;
             }
-            LibPool._validateEvent(t, _events[i]);
+
+            if (_cType == ChallengeType.standard) {
+                if (
+                    t.registry[_events[i].topicId].state ==
+                    ITopicRegistry.TopicState.disabled
+                ) {
+                    revert InvalidEventTopic();
+                }
+
+                LibPool._validateEvent(t, _events[i]);
+            }
         }
         uint256 totalAmount = _basePrice * _quantity;
         uint256 fee = LibPrice._computeCreateFee(totalAmount);
@@ -122,7 +158,9 @@ contract ChallengePoolHandler is
             _quantity,
             totalAmount,
             fee,
-            msg.sender
+            msg.sender,
+            _communityId,
+            _cType
         );
         LibTransfer._depositOrPaymaster(
             _paymaster,
