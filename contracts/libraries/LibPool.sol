@@ -9,6 +9,7 @@ import "../interfaces/IDataProvider.sol";
 import "./LibTransfer.sol";
 import "./LibPrice.sol";
 import "../utils/Helpers.sol";
+import "../interfaces/ICommunity.sol";
 
 library LibPool {
     function _initPool(
@@ -70,6 +71,29 @@ library LibPool {
             _communityId,
             _cType
         );
+        if (_communityId != bytes32(0)) {
+            emit ICommunity.NewCommunityChallenge(
+                s.challengeId,
+                _caller,
+                block.timestamp,
+                _maturity,
+                IChallengePoolCommon.ChallengeState.open,
+                HelpersLib.emptyBytes,
+                _basePrice,
+                _fee,
+                _quantity,
+                _totalAmount,
+                rewardPoints,
+                _prediction,
+                _events,
+                _options,
+                _stakeToken,
+                _multi,
+                _communityId,
+                _cType
+            );
+        }
+
         emit IChallengePoolHandler.NewChallenge(
             s.challengeId,
             _caller,
@@ -86,9 +110,7 @@ library LibPool {
             _events,
             _options,
             _stakeToken,
-            _multi,
-            _communityId,
-            _cType
+            _multi
         );
         s.challengeId += 1;
     }
