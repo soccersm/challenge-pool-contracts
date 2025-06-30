@@ -18,8 +18,10 @@ import {
   soccersmEvent,
 } from "./mock";
 import {
+  ChallengeType,
   coder,
   encodeMultiOptionByTopic,
+  getCommunityIdHash,
   prepareCreateChallenge,
   yesNo,
 } from "./lib";
@@ -28,6 +30,7 @@ import {
   getChallengeState,
   getPlayerOptionSupply,
 } from "./test_helpers";
+import { anyValue } from "@nomicfoundation/hardhat-chai-matchers/withArgs";
 
 describe("ChallengePool - Create Challenge", function () {
   it("Should [Create]", async function () {
@@ -60,9 +63,9 @@ describe("ChallengePool - Create Challenge", function () {
           await poolViewProxy.createFee(oneGrand)
         )[1]
       );
-    await (poolHandlerProxy.connect(baller) as any).createChallenge(
+    await expect((poolHandlerProxy.connect(baller) as any).createChallenge(
       ...(preparedBTCChallenge as any)
-    );
+    )).to.emit(poolHandlerProxy, "NewChallenge"); //not community challenge
 
     const challengeNoState = await getChallengeState(
       poolViewProxy,
@@ -508,5 +511,91 @@ describe("ChallengePool - Create Challenge", function () {
     const fee = await poolViewProxy.createFee(oneGrand);
     const btcBasePrice = await poolViewProxy.price(btcChallengeId);
     expect(fee[1]).to.equal(btcBasePrice + fee[0]);
+  });
+
+  it("Should Create Community Challenge", async function () {
+    const {
+      oneGrand,
+      baller,
+      ballsToken,
+      poolHandlerProxy,
+      registryProxy,
+      poolViewProxy,
+      poolManagerProxy,
+      communityProxy,
+      communityViewProxy,
+      keeper,
+      paymaster,
+      owner,
+      oneMil,
+    } = await loadFixture(deploySoccersm);
+
+    //create new community
+    const COMMUNITY_ID = "Community1";
+    const COMMUNITY_ID_HASH = getCommunityIdHash(COMMUNITY_ID);
+    await expect(communityProxy.createCommunity(COMMUNITY_ID))
+      .to.emit(communityProxy, "NewCommunity")
+      .withArgs(
+        COMMUNITY_ID,
+        COMMUNITY_ID_HASH,
+        await owner.getAddress(),
+        1,
+        false,
+        anyValue
+      );
+
+    //join community
+    await (communityProxy.connect(keeper) as any).joinCommunity(
+      COMMUNITY_ID_HASH
+    );
+    await (communityProxy.connect(baller) as any).joinCommunity(
+      COMMUNITY_ID_HASH
+    );
+
+    //add user as community admin
+    await expect(
+      communityProxy.addCommunityAdmin(
+        COMMUNITY_ID_HASH,
+        await baller.getAddress()
+      )
+    )
+      .to.emit(communityProxy, "AdminAdded")
+      .withArgs(
+        COMMUNITY_ID_HASH,
+        await owner.getAddress(),
+        await baller.getAddress()
+      );
+    expect(
+      await communityViewProxy.getIsAdmin(
+        COMMUNITY_ID_HASH,
+        await baller.getAddress()
+      )
+    ).to.be.true;
+
+    //create communityChallenge
+    const btcChallenge = btcEvent(
+      await ballsToken.getAddress(),
+      1,
+      oneGrand,
+      ethers.ZeroAddress,
+      undefined, //deadline
+      COMMUNITY_ID_HASH,
+      ChallengeType.community
+    );
+    const preparedBTCChallenge = prepareCreateChallenge(btcChallenge.challenge);
+
+    await ballsToken
+      .connect(baller)
+      .approve(
+        await poolHandlerProxy.getAddress(),
+        (
+          await poolViewProxy.createFee(oneGrand)
+        )[1]
+      );
+    await expect(
+      (poolHandlerProxy.connect(baller) as any).createChallenge(
+        ...(preparedBTCChallenge as any)
+      )
+    ).to.emit(poolHandlerProxy, "NewCommunityChallenge");
   });
 });

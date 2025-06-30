@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.28;
 import "./IChallengePoolCommon.sol";
+
 abstract contract IChallengePoolHandler is IChallengePoolCommon {
     struct Supply {
         uint256 stakes;
@@ -35,9 +36,7 @@ abstract contract IChallengePoolHandler is IChallengePoolCommon {
         ChallengeEvent[] events,
         bytes[] options,
         address stakeToken,
-        bool multi,
-        bytes32 communityId,
-        ChallengeType cType
+        bool multi
     );
     event Stake(
         uint256 challengeId,
@@ -79,6 +78,7 @@ abstract contract IChallengePoolHandler is IChallengePoolCommon {
         uint256 amountWon,
         uint256 amountWithdrawn
     );
+
     /**
      * @notice  .
      * @dev     create a new challenge
@@ -103,6 +103,7 @@ abstract contract IChallengePoolHandler is IChallengePoolCommon {
         bytes32 _communityId,
         ChallengeType _cType
     ) external virtual;
+
     /**
      * @notice  .
      * @dev     stake on a pool
@@ -139,6 +140,7 @@ abstract contract IChallengePoolHandler is IChallengePoolCommon {
      * @param   _challengeId  .
      */
     function withdraw(uint256 _challengeId) external virtual;
+
     /**
      * @notice  .
      * @dev     bulk withdrawal
@@ -152,6 +154,7 @@ abstract contract IChallengePoolHandler is IChallengePoolCommon {
      * @param   _challengeId  .
      */
     function evaluate(uint256 _challengeId) external virtual;
+
     /**
      * @notice  .
      * @dev     close pool once it's evaluated or settled

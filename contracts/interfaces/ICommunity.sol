@@ -69,6 +69,27 @@ abstract contract ICommunity {
         uint256 timeAt
     );
 
+    event NewCommunityChallenge(
+        uint256 challengeId,
+        address creator,
+        uint256 createdAt,
+        uint256 maturity,
+        IChallengePoolHandler.ChallengeState state,
+        bytes result,
+        uint256 basePrice,
+        uint256 fee,
+        uint256 quantity,
+        uint256 totalAmount,
+        uint256 rewards,
+        bytes prediction,
+        IChallengePoolHandler.ChallengeEvent[] events,
+        bytes[] options,
+        address stakeToken,
+        bool multi,
+        bytes32 communityId,
+        IChallengePoolHandler.ChallengeType cType
+    );
+
     error CommunityIsBanned();
     error CommunityNotBanned();
     error NotCommunityAdmin();
