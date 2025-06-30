@@ -92,26 +92,27 @@ library LibPool {
                 _communityId,
                 _cType
             );
+        } else {
+            emit IChallengePoolHandler.NewChallenge(
+                s.challengeId,
+                _caller,
+                block.timestamp,
+                _maturity,
+                IChallengePoolCommon.ChallengeState.open,
+                HelpersLib.emptyBytes,
+                _basePrice,
+                _fee,
+                _quantity,
+                _totalAmount,
+                rewardPoints,
+                _prediction,
+                _events,
+                _options,
+                _stakeToken,
+                _multi
+            );
         }
 
-        emit IChallengePoolHandler.NewChallenge(
-            s.challengeId,
-            _caller,
-            block.timestamp,
-            _maturity,
-            IChallengePoolCommon.ChallengeState.open,
-            HelpersLib.emptyBytes,
-            _basePrice,
-            _fee,
-            _quantity,
-            _totalAmount,
-            rewardPoints,
-            _prediction,
-            _events,
-            _options,
-            _stakeToken,
-            _multi
-        );
         s.challengeId += 1;
     }
 
