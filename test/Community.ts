@@ -1,18 +1,11 @@
-import { CommunityView } from "./../typechain-types/contracts/modules/CommunityView";
 import { toUtf8Bytes } from "ethers";
 import { ethers } from "hardhat";
 import { expect } from "chai";
 import {
   loadFixture,
-  time,
 } from "@nomicfoundation/hardhat-toolbox/network-helpers";
 import { anyValue } from "@nomicfoundation/hardhat-chai-matchers/withArgs";
 import { deploySoccersm } from "./SoccersmDeployFixture";
-import {
-  FacetCutAction,
-  functionSelectors,
-  functionSigsSelectors,
-} from "../ignition/lib";
 import { getCommunityIdHash } from "./lib";
 
 describe("Community Tests: ", async function () {
@@ -44,7 +37,7 @@ describe("Community Tests: ", async function () {
   });
 
   it("Should Create Community", async function () {
-    const { communityProxy, communityViewProxy, owner, user } =
+    const { communityProxy, communityViewProxy, owner } =
       await loadFixture(deployCommunity);
 
     //create new community
