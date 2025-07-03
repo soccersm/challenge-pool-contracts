@@ -248,7 +248,7 @@ describe("Evaluate Community Custom Challenge", async function () {
     );
   });
 
-  it.only("Should create Custom community challenge and Evaluate", async function () {
+  it("Should create Custom community challenge and Evaluate", async function () {
     const {
       poolHandlerProxy,
       communityProxy,
