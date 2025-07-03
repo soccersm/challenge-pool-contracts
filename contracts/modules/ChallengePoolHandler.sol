@@ -103,8 +103,11 @@ contract ChallengePoolHandler is
                 revert InvalidEventLength();
             }
             poolOptions = _options;
-            LibPool._validateOptions(t, _events[0], poolOptions);
+            if (_cType == ChallengeType.standard) {
+                LibPool._validateOptions(t, _events[0], poolOptions);
+            }
         }
+
         bool predictionExists = false;
         for (uint i = 0; i < poolOptions.length; i++) {
             if (

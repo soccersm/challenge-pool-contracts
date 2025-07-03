@@ -63,9 +63,11 @@ describe("ChallengePool - Create Challenge", function () {
           await poolViewProxy.createFee(oneGrand)
         )[1]
       );
-    await expect((poolHandlerProxy.connect(baller) as any).createChallenge(
-      ...(preparedBTCChallenge as any)
-    )).to.emit(poolHandlerProxy, "NewChallenge"); //not community challenge
+    await expect(
+      (poolHandlerProxy.connect(baller) as any).createChallenge(
+        ...(preparedBTCChallenge as any)
+      )
+    ).to.emit(poolHandlerProxy, "NewChallenge"); //not community challenge
 
     const challengeNoState = await getChallengeState(
       poolViewProxy,
@@ -236,7 +238,7 @@ describe("ChallengePool - Create Challenge", function () {
     );
 
     const preparedMultiStementChallenge = prepareCreateChallenge(gh.challenge);
-
+    console.log("Prepared statement: =========", preparedMultiStementChallenge);
     await ballsToken
       .connect(baller)
       .approve(
@@ -597,5 +599,100 @@ describe("ChallengePool - Create Challenge", function () {
         ...(preparedBTCChallenge as any)
       )
     ).to.emit(poolHandlerProxy, "NewCommunityChallenge");
+  });
+
+  it.only("Should Create Community Challenge - Statements", async function () {
+    const {
+      oneGrand,
+      baller,
+      ballsToken,
+      poolHandlerProxy,
+      registryProxy,
+      poolViewProxy,
+      poolManagerProxy,
+      communityProxy,
+      communityViewProxy,
+      keeper,
+      paymaster,
+      owner,
+      oneMil,
+    } = await loadFixture(deploySoccersm);
+
+    //create new community
+    const COMMUNITY_ID = "Community1";
+    const COMMUNITY_ID_HASH = getCommunityIdHash(COMMUNITY_ID);
+    await expect(communityProxy.createCommunity(COMMUNITY_ID))
+      .to.emit(communityProxy, "NewCommunity")
+      .withArgs(
+        COMMUNITY_ID,
+        COMMUNITY_ID_HASH,
+        await owner.getAddress(),
+        1,
+        false,
+        anyValue
+      );
+
+    //join community
+    await (communityProxy.connect(keeper) as any).joinCommunity(
+      COMMUNITY_ID_HASH
+    );
+    await (communityProxy.connect(baller) as any).joinCommunity(
+      COMMUNITY_ID_HASH
+    );
+
+    //add user as community admin
+    await expect(
+      communityProxy.addCommunityAdmin(
+        COMMUNITY_ID_HASH,
+        await baller.getAddress()
+      )
+    )
+      .to.emit(communityProxy, "AdminAdded")
+      .withArgs(
+        COMMUNITY_ID_HASH,
+        await owner.getAddress(),
+        await baller.getAddress()
+      );
+    expect(
+      await communityViewProxy.getIsAdmin(
+        COMMUNITY_ID_HASH,
+        await baller.getAddress()
+      )
+    ).to.be.true;
+
+    //statements not cool for community since it needs to be registered first
+    const gh = ghanaElectionEvent(
+      await ballsToken.getAddress(),
+      1,
+      oneGrand,
+      ethers.ZeroAddress,
+    );
+
+    await registryProxy.registerEvent(
+      gh.topicId,
+      coder.encode(
+        ["string", "string", "uint256", "bytes[]"],
+        [
+          gh.statementId,
+          gh.statement,
+          gh.maturity,
+          gh.options.map((o) => encodeMultiOptionByTopic(gh.topicId, o)),
+        ]
+      )
+    );
+
+    const preparedMultiStementChallenge = prepareCreateChallenge(gh.challenge);
+    console.log("Prepared statement: =========", preparedMultiStementChallenge);
+    await ballsToken
+      .connect(baller)
+      .approve(
+        await poolHandlerProxy.getAddress(),
+        (
+          await poolViewProxy.createFee(oneGrand)
+        )[1]
+      );
+    await (poolHandlerProxy.connect(baller) as any).createChallenge(
+      ...(preparedMultiStementChallenge as any)
+    );
   });
 });

@@ -49,6 +49,7 @@ export type StatementEvent = BaseEvent & {
   statement: string;
 };
 
+
 export type MultiAssetRangeEvent = BaseEvent & {
   assetSymbol: string;
 };
