@@ -2,12 +2,9 @@
 // Learn more about it at https://hardhat.org/ignition
 import { buildModule } from "@nomicfoundation/hardhat-ignition/modules";
 import {
-  functionSigsSelectors,
   functionSelectors,
   FacetCutAction,
-  INIT_SIG,
 } from "../../lib";
-import Soccersm from "../Soccersm";
 import { ethers } from "hardhat";
 
 const ChallengePoolHandler_CommunityChallengeEventUpdateModule = buildModule(

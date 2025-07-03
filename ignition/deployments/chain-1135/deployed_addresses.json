@@ -78,5 +78,8 @@
   "ChallengePoolHandler_CommunityChallengeUpdates#ChallengePoolHandler": "0xB7ec86b3B180A3D0FBa2161d798D4fe7EcCDcA98",
   "ChallengePoolHandler_CommunityChallengeEventUpdateModule#DiamondCutFacet": "0x56d3719CcB48124d7CeE71F70B3e0bAa860E7FB6",
   "ChallengePoolHandler_CommunityChallengeEventUpdateModule#SoccersmChallengePoolHandler": "0x56d3719CcB48124d7CeE71F70B3e0bAa860E7FB6",
-  "ChallengePoolHandler_CommunityChallengeEventUpdateModule#ChallengePoolHandler": "0xc2ce6bF717399f6790f7B9F6895541E6d1954055"
+  "ChallengePoolHandler_CommunityChallengeEventUpdateModule#ChallengePoolHandler": "0xc2ce6bF717399f6790f7B9F6895541E6d1954055",
+  "ChallengePoolHandler_CommunityChallengeEventUpdateModule2#DiamondCutFacet": "0x56d3719CcB48124d7CeE71F70B3e0bAa860E7FB6",
+  "ChallengePoolHandler_CommunityChallengeEventUpdateModule2#SoccersmChallengePoolHandler": "0x56d3719CcB48124d7CeE71F70B3e0bAa860E7FB6",
+  "ChallengePoolHandler_CommunityChallengeEventUpdateModule2#ChallengePoolHandler": "0x8C2B39Cae990fFc7d189e55700Ef33e46f78a7a2"
 }
