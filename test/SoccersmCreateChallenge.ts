@@ -601,7 +601,7 @@ describe("ChallengePool - Create Challenge", function () {
     ).to.emit(poolHandlerProxy, "NewCommunityChallenge");
   });
 
-  it.only("Should Create Community Challenge - Statements", async function () {
+  it("Should Create Community Challenge - Statements", async function () {
     const {
       oneGrand,
       baller,
@@ -665,7 +665,7 @@ describe("ChallengePool - Create Challenge", function () {
       await ballsToken.getAddress(),
       1,
       oneGrand,
-      ethers.ZeroAddress,
+      ethers.ZeroAddress
     );
 
     await registryProxy.registerEvent(
@@ -682,7 +682,6 @@ describe("ChallengePool - Create Challenge", function () {
     );
 
     const preparedMultiStementChallenge = prepareCreateChallenge(gh.challenge);
-    console.log("Prepared statement: =========", preparedMultiStementChallenge);
     await ballsToken
       .connect(baller)
       .approve(
