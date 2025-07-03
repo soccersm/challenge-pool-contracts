@@ -703,3 +703,51 @@ export function footballOverUnderEvent(
     matchId: matchId,
   };
 }
+
+export function customChallenge(
+  stakeToken: string,
+  quantity: number,
+  basePrice: BigInt,
+  paymaster: string,
+  communityId: string,
+  challengeType: ChallengeType
+): {
+  challenge: CreateChallenge;
+  statement: string;
+  statementId: string;
+  maturity: number;
+  topicId: TopicId.Statement;
+  options: EventOption[];
+} {
+  const maturity = Math.floor(Date.now() / 1000) + 60 * 60 * 24;
+
+  const statement: StatementEvent = {
+    maturity,
+    topicId: TopicId.Statement,
+    statement: "Going to Mars by 2026...",
+    statementId: "custom1",
+  };
+
+  const opts: EventOption[] = ["Yes", "Somewhat", "Maybe"];
+
+  const customStatementEvent: CreateChallenge = {
+    events: [statement],
+    options: opts,
+    stakeToken,
+    prediction: "Somewhat",
+    quantity,
+    basePrice,
+    paymaster,
+    communityId: communityId ?? ethers.ZeroHash,
+    challengeType: challengeType ?? ChallengeType.standard,
+  };
+
+  return {
+    challenge: customStatementEvent,
+    statement: statement.statement,
+    statementId: statement.statementId,
+    maturity,
+    topicId: TopicId.Statement,
+    options: opts,
+  };
+}
