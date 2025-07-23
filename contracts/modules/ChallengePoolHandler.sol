@@ -20,6 +20,7 @@ import "./TopicRegistry.sol";
 import "../diamond/interfaces/SoccersmRoles.sol";
 import "../utils/ChallengePoolHelpers.sol";
 import "../interfaces/ICommunity.sol";
+import "contracts/interfaces/ITournament.sol";
 
 contract ChallengePoolHandler is
     IChallengePoolHandler,
@@ -53,7 +54,7 @@ contract ChallengePoolHandler is
         CPStore storage s = CPStorage.load();
 
         if (_communityId == bytes32(0)) {
-            if (_cType != ChallengeType.standard) {
+            if (_cType == ChallengeType.community) {
                 revert ICommunity.CommunityChallengeRequiresCommunity();
             }
         } else {
@@ -105,6 +106,14 @@ contract ChallengePoolHandler is
             poolOptions = _options;
             if (_cType == ChallengeType.standard) {
                 LibPool._validateOptions(t, _events[0], poolOptions);
+            }
+
+            if (_cType == ChallengeType.tournament) {
+                TournamentStore storage ts = TournamentStorage.load();
+                if (_communityId == bytes32(0)) {
+                    revert ITournament.TournamentChallengeRequiresId();
+                }
+                LibPool._validateTournamentOptions(ts, _communityId, poolOptions);
             }
         }
 
