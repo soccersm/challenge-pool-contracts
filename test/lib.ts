@@ -49,7 +49,6 @@ export type StatementEvent = BaseEvent & {
   statement: string;
 };
 
-
 export type MultiAssetRangeEvent = BaseEvent & {
   assetSymbol: string;
 };
@@ -156,9 +155,14 @@ export function prepareCreateChallenge(
     events.push(encodeEventByTopic(e));
   }
   if (isMulti) {
-    const topicId = create.events[0].topicId;
-    prediction = encodeMultiOptionByTopic(topicId, create.prediction);
-    options = create.options.map((o) => encodeMultiOptionByTopic(topicId, o));
+    if (create.challengeType == ChallengeType.tournament) {
+      prediction = encodeTournamentOption(create.prediction);
+      options = create.options.map((o) => encodeTournamentOption(o));
+    } else {
+      const topicId = create.events[0].topicId;
+      prediction = encodeMultiOptionByTopic(topicId, create.prediction);
+      options = create.options.map((o) => encodeMultiOptionByTopic(topicId, o));
+    }
   } else if (
     create.events.length === 1 &&
     create.events[0].topicId === TopicId.AssetPriceTarget
@@ -218,11 +222,14 @@ export function encodeMultiOptionByTopic(
     case TopicId.AssetPriceTarget:
     case TopicId.FootBallCorrectScore:
     case TopicId.FootBallOutcome:
-    // return coder.encode(["string"], [option as StringOption]);
     case TopicId.FootballOverUnder:
     default:
       throw new Error("Invalid Event Topic, must be a multi event");
   }
+}
+
+function encodeTournamentOption(option: EventOption) {
+  return coder.encode(["address"], [option]);
 }
 
 export function encodeEventByTopic(e: EventParam): ParamEncodedEventChallenge {
