@@ -12,6 +12,7 @@ import "../interfaces/IChallengePoolDispute.sol";
 import "../interfaces/IDataProvider.sol";
 
 import "../interfaces/ICommunity.sol";
+import "contracts/interfaces/ITournament.sol";
 
 struct TRStore {
     mapping(string => ITopicRegistry.Topic) registry;
@@ -113,6 +114,25 @@ library CommunityStorage {
 
     function load() internal pure returns (CommunityStore storage s) {
         bytes32 position = COMMUNITY_STORAGE_POSITION;
+        assembly {
+            s.slot := position
+        }
+    }
+}
+
+struct TournamentStore {
+    mapping(bytes32 => ITournament.Tournament) tournaments; //tournamentId -> tournaments
+    mapping(bytes32 => ITournament.TournamentEvent[]) tournamentEvents; //tournamentId -> tournamentEvents
+    mapping(bytes32 => mapping(address => bool)) isPlayer; //tournamentId -> address -> player
+    mapping(bytes32 => mapping(address => bool)) isSpectator; //tournamentId -> address -> spectator
+    mapping(bytes32 => mapping(address => bool)) isAdmin; //tournamentId -> address -> admin
+}
+
+library TournamentStorage {
+    bytes32 constant TOURNAMENT_STORAGE_POSITION = keccak256("soccersm.tournament.storage");
+
+    function load() internal pure returns (TournamentStore storage s){
+        bytes32 position = TOURNAMENT_STORAGE_POSITION;
         assembly {
             s.slot := position
         }
