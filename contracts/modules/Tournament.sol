@@ -170,7 +170,7 @@ contract Tournament is ITournament, TournamentHelpers, Helpers, SoccersmRoles {
             msg.sender,
             true,
             t.prizePool,
-            t.soldTickets, 
+            t.soldTickets,
             t.players
         );
     }
@@ -216,7 +216,7 @@ contract Tournament is ITournament, TournamentHelpers, Helpers, SoccersmRoles {
         t.players -= 1;
         delete ts.isPlayer[_id][_player];
         if (t.registrationFee > 0) {
-            t.prizePool -= t.registrationFee; 
+            t.prizePool -= t.registrationFee;
             LibTransfer._send(t.stakeToken, t.registrationFee, _player);
         }
         emit TournamentPlayerRemoved(_id, _player, false);
@@ -384,5 +384,54 @@ contract Tournament is ITournament, TournamentHelpers, Helpers, SoccersmRoles {
         ITournament.Tournament storage t = ts.tournaments[_id];
         t.banned = false;
         emit TournamentUnbanned(_id, msg.sender, false);
+    }
+
+    function setTournamentWinner(
+        bytes32 _id,
+        address _winner
+    )
+        external
+        virtual
+        override
+        tournamentNotBanned(_id)
+        tournamentExists(_id)
+        tournamentOwnerOrAdmin(_id)
+        positiveAddress(_winner)
+    {
+        TournamentStore storage ts = TournamentStorage.load();
+        ITournament.Tournament storage t = ts.tournaments[_id];
+        if (t.endTime <= block.timestamp) {
+            revert TournamentStillOngoing();
+        }
+        if (!ts.isPlayer[_id][_winner]) {
+            revert NotTournamentPlayer();
+        }
+        t.winner = _winner;
+        emit TournamentWinnerSet(_id, _winner);
+    }
+
+    function claimTournamentPrize(
+        bytes32 _id
+    ) external virtual override tournamentExists(_id) tournamentNotBanned(_id) {
+        TournamentStore storage ts = TournamentStorage.load();
+        ITournament.Tournament storage t = ts.tournaments[_id];
+        if (t.endTime <= block.timestamp) {
+            revert TournamentStillOngoing();
+        }
+        if (!ts.isPlayer[_id][msg.sender]) {
+            revert NotTournamentPlayer();
+        }
+        if (t.winner != msg.sender) {
+            revert NotTournamentWinner();
+        }
+        t.prizeClaimed = true;
+        uint256 amount;
+        if (t.prizePool > 0) {
+            amount = t.prizePool;
+            t.prizePool = 0;
+            LibTransfer._send(t.stakeToken, t.prizePool, msg.sender);
+        }
+
+        emit TournamentPrizeClaimed(_id, msg.sender, amount);
     }
 }
