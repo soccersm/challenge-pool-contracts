@@ -105,6 +105,13 @@ abstract contract ITournament {
         bool isSpectator
     );
 
+    event TournamentWinnerSet(bytes32 tournamentId, address winner);
+    event TournamentPrizeClaimed(
+        bytes32 tournamentId,
+        address winner,
+        uint256 amount
+    );
+
     error InvalidPeriod();
     error TournamentAlreadyExists();
     error TournamentDoesNotExist();
@@ -120,6 +127,8 @@ abstract contract ITournament {
     error NotPlayerOrSpectator();
     error InvalidEventPeriod();
     error TournamentEventNotFound();
+    error TournamentStillOngoing();
+    error NotTournamentWinner();
 
     /**
      * @notice Creates a new tournament with specified parameters.
@@ -241,4 +250,17 @@ abstract contract ITournament {
      * @param _id ID of the tournament to unban.
      */
     function unBanTournament(bytes32 _id) external virtual;
+
+    /**
+     * @notice admin sets tournament winner at the end of tournament
+     * @param _id ID of the completed tournament
+     * @param _winner The address of the winner of the tournament
+     */
+    function setTournamentWinner(bytes32 _id, address _winner) external virtual;
+
+    /**
+     * @notice Tournament winner claim's prize
+     * @param _id ID of the tournament winner can claim prize
+     */
+    function claimTournamentPrize(bytes32 _id) external virtual;
 }
