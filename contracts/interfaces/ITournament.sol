@@ -109,7 +109,8 @@ abstract contract ITournament {
     event TournamentPrizeClaimed(
         bytes32 tournamentId,
         address winner,
-        uint256 amount
+        uint256 amount, 
+        bool claimed
     );
 
     error InvalidPeriod();

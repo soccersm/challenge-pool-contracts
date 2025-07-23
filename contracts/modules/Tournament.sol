@@ -432,6 +432,6 @@ contract Tournament is ITournament, TournamentHelpers, Helpers, SoccersmRoles {
             LibTransfer._send(t.stakeToken, t.prizePool, msg.sender);
         }
 
-        emit TournamentPrizeClaimed(_id, msg.sender, amount);
+        emit TournamentPrizeClaimed(_id, msg.sender, amount, true);
     }
 }
