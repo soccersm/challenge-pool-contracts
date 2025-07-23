@@ -751,3 +751,54 @@ export function customChallenge(
     options: opts,
   };
 }
+
+export function tournamentChallenge(
+  stakeToken: string,
+  quantity: number,
+  basePrice: BigInt,
+  paymaster: string,
+  communityId: string, //tournamentId
+  challengeType: ChallengeType
+): {
+  challenge: CreateChallenge;
+  statement: string;
+  statementId: string;
+  maturity: number;
+  topicId: TopicId.Statement;
+  options: EventOption[];
+} {
+  const maturity = Math.floor(Date.now() / 1000) + 60 * 60 * 24;
+
+  const statement: StatementEvent = {
+    maturity,
+    topicId: TopicId.Statement,
+    statement: "Who wins MK11?",
+    statementId: "tournament1",
+  };
+  //player1, player2
+  const opts: EventOption[] = [
+    "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+    "0x70997970C51812dc3A010C7d01b50e0d17dc79C8",
+  ];
+
+  const tournamentStatementEvent: CreateChallenge = {
+    events: [statement],
+    options: opts,
+    stakeToken,
+    prediction: "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+    quantity,
+    basePrice,
+    paymaster,
+    communityId,
+    challengeType,
+  };
+
+  return {
+    challenge: tournamentStatementEvent,
+    statement: statement.statement,
+    statementId: statement.statementId,
+    maturity,
+    topicId: TopicId.Statement,
+    options: opts,
+  };
+}
