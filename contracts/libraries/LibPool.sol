@@ -10,6 +10,7 @@ import "./LibTransfer.sol";
 import "./LibPrice.sol";
 import "../utils/Helpers.sol";
 import "../interfaces/ICommunity.sol";
+import "contracts/interfaces/ITournament.sol";
 
 library LibPool {
     function _initPool(
@@ -327,6 +328,29 @@ library LibPool {
             _withdrawAfterCancelled(_challengeId, _caller);
         } else {
             revert IChallengePoolCommon.ActionNotAllowedForState(state);
+        }
+    }
+
+    function _validateTournamentOptions(
+        TournamentStore storage _ts,
+        bytes32 _tournamentId,
+        bytes[] memory _options
+    ) internal view {
+        ITournament.Tournament storage t = _ts.tournaments[_tournamentId];
+        if (t.creator == address(0)) {
+            revert ITournament.TournamentDoesNotExist();
+        }
+        if (t.banned) {
+            revert ITournament.TournamentIsBanned();
+        }
+        if (t.startTime < block.timestamp) {
+            revert ITournament.TournamentNotStarted();
+        }
+        for (uint256 i = 0; i < _options.length; i++) {
+            address decodedOption = abi.decode(_options[i], (address));
+            if (!_ts.isPlayer[_tournamentId][decodedOption]) {
+                revert ITournament.NotTournamentPlayer();
+            }
         }
     }
 }
