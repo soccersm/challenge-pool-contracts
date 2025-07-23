@@ -130,6 +130,8 @@ abstract contract ITournament {
     error TournamentEventNotFound();
     error TournamentStillOngoing();
     error NotTournamentWinner();
+    error TournamentChallengeRequiresId();
+    error TournamentNotStarted();
 
     /**
      * @notice Creates a new tournament with specified parameters.
