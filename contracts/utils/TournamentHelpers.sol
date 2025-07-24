@@ -26,7 +26,7 @@ abstract contract TournamentHelpers {
     modifier pendingTournament(bytes32 _id) {
         TournamentStore storage ts = TournamentStorage.load();
         ITournament.Tournament storage t = ts.tournaments[_id];
-        if(t.startTime > block.timestamp) {
+        if(block.timestamp >= t.startTime) {
             revert ITournament.TournamentAlreadyStarted();
         }
         _;
