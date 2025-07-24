@@ -79,8 +79,9 @@ contract Tournament is ITournament, TournamentHelpers, Helpers, SoccersmRoles {
         tournamentNotBanned(_id)
     {
         TournamentStore storage ts = TournamentStorage.load();
-        ITournament.Tournament storage t = ts.tournaments[_id];
-        require(t.creator == msg.sender, "not tournament creator...");
+        if(ts.isAdmin[_id][_member]){
+            revert AlreadyTournamentAdmin();
+        }
         ts.isAdmin[_id][_member] = true;
         emit TournamentAdminAdded(_id, _member, true);
     }
@@ -98,8 +99,6 @@ contract Tournament is ITournament, TournamentHelpers, Helpers, SoccersmRoles {
         tournamentNotBanned(_id)
     {
         TournamentStore storage ts = TournamentStorage.load();
-        ITournament.Tournament storage t = ts.tournaments[_id];
-        require(t.creator == msg.sender, "not tournament creator...");
         delete ts.isAdmin[_id][_member];
         emit TournamentAdminRemoved(_id, _member, false);
     }
@@ -377,11 +376,11 @@ contract Tournament is ITournament, TournamentHelpers, Helpers, SoccersmRoles {
         virtual
         override
         tournamentExists(_id)
-        tournamentNotBanned(_id)
         onlySoccersmCouncil
     {
         TournamentStore storage ts = TournamentStorage.load();
         ITournament.Tournament storage t = ts.tournaments[_id];
+        require(t.banned, "Tournament not banned");
         t.banned = false;
         emit TournamentUnbanned(_id, msg.sender, false);
     }
