@@ -511,6 +511,6 @@ export function prepareFootballOverUnderProvision(
   return ["FootballOverUnder", params];
 }
 
-export function getCommunityIdHash(communityId: string): string {
-  return ethers.keccak256(ethers.toUtf8Bytes(communityId));
+export function getStringIdHash(stringId: string): string {
+  return ethers.keccak256(ethers.toUtf8Bytes(stringId));
 }
