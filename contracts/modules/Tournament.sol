@@ -97,6 +97,7 @@ contract Tournament is ITournament, TournamentHelpers, Helpers, SoccersmRoles {
         tournamentExists(_id)
         onlyTournamentOwner(_id)
         tournamentNotBanned(_id)
+        tournamentAdmin(_id, _member)
     {
         TournamentStore storage ts = TournamentStorage.load();
         delete ts.isAdmin[_id][_member];
