@@ -103,16 +103,24 @@ const IgniteTestModule = buildModule("IgniteTestModule", (m) => {
   const commV = m.contract("CommunityView");
   const commvC = [commV, FacetCutAction.Add, commvS];
 
+  const touS = functionSelectors("Tournament");
+  const tou = m.contract("Tournament");
+  const touC = [tou, FacetCutAction.Add, touS];
+
   m.call(
     cutProxy,
     "diamondCut",
     [
-      [trC, cphC, cpdC, cpmC, cpvC, commC, commvC],
+      [trC, cphC, cpdC, cpmC, cpvC, commC, commvC, touC],
       cpiInit.contract,
       cpiInit.selector,
     ],
     { id: "ChallengePoolDiamondCut" }
   );
+
+  const tournamentProxy = m.contractAt("Tournament", soccersm, {
+    id: "SoccersmTournament",
+  });
 
   const communityProxy = m.contractAt("Community", soccersm, {
     id: "SoccersmCommunity",
@@ -221,6 +229,7 @@ const IgniteTestModule = buildModule("IgniteTestModule", (m) => {
     communityProxy,
     communityViewProxy,
     paymaster,
+    tournamentProxy,
   };
 });
 
