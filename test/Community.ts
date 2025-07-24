@@ -6,7 +6,7 @@ import {
 } from "@nomicfoundation/hardhat-toolbox/network-helpers";
 import { anyValue } from "@nomicfoundation/hardhat-chai-matchers/withArgs";
 import { deploySoccersm } from "./SoccersmDeployFixture";
-import { getCommunityIdHash } from "./lib";
+import { getStringIdHash } from "./lib";
 
 describe("Community Tests: ", async function () {
   async function deployCommunity() {
@@ -37,12 +37,13 @@ describe("Community Tests: ", async function () {
   });
 
   it("Should Create Community", async function () {
-    const { communityProxy, communityViewProxy, owner } =
-      await loadFixture(deployCommunity);
+    const { communityProxy, communityViewProxy, owner } = await loadFixture(
+      deployCommunity
+    );
 
     //create new community
     const COMMUNITY_ID = "Community1";
-    const COMMUNITY_ID_HASH = getCommunityIdHash(COMMUNITY_ID);
+    const COMMUNITY_ID_HASH = getStringIdHash(COMMUNITY_ID);
     await expect(communityProxy.createCommunity(COMMUNITY_ID))
       .to.emit(communityProxy, "NewCommunity")
       .withArgs(
@@ -78,7 +79,7 @@ describe("Community Tests: ", async function () {
 
     //create new community
     const COMMUNITY_ID = "Community1";
-    const COMMUNITY_ID_HASH = getCommunityIdHash(COMMUNITY_ID);
+    const COMMUNITY_ID_HASH = getStringIdHash(COMMUNITY_ID);
     await expect(communityProxy.createCommunity(COMMUNITY_ID))
       .to.emit(communityProxy, "NewCommunity")
       .withArgs(
@@ -91,8 +92,10 @@ describe("Community Tests: ", async function () {
       );
 
     //join community
-    await(communityProxy.connect(user) as any).joinCommunity(COMMUNITY_ID_HASH);
-    await(communityProxy.connect(user1) as any).joinCommunity(
+    await (communityProxy.connect(user) as any).joinCommunity(
+      COMMUNITY_ID_HASH
+    );
+    await (communityProxy.connect(user1) as any).joinCommunity(
       COMMUNITY_ID_HASH
     );
 
@@ -122,7 +125,7 @@ describe("Community Tests: ", async function () {
     ).to.be.revertedWithCustomError(communityProxy, "ZeroAddress");
 
     const NON_EXISTING_ID = "123456";
-    const NON_EXISTING_ID_HASH = getCommunityIdHash(NON_EXISTING_ID);
+    const NON_EXISTING_ID_HASH = getStringIdHash(NON_EXISTING_ID);
     await expect(
       communityProxy.addCommunityAdmin(
         NON_EXISTING_ID_HASH,
@@ -168,7 +171,7 @@ describe("Community Tests: ", async function () {
 
     //create new community
     const COMMUNITY_ID = "Community1";
-    const COMMUNITY_ID_HASH = getCommunityIdHash(COMMUNITY_ID);
+    const COMMUNITY_ID_HASH = getStringIdHash(COMMUNITY_ID);
     await expect(communityProxy.createCommunity(COMMUNITY_ID))
       .to.emit(communityProxy, "NewCommunity")
       .withArgs(
@@ -181,7 +184,9 @@ describe("Community Tests: ", async function () {
       );
 
     //join community
-    await(communityProxy.connect(user) as any).joinCommunity(COMMUNITY_ID_HASH);
+    await (communityProxy.connect(user) as any).joinCommunity(
+      COMMUNITY_ID_HASH
+    );
 
     //add user as community admin
     await expect(
@@ -233,7 +238,7 @@ describe("Community Tests: ", async function () {
       communityProxy.removeCommunityAdmin(COMMUNITY_ID_HASH, ethers.ZeroAddress)
     ).to.be.revertedWithCustomError(communityProxy, "ZeroAddress");
     const NON_EXISTING_ID = "12345";
-    const NON_EXISTING_ID_HASH = getCommunityIdHash(NON_EXISTING_ID);
+    const NON_EXISTING_ID_HASH = getStringIdHash(NON_EXISTING_ID);
     await expect(
       communityProxy.removeCommunityAdmin(
         NON_EXISTING_ID_HASH,
@@ -267,7 +272,7 @@ describe("Community Tests: ", async function () {
 
     //create new community
     const COMMUNITY_ID = "Community1";
-    const COMMUNITY_ID_HASH = getCommunityIdHash(COMMUNITY_ID);
+    const COMMUNITY_ID_HASH = getStringIdHash(COMMUNITY_ID);
     await expect(communityProxy.createCommunity(COMMUNITY_ID))
       .to.emit(communityProxy, "NewCommunity")
       .withArgs(
@@ -289,7 +294,7 @@ describe("Community Tests: ", async function () {
     ).to.be.revertedWithCustomError(communityProxy, "CommunityIsBanned");
 
     const NON_EXISTING_ID = "12345";
-    const NON_EXISTING_ID_HASH = getCommunityIdHash(NON_EXISTING_ID);
+    const NON_EXISTING_ID_HASH = getStringIdHash(NON_EXISTING_ID);
     await expect(
       communityProxy.banCommunity(NON_EXISTING_ID_HASH)
     ).to.be.revertedWithCustomError(communityProxy, "CommunityDoesNotExist");
@@ -312,7 +317,7 @@ describe("Community Tests: ", async function () {
 
     //create new community
     const COMMUNITY_ID = "Community1";
-    const COMMUNITY_ID_HASH = getCommunityIdHash(COMMUNITY_ID);
+    const COMMUNITY_ID_HASH = getStringIdHash(COMMUNITY_ID);
     await expect(communityProxy.createCommunity(COMMUNITY_ID))
       .to.emit(communityProxy, "NewCommunity")
       .withArgs(
@@ -330,7 +335,7 @@ describe("Community Tests: ", async function () {
       .withArgs(COMMUNITY_ID_HASH, await owner.getAddress(), true);
 
     const NON_EXISTING_ID = "12345";
-    const NON_EXISTING_ID_HASH = getCommunityIdHash(NON_EXISTING_ID);
+    const NON_EXISTING_ID_HASH = getStringIdHash(NON_EXISTING_ID);
     await expect(
       communityProxy.unBanCommunity(NON_EXISTING_ID_HASH)
     ).to.be.revertedWithCustomError(communityProxy, "CommunityDoesNotExist");
@@ -359,7 +364,7 @@ describe("Community Tests: ", async function () {
 
     //create new community
     const COMMUNITY_ID = "Community1";
-    const COMMUNITY_ID_HASH = getCommunityIdHash(COMMUNITY_ID);
+    const COMMUNITY_ID_HASH = getStringIdHash(COMMUNITY_ID);
     await expect(communityProxy.createCommunity(COMMUNITY_ID))
       .to.emit(communityProxy, "NewCommunity")
       .withArgs(
@@ -373,7 +378,7 @@ describe("Community Tests: ", async function () {
 
     //join
     const NON_EXISTING_ID = "12345";
-    const NON_EXISTING_ID_HASH = getCommunityIdHash(NON_EXISTING_ID);
+    const NON_EXISTING_ID_HASH = getStringIdHash(NON_EXISTING_ID);
     await expect(
       (communityProxy.connect(user) as any).joinCommunity(NON_EXISTING_ID_HASH)
     ).to.be.revertedWithCustomError(communityProxy, "CommunityDoesNotExist");
@@ -413,9 +418,9 @@ describe("Community Tests: ", async function () {
 
     //create new community
     const COMMUNITY_ID = "Community1";
-    const COMMUNITY_ID_HASH = getCommunityIdHash(COMMUNITY_ID);
+    const COMMUNITY_ID_HASH = getStringIdHash(COMMUNITY_ID);
     const NON_EXISTING_ID = "12345";
-    const NON_EXISTING_ID_HASH = getCommunityIdHash(NON_EXISTING_ID);
+    const NON_EXISTING_ID_HASH = getStringIdHash(NON_EXISTING_ID);
     await expect(communityProxy.createCommunity(COMMUNITY_ID))
       .to.emit(communityProxy, "NewCommunity")
       .withArgs(
@@ -486,9 +491,9 @@ describe("Community Tests: ", async function () {
 
     //create new community
     const COMMUNITY_ID = "Community1";
-    const COMMUNITY_ID_HASH = getCommunityIdHash(COMMUNITY_ID);
+    const COMMUNITY_ID_HASH = getStringIdHash(COMMUNITY_ID);
     const NON_EXISTING_ID = "12345";
-    const NON_EXISTING_ID_HASH = getCommunityIdHash(NON_EXISTING_ID);
+    const NON_EXISTING_ID_HASH = getStringIdHash(NON_EXISTING_ID);
     await expect(communityProxy.createCommunity(COMMUNITY_ID))
       .to.emit(communityProxy, "NewCommunity")
       .withArgs(
@@ -540,7 +545,7 @@ describe("Community Tests: ", async function () {
       communityProxy.banMember(COMMUNITY_ID_HASH, await user.getAddress())
     )
       .to.emit(communityProxy, "MemberIsBanned")
-      .withArgs(COMMUNITY_ID_HASH, user.address,2, anyValue);
+      .withArgs(COMMUNITY_ID_HASH, user.address, 2, anyValue);
 
     //unban
     await expect(
@@ -579,9 +584,9 @@ describe("Community Tests: ", async function () {
 
     //create new community
     const COMMUNITY_ID = "Community1";
-    const COMMUNITY_ID_HASH = getCommunityIdHash(COMMUNITY_ID);
+    const COMMUNITY_ID_HASH = getStringIdHash(COMMUNITY_ID);
     const NON_EXISTING_ID = "12345";
-    const NON_EXISTING_ID_HASH = getCommunityIdHash(NON_EXISTING_ID);
+    const NON_EXISTING_ID_HASH = getStringIdHash(NON_EXISTING_ID);
     await expect(communityProxy.createCommunity(COMMUNITY_ID))
       .to.emit(communityProxy, "NewCommunity")
       .withArgs(
@@ -648,7 +653,7 @@ describe("Community Tests: ", async function () {
       )
     )
       .to.emit(communityProxy, "MemberRemoved")
-      .withArgs(COMMUNITY_ID_HASH, await user1.getAddress(),3, anyValue);
+      .withArgs(COMMUNITY_ID_HASH, await user1.getAddress(), 3, anyValue);
     expect(
       await communityViewProxy.getMembersCount(COMMUNITY_ID_HASH)
     ).to.be.equal(3);
@@ -692,9 +697,9 @@ describe("Community Tests: ", async function () {
 
     //create new community
     const COMMUNITY_ID = "Community1";
-    const COMMUNITY_ID_HASH = getCommunityIdHash(COMMUNITY_ID);
+    const COMMUNITY_ID_HASH = getStringIdHash(COMMUNITY_ID);
     const NON_EXISTING_ID = "12345";
-    const NON_EXISTING_ID_HASH = getCommunityIdHash(NON_EXISTING_ID);
+    const NON_EXISTING_ID_HASH = getStringIdHash(NON_EXISTING_ID);
     await expect(communityProxy.createCommunity(COMMUNITY_ID))
       .to.emit(communityProxy, "NewCommunity")
       .withArgs(
@@ -832,9 +837,9 @@ describe("Community Tests: ", async function () {
 
     //create new community
     const COMMUNITY_ID = "Community1";
-    const COMMUNITY_ID_HASH = getCommunityIdHash(COMMUNITY_ID);
+    const COMMUNITY_ID_HASH = getStringIdHash(COMMUNITY_ID);
     const NON_EXISTING_ID = "12345";
-    const NON_EXISTING_ID_HASH = getCommunityIdHash(NON_EXISTING_ID);
+    const NON_EXISTING_ID_HASH = getStringIdHash(NON_EXISTING_ID);
     await expect(communityProxy.createCommunity(COMMUNITY_ID))
       .to.emit(communityProxy, "NewCommunity")
       .withArgs(

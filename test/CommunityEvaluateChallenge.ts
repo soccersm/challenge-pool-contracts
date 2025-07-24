@@ -11,7 +11,7 @@ import {
   ChallengeState,
   ChallengeType,
   coder,
-  getCommunityIdHash,
+  getStringIdHash,
   prepareCreateChallenge,
   yesNo,
 } from "./lib";
@@ -98,7 +98,7 @@ describe("Evaluate Community Custom Challenge", async function () {
 
     //create new community
     const COMMUNITY_ID = "Community1";
-    const COMMUNITY_ID_HASH = getCommunityIdHash(COMMUNITY_ID);
+    const COMMUNITY_ID_HASH = getStringIdHash(COMMUNITY_ID);
     await expect(communityProxy.createCommunity(COMMUNITY_ID))
       .to.emit(communityProxy, "NewCommunity")
       .withArgs(
@@ -158,7 +158,7 @@ describe("Evaluate Community Custom Challenge", async function () {
 
     //create new community
     const COMMUNITY_ID = "Community1";
-    const COMMUNITY_ID_HASH = getCommunityIdHash(COMMUNITY_ID);
+    const COMMUNITY_ID_HASH = getStringIdHash(COMMUNITY_ID);
     await expect(communityProxy.createCommunity(COMMUNITY_ID))
       .to.emit(communityProxy, "NewCommunity")
       .withArgs(
@@ -226,12 +226,7 @@ describe("Evaluate Community Custom Challenge", async function () {
 
     await expect(communityProxy.evaluateCustomChallenge(0, result))
       .to.emit(communityProxy, "EvaluateChallenge")
-      .withArgs(
-        0,
-        owner.address,
-        ChallengeState.evaluated,
-        result
-      );
+      .withArgs(0, owner.address, ChallengeState.evaluated, result);
 
     await time.increase(60 * 60);
     await poolHandlerProxy.close(0);
@@ -263,7 +258,7 @@ describe("Evaluate Community Custom Challenge", async function () {
 
     //create new community
     const COMMUNITY_ID = "Community1";
-    const COMMUNITY_ID_HASH = getCommunityIdHash(COMMUNITY_ID);
+    const COMMUNITY_ID_HASH = getStringIdHash(COMMUNITY_ID);
     await expect(communityProxy.createCommunity(COMMUNITY_ID))
       .to.emit(communityProxy, "NewCommunity")
       .withArgs(
@@ -292,7 +287,10 @@ describe("Evaluate Community Custom Challenge", async function () {
     const preparedCustomCommunityChallenge = prepareCreateChallenge(
       customCommunityChallenge.challenge
     );
-    console.log("Prepared custom challenge: ", preparedCustomCommunityChallenge)
+    console.log(
+      "Prepared custom challenge: ",
+      preparedCustomCommunityChallenge
+    );
     await ballsToken
       .connect(baller)
       .approve(
@@ -309,7 +307,7 @@ describe("Evaluate Community Custom Challenge", async function () {
     console.log("Challenge Before Outcome: ", challengeBefore.outcome);
 
     //baller stake: 'Somewhat'
-    const stakeOption = coder.encode(["string"], ["Somewhat"])
+    const stakeOption = coder.encode(["string"], ["Somewhat"]);
     await (poolHandlerProxy.connect(baller) as any).stake(
       0,
       stakeOption,
@@ -319,7 +317,7 @@ describe("Evaluate Community Custom Challenge", async function () {
 
     //mature
     await time.increaseTo(customCommunityChallenge.maturity);
-    const result = coder.encode(['string'], ['Somewhat']);
+    const result = coder.encode(["string"], ["Somewhat"]);
 
     //admin/owner can evaluate
     await expect(
@@ -330,12 +328,7 @@ describe("Evaluate Community Custom Challenge", async function () {
 
     await expect(communityProxy.evaluateCustomChallenge(0, result))
       .to.emit(communityProxy, "EvaluateChallenge")
-      .withArgs(
-        0,
-        owner.address,
-        ChallengeState.evaluated,
-        result
-      );
+      .withArgs(0, owner.address, ChallengeState.evaluated, result);
 
     await time.increase(60 * 60);
     await poolHandlerProxy.close(0);
@@ -351,5 +344,4 @@ describe("Evaluate Community Custom Challenge", async function () {
       "WinningsWithdrawn"
     );
   });
-
 });

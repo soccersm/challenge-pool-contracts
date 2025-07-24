@@ -27,6 +27,7 @@ export async function deploySoccersm() {
     communityProxy,
     communityViewProxy,
     paymaster,
+    tournamentProxy,
   } = await ignition.deploy(IgniteTestModule, { displayUi: false });
   const BallsToken = await ethers.getContractFactory("BallsToken");
   const ballsToken = await BallsToken.deploy();
@@ -66,6 +67,7 @@ export async function deploySoccersm() {
     poolViewProxy,
     communityProxy,
     communityViewProxy,
+    tournamentProxy,
   };
 }
 
