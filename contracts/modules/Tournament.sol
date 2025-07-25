@@ -157,7 +157,7 @@ contract Tournament is ITournament, TournamentHelpers, Helpers, SoccersmRoles {
         if (ts.isPlayer[_id][msg.sender]) {
             revert AlreadyPlayer();
         }
-        require(t.soldTickets <= t.maxTickets, "All tickets sold");
+        require(t.soldTickets < t.maxTickets, "All tickets sold");
         t.soldTickets += 1;
         t.players += 1;
         if (t.registrationFee > 0) {
