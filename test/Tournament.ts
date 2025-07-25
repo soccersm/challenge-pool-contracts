@@ -210,9 +210,9 @@ describe("Soccersm Tournaments", async function () {
       tournamentProxy.removeTournamentAdmin(tournamentIdHash, baller.address)
     ).to.emit(tournamentProxy, "TournamentAdminRemoved");
 
-     await expect(
-       tournamentProxy.removeTournamentAdmin(tournamentIdHash, baller.address)
-     ).to.be.revertedWithCustomError(tournamentProxy, "MustBeTournamentAdmin");
+    await expect(
+      tournamentProxy.removeTournamentAdmin(tournamentIdHash, baller.address)
+    ).to.be.revertedWithCustomError(tournamentProxy, "MustBeTournamentAdmin");
   });
 
   it("Should update tournament", async function () {
@@ -385,5 +385,111 @@ describe("Soccersm Tournaments", async function () {
         1000
       )
     ).to.be.revertedWith("Players already entered");
+  });
+
+  it("Should joinTournamentAsPlayer", async function () {
+    const { ballsToken, tournamentProxy, baller, striker, oneGrand } =
+      await loadFixture(deploySoccersm);
+
+    const now = Math.floor(Date.now() / 1000);
+    const startTime = now + 3600;
+    const endTime = startTime + 3600;
+
+    await tournamentProxy.createTournament(
+      "elimination-tournament",
+      startTime,
+      endTime,
+      100,
+      1000,
+      await ballsToken.getAddress()
+    );
+
+    const tournamentIdHash = getStringIdHash("elimination-tournament");
+
+    //baller joins as player
+    await ballsToken
+      .connect(baller)
+      .approve(await tournamentProxy.getAddress(), oneGrand);
+    await expect(
+      (tournamentProxy.connect(baller) as any).joinTournamentAsPlayer(
+        tournamentIdHash
+      )
+    )
+      .to.emit(tournamentProxy, "TournamentPlayerJoined")
+      .withArgs(tournamentIdHash, baller.address, true, 100, 1, 1);
+    expect(
+      await ballsToken.balanceOf(await tournamentProxy.getAddress())
+    ).to.equal(100);
+  });
+
+  it("Should joinTournamentAsPlayer - reverts", async function () {
+    const { ballsToken, tournamentProxy, baller, striker, oneGrand } =
+      await loadFixture(deploySoccersm);
+
+    const now = Math.floor(Date.now() / 1000);
+    const startTime = now + 3600;
+    const endTime = startTime + 3600;
+
+    await tournamentProxy.createTournament(
+      "elimination-tournament",
+      startTime,
+      endTime,
+      100,
+      1,
+      await ballsToken.getAddress()
+    );
+
+    const tournamentIdHash = getStringIdHash("elimination-tournament");
+    await ballsToken
+      .connect(baller)
+      .approve(await tournamentProxy.getAddress(), oneGrand);
+
+    //revert nonExisting tournament
+    const nonExistingId = getStringIdHash("new-tournament");
+    await expect(
+      (tournamentProxy.connect(baller) as any).joinTournamentAsPlayer(
+        nonExistingId
+      )
+    ).to.be.revertedWithCustomError(tournamentProxy, "TournamentDoesNotExist");
+
+    //revert not banned
+    await expect(tournamentProxy.banTournament(tournamentIdHash)).to.emit(
+      tournamentProxy,
+      "TournamentBanned"
+    );
+
+    await expect(
+      (tournamentProxy.connect(baller) as any).joinTournamentAsPlayer(
+        tournamentIdHash
+      )
+    ).to.be.revertedWithCustomError(tournamentProxy, "TournamentIsBanned");
+
+    await expect(tournamentProxy.unBanTournament(tournamentIdHash)).to.emit(
+      tournamentProxy,
+      "TournamentUnbanned"
+    );
+    //baller joins as player
+    await expect(
+      (tournamentProxy.connect(baller) as any).joinTournamentAsPlayer(
+        tournamentIdHash
+      )
+    )
+      .to.emit(tournamentProxy, "TournamentPlayerJoined")
+      .withArgs(tournamentIdHash, baller.address, true, 100, 1, 1);
+
+    await expect(
+      (tournamentProxy.connect(baller) as any).joinTournamentAsPlayer(
+        tournamentIdHash
+      )
+    ).to.be.revertedWithCustomError(tournamentProxy, "AlreadyPlayer");
+
+    //revert all tickets sold
+    await ballsToken.approve(await tournamentProxy.getAddress(), oneGrand);
+    await expect(
+      tournamentProxy.joinTournamentAsPlayer(tournamentIdHash)
+    ).to.be.revertedWith("All tickets sold");
+    expect(
+      await ballsToken.balanceOf(await tournamentProxy.getAddress())
+    ).to.equal(100);
   });
 });
