@@ -237,13 +237,6 @@ abstract contract ITournament {
     ) external virtual;
 
     /**
-     * @notice Deletes a specific event from a tournament.
-     * @param _id ID of the tournament.
-     * @param _eventId ID of the event to delete.
-     */
-    function deleteEvent(bytes32 _id, uint256 _eventId) external virtual;
-
-    /**
      * @notice Bans a tournament from further participation or activity.
      * @param _id ID of the tournament to ban.
      */
