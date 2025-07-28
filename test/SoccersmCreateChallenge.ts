@@ -13,6 +13,7 @@ import {
   multiOutcome,
   multiTotalExact,
   soccersmEvent,
+  tournamentChallenge,
 } from "./mock";
 import {
   ChallengeType,
@@ -20,6 +21,9 @@ import {
   encodeMultiOptionByTopic,
   getStringIdHash,
   prepareCreateChallenge,
+  prepareTournamentEvent,
+  TopicId,
+  TournamentEvent,
   yesNo,
 } from "./lib";
 import { getChallengeState, getPlayerOptionSupply } from "./test_helpers";
@@ -679,5 +683,100 @@ describe("ChallengePool - Create Challenge", function () {
     await (poolHandlerProxy.connect(baller) as any).createChallenge(
       ...(preparedMultiStementChallenge as any)
     );
+  });
+
+  it("Should create tournament challenge", async function () {
+    const {
+      tournamentProxy,
+      baller,
+      striker,
+      ballsToken,
+      keeper,
+      oneGrand,
+      poolHandlerProxy,
+      poolViewProxy,
+    } = await loadFixture(deploySoccersm);
+    //create tournament
+    const now = Math.floor(Date.now() / 1000);
+    const startTime = now + 3600;
+    const endTime = startTime + 7200;
+
+    await tournamentProxy.createTournament(
+      "elimination-tournament",
+      startTime,
+      endTime,
+      100,
+      2,
+      await ballsToken.getAddress()
+    );
+    const tournamentIdHash = getStringIdHash("elimination-tournament");
+
+    //baller and striker join
+    await ballsToken
+      .connect(baller)
+      .approve(await tournamentProxy.getAddress(), oneGrand);
+    await expect(
+      (tournamentProxy.connect(baller) as any).joinTournamentAsPlayer(
+        tournamentIdHash
+      )
+    ).to.emit(tournamentProxy, "TournamentPlayerJoined");
+
+    await ballsToken
+      .connect(striker)
+      .approve(await tournamentProxy.getAddress(), oneGrand);
+    await expect(
+      (tournamentProxy.connect(striker) as any).joinTournamentAsPlayer(
+        tournamentIdHash
+      )
+    ).to.emit(tournamentProxy, "TournamentPlayerJoined");
+    //create event
+    await expect(tournamentProxy.addEvent(tournamentIdHash, startTime, endTime))
+      .to.emit(tournamentProxy, "NewTournamentEvent")
+      .withArgs(tournamentIdHash, 0, startTime, endTime);
+
+    //create challenges for the events
+    const tournament: TournamentEvent = {
+      maturity: now + 7200,
+      topicId: TopicId.Tournament,
+      eventName: "MK I Champions",
+      eventDescription: "Head to Head, who wins MK I?",
+      eventId: 0,
+    };
+    const ballerAddress = baller.address;
+    const strikerAddress = baller.address;
+
+    const opts = [ballerAddress, strikerAddress];
+
+    const tournamentChallengeEvent = tournamentChallenge(
+      await ballsToken.getAddress(),
+      1,
+      oneGrand,
+      ethers.ZeroAddress,
+      tournamentIdHash,
+      ChallengeType.tournament,
+      tournament,
+      opts
+    );
+
+    const preparedTournamentChallenge = prepareCreateChallenge(
+      tournamentChallengeEvent.challenge
+    );
+    const items = preparedTournamentChallenge[0];
+    const decodedItems = items.forEach((e) =>
+      console.log(
+        "eventId, eventName, eventDescription",
+        coder.decode(["uint256", "string", "string"], e.params)
+      )
+    ); //decoding correctly
+
+    await ballsToken.approve(
+      await poolHandlerProxy.getAddress(),
+      (
+        await poolViewProxy.createFee(oneGrand)
+      )[1]
+    );
+    await expect(
+      poolHandlerProxy.createChallenge(...preparedTournamentChallenge)
+    ).to.emit(poolHandlerProxy, "NewCommunityChallenge");
   });
 });
