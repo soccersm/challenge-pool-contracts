@@ -353,4 +353,23 @@ library LibPool {
             }
         }
     }
+
+    function _validateTournamentEvent(
+        TournamentStore storage _ts,
+        bytes32 _tournamentId,
+        IChallengePoolHandler.ChallengeEvent calldata _event
+    ) internal view returns (bool) {
+        (uint256 eventId, , ) = abi.decode(
+            _event.params,
+            (uint256, string, string)
+        );
+        ITournament.TournamentEvent memory events = _ts.tournamentEvents[
+            _tournamentId
+        ][eventId];
+
+        if (events.id == eventId && events.endTime >= _event.maturity) {
+            return true;
+        }
+        return false;
+    }
 }
