@@ -492,4 +492,83 @@ describe("Soccersm Tournaments", async function () {
       await ballsToken.balanceOf(await tournamentProxy.getAddress())
     ).to.equal(100);
   });
+
+  it("Should joinTournamentAsSpectator", async function () {
+    const { ballsToken, tournamentProxy, baller, striker, oneGrand } =
+      await loadFixture(deploySoccersm);
+
+    const now = Math.floor(Date.now() / 1000);
+    const startTime = now + 3600;
+    const endTime = startTime + 3600;
+
+    await tournamentProxy.createTournament(
+      "elimination-tournament",
+      startTime,
+      endTime,
+      100,
+      1,
+      await ballsToken.getAddress()
+    );
+    const tournamentIdHash = getStringIdHash("elimination-tournament");
+
+    //baller joins as spectator
+    await expect(
+      (tournamentProxy.connect(baller) as any).joinTournamentAsSpectator(
+        tournamentIdHash
+      )
+    )
+      .to.emit(tournamentProxy, "TournamentSpectatorJoined")
+      .withArgs(tournamentIdHash, baller.address, 1);
+  });
+
+  it("Should joinTournamentAsSpectator - Reverts", async function () {
+    const { ballsToken, tournamentProxy, baller, striker, oneGrand } =
+      await loadFixture(deploySoccersm);
+
+    const now = Math.floor(Date.now() / 1000);
+    const startTime = now + 3600;
+    const endTime = startTime + 3600;
+
+    await tournamentProxy.createTournament(
+      "elimination-tournament",
+      startTime,
+      endTime,
+      100,
+      1,
+      await ballsToken.getAddress()
+    );
+    const tournamentIdHash = getStringIdHash("elimination-tournament");
+
+    //baller joins as spectator
+    await expect(
+      (tournamentProxy.connect(baller) as any).joinTournamentAsSpectator(
+        tournamentIdHash
+      )
+    )
+      .to.emit(tournamentProxy, "TournamentSpectatorJoined")
+      .withArgs(tournamentIdHash, baller.address, 1);
+  });
+
+  it("Should add tournament Event", async function () {
+    const { ballsToken, tournamentProxy, baller, striker, oneGrand } =
+      await loadFixture(deploySoccersm);
+
+    const now = Math.floor(Date.now() / 1000);
+    const startTime = now + 3600;
+    const endTime = startTime + 3600;
+
+    await tournamentProxy.createTournament(
+      "elimination-tournament",
+      startTime,
+      endTime,
+      100,
+      1,
+      await ballsToken.getAddress()
+    );
+    const tournamentIdHash = getStringIdHash("elimination-tournament");
+
+    await expect(tournamentProxy.addEvent(tournamentIdHash, startTime, endTime))
+      .to.emit(tournamentProxy, "NewTournamentEvent")
+      .withArgs(tournamentIdHash, 0, startTime, endTime);
+  });
 });
