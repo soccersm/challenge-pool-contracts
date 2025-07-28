@@ -53,11 +53,10 @@ contract ChallengePoolHandler is
     {
         CPStore storage s = CPStorage.load();
 
-        if (_communityId == bytes32(0)) {
-            if (_cType == ChallengeType.community) {
+        if (_cType == ChallengeType.community) {
+            if (_communityId == bytes32(0)) {
                 revert ICommunity.CommunityChallengeRequiresCommunity();
             }
-        } else {
             CommunityStore storage cs = CommunityStorage.load();
             ICommunity.Community storage community = cs.communities[
                 _communityId
@@ -113,7 +112,11 @@ contract ChallengePoolHandler is
                 if (_communityId == bytes32(0)) {
                     revert ITournament.TournamentChallengeRequiresId();
                 }
-                LibPool._validateTournamentOptions(ts, _communityId, poolOptions);
+                LibPool._validateTournamentOptions(
+                    ts,
+                    _communityId,
+                    poolOptions
+                );
             }
         }
 
@@ -153,6 +156,17 @@ contract ChallengePoolHandler is
                 }
 
                 LibPool._validateEvent(t, _events[i]);
+            }
+            if (_cType == ChallengeType.tournament) {
+                TournamentStore storage ts = TournamentStorage.load();
+                bool eventExists = LibPool._validateTournamentEvent(
+                    ts,
+                    _communityId,
+                    _events[i]
+                );
+                if (!eventExists) {
+                    revert ITournament.TournamentEventNotFound();
+                }
             }
         }
         uint256 totalAmount = _basePrice * _quantity;
