@@ -122,7 +122,7 @@ library CommunityStorage {
 
 struct TournamentStore {
     mapping(bytes32 => ITournament.Tournament) tournaments; //tournamentId -> tournaments
-    mapping(bytes32 => ITournament.TournamentEvent[]) tournamentEvents; //tournamentId -> tournamentEvents
+    mapping(bytes32 => mapping(uint256 => ITournament.TournamentEvent)) tournamentEvents; //tournamentId -> tournamentEvents
     mapping(bytes32 => mapping(address => bool)) isPlayer; //tournamentId -> address -> player
     mapping(bytes32 => mapping(address => bool)) isSpectator; //tournamentId -> address -> spectator
     mapping(bytes32 => mapping(address => bool)) isAdmin; //tournamentId -> address -> admin
