@@ -15,6 +15,7 @@ import {
   MultiFootBallTotalScoreRangeEvent,
   StatementEvent,
   TopicId,
+  TournamentEvent,
 } from "./lib";
 import { ethers } from "hardhat";
 
@@ -758,34 +759,38 @@ export function tournamentChallenge(
   basePrice: BigInt,
   paymaster: string,
   communityId: string, //tournamentId
-  challengeType: ChallengeType
+  challengeType: ChallengeType,
+  tournament: TournamentEvent,
+  opts: EventOption[]
 ): {
   challenge: CreateChallenge;
-  statement: string;
-  statementId: string;
+  eventId: number;
+  eventName: string;
   maturity: number;
-  topicId: TopicId.Statement;
+  eventDescription: string;
+  topicId: TopicId.Tournament;
   options: EventOption[];
 } {
-  const maturity = Math.floor(Date.now() / 1000) + 60 * 60 * 24;
+  //const maturity = Math.floor(Date.now() / 1000) + 60 * 60 * 24;
 
-  const statement: StatementEvent = {
-    maturity,
-    topicId: TopicId.Statement,
-    statement: "Who wins MK11?",
-    statementId: "tournament1",
-  };
-  //player1, player2
-  const opts: EventOption[] = [
-    "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
-    "0x70997970C51812dc3A010C7d01b50e0d17dc79C8",
-  ];
+  // const tournament: TournamentEvent = {
+  //   maturity,
+  //   topicId: TopicId.Tournament,
+  //   eventName: "Who wins MK11?",
+  //   eventDescription: "MK11 Champions",
+  //   eventId: 1,
+  // };
+  // //player1, player2
+  // const opts: EventOption[] = [
+  //   "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+  //   "0x70997970C51812dc3A010C7d01b50e0d17dc79C8",
+  // ];
 
   const tournamentStatementEvent: CreateChallenge = {
-    events: [statement],
+    events: [tournament],
     options: opts,
     stakeToken,
-    prediction: "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+    prediction: opts[0],
     quantity,
     basePrice,
     paymaster,
@@ -795,10 +800,11 @@ export function tournamentChallenge(
 
   return {
     challenge: tournamentStatementEvent,
-    statement: statement.statement,
-    statementId: statement.statementId,
-    maturity,
-    topicId: TopicId.Statement,
+    eventId: tournament.eventId,
+    eventName: tournament.eventName,
+    eventDescription: tournament.eventDescription,
+    maturity: tournament.maturity,
+    topicId: TopicId.Tournament,
     options: opts,
   };
 }
