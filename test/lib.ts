@@ -1,4 +1,5 @@
 import { ethers } from "hardhat";
+import { Tournament } from "../typechain-types";
 
 export enum TopicId {
   AssetPriceBounded = "AssetPriceBounded",
@@ -12,6 +13,7 @@ export enum TopicId {
   MultiFootBallTotalExact = "MultiFootBallTotalExact",
   MultiFootBallTotalScoreRange = "MultiFootBallTotalScoreRange",
   Statement = "Statement",
+  Tournament = "Tournament",
 }
 
 export type BaseEvent = {
@@ -49,6 +51,13 @@ export type StatementEvent = BaseEvent & {
   statement: string;
 };
 
+export type TournamentEvent = BaseEvent & {
+  topicId: TopicId.Tournament;
+  eventName: string;
+  eventDescription: string;
+  eventId: number;
+};
+
 export type MultiAssetRangeEvent = BaseEvent & {
   assetSymbol: string;
 };
@@ -74,7 +83,8 @@ export type EventParam =
   | MultiFootBallTotalScoreRangeEvent
   | MultiFootBallTotalExactEvent
   | MultiFootBallOutcomeEvent
-  | MultiFootBallCorrectScoreEvent;
+  | MultiFootBallCorrectScoreEvent
+  | TournamentEvent;
 
 export type StringOption = string;
 export type IntOption = number;
@@ -266,8 +276,10 @@ export function encodeEventByTopic(e: EventParam): ParamEncodedEventChallenge {
       );
     case TopicId.MultiAssetRange:
       return prepareMultiAssetRangeEventParam(e as MultiAssetRangeEvent);
+    case TopicId.Tournament:
+      return prepareTournamentEvent(e as TournamentEvent);
     default:
-      throw new Error("Invalid Event Topic", e.topicId);
+      throw new Error("Invalid Event Topic");
   }
 }
 
@@ -509,6 +521,20 @@ export function prepareFootballOverUnderProvision(
     [matchId, BigInt(homeScore), BigInt(awayScore)]
   );
   return ["FootballOverUnder", params];
+}
+
+export function prepareTournamentEvent(
+  ev: TournamentEvent
+): ParamEncodedEventChallenge {
+  const params = coder.encode(
+    ["uint256", "string", "string"],
+    [ev.eventId, ev.eventName, ev.eventDescription]
+  );
+  return {
+    params,
+    topicId: ev.topicId,
+    maturity: BigInt(ev.maturity),
+  };
 }
 
 export function getStringIdHash(stringId: string): string {
