@@ -79,7 +79,7 @@ contract Tournament is ITournament, TournamentHelpers, Helpers, SoccersmRoles {
         tournamentNotBanned(_id)
     {
         TournamentStore storage ts = TournamentStorage.load();
-        if(ts.isAdmin[_id][_member]){
+        if (ts.isAdmin[_id][_member]) {
             revert AlreadyTournamentAdmin();
         }
         ts.isAdmin[_id][_member] = true;
@@ -272,13 +272,11 @@ contract Tournament is ITournament, TournamentHelpers, Helpers, SoccersmRoles {
             revert InvalidEventPeriod();
         }
         uint256 eventId = t.nextEventId;
-        ts.tournamentEvents[_id].push(
-            ITournament.TournamentEvent({
-                id: eventId,
-                startTime: _startTime,
-                endTime: _endTime
-            })
-        );
+        ts.tournamentEvents[_id][eventId] = ITournament.TournamentEvent({
+            id: eventId,
+            startTime: _startTime,
+            endTime: _endTime
+        });
 
         t.nextEventId++;
 
@@ -301,57 +299,18 @@ contract Tournament is ITournament, TournamentHelpers, Helpers, SoccersmRoles {
     {
         TournamentStore storage ts = TournamentStorage.load();
         ITournament.Tournament storage t = ts.tournaments[_id];
-        ITournament.TournamentEvent[] storage events = ts.tournamentEvents[_id];
+        ITournament.TournamentEvent storage events = ts.tournamentEvents[_id][
+            _eventId
+        ];
         if (_startTime < t.startTime || _endTime > t.endTime) {
             revert InvalidEventPeriod();
         }
-        bool found = false;
-        uint256 eventLength = events.length;
-
-        for (uint256 i = 0; i < eventLength; i++) {
-            if (events[i].id == _eventId) {
-                events[i].startTime = _startTime;
-                events[i].endTime = _endTime;
-                found = true;
-
-                emit TournamentEventUpdated(
-                    _id,
-                    _eventId,
-                    _startTime,
-                    _endTime
-                );
-                break;
-            }
-        }
-        if (!found) {
+        if (events.id != _eventId) {
             revert TournamentEventNotFound();
         }
-    }
-
-    function deleteEvent(
-        bytes32 _id,
-        uint256 _eventId
-    ) external virtual override tournamentExists(_id) tournamentNotBanned(_id) {
-        TournamentStore storage ts = TournamentStorage.load();
-        ITournament.TournamentEvent[] storage events = ts.tournamentEvents[_id];
-
-        uint256 eventsLength = events.length;
-        bool found = false;
-
-        for (uint256 i = 0; i < eventsLength; i++) {
-            if (events[i].id == _eventId) {
-                events[i] = events[eventsLength - 1];
-                events.pop();
-                found = true;
-
-                emit TournamentEventDeleted(_id, _eventId);
-                break;
-            }
-        }
-
-        if (!found) {
-            revert TournamentEventNotFound();
-        }
+        events.startTime = _startTime;
+        events.endTime = _endTime;
+        emit TournamentEventUpdated(_id, _eventId, _startTime, _endTime);
     }
 
     function banTournament(
@@ -372,13 +331,7 @@ contract Tournament is ITournament, TournamentHelpers, Helpers, SoccersmRoles {
 
     function unBanTournament(
         bytes32 _id
-    )
-        external
-        virtual
-        override
-        tournamentExists(_id)
-        onlySoccersmCouncil
-    {
+    ) external virtual override tournamentExists(_id) onlySoccersmCouncil {
         TournamentStore storage ts = TournamentStorage.load();
         ITournament.Tournament storage t = ts.tournaments[_id];
         require(t.banned, "Tournament not banned");
