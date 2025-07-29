@@ -292,27 +292,50 @@ contract Community is
     function evaluateCustomChallenge(
         uint256 _challengeId,
         bytes memory _results
-    ) external override poolInState(_challengeId, ChallengeState.matured) {
-        CommunityStore storage cs = CommunityStorage.load();
+    )
+        external
+        override
+        poolInState(_challengeId, ChallengeState.matured)
+        nonEmptyBytes(_results)
+    {
         CPStore storage s = CPStorage.load();
         IChallengePool.Challenge storage challenge = s.challenges[_challengeId];
-        bytes32 communityId = challenge.communityId;
-        ICommunity.Community storage community = cs.communities[communityId];
-        if (challenge.cType != ChallengeType.community) {
-            revert CommunityChallengeRequiresCommunity();
-        }
-        if (community.owner == address(0)) {
-            revert CommunityDoesNotExist(communityId);
-        }
-        if (community.banned) {
-            revert CommunityIsBanned();
-        }
+        if (challenge.cType == ChallengeType.community) {
+            CommunityStore storage cs = CommunityStorage.load();
+            bytes32 communityId = challenge.communityId;
+            ICommunity.Community storage community = cs.communities[
+                communityId
+            ];
+            if (community.owner == address(0)) {
+                revert CommunityDoesNotExist(communityId);
+            }
+            if (community.banned) {
+                revert CommunityIsBanned();
+            }
 
-        if (
-            !cs.isAdmin[communityId][msg.sender] &&
-            community.owner != msg.sender
-        ) {
-            revert NotCommunityOwnerOrAdmin(communityId, msg.sender);
+            if (
+                !cs.isAdmin[communityId][msg.sender] &&
+                community.owner != msg.sender
+            ) {
+                revert NotCommunityOwnerOrAdmin(communityId, msg.sender);
+            }
+        } else if (challenge.cType == ChallengeType.tournament) {
+            bytes32 tournamentId = challenge.communityId;
+            TournamentStore storage ts = TournamentStorage.load();
+            ITournament.Tournament storage t = ts.tournaments[tournamentId];
+            if (block.timestamp < t.endTime) {
+                revert ITournament.TournamentStillOngoing();
+            }
+            if (t.banned) {
+                revert ITournament.TournamentIsBanned();
+            }
+            bool admin = ts.isAdmin[tournamentId][msg.sender];
+            bool owner = t.creator == msg.sender;
+            if (!owner && !admin) {
+                revert ITournament.NotTournamentOwnerOrAdmin();
+            }
+        } else {
+            revert InvalidChallenge();
         }
         challenge.outcome = _results;
         challenge.lastOutcomeSet = block.timestamp;
