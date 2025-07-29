@@ -355,7 +355,7 @@ contract Tournament is ITournament, TournamentHelpers, Helpers, SoccersmRoles {
     {
         TournamentStore storage ts = TournamentStorage.load();
         ITournament.Tournament storage t = ts.tournaments[_id];
-        if (t.endTime <= block.timestamp) {
+        if (block.timestamp < t.endTime) {
             revert TournamentStillOngoing();
         }
         if (!ts.isPlayer[_id][_winner]) {
