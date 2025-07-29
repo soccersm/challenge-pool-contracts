@@ -1,3 +1,4 @@
+import { toUtf8Bytes } from "ethers";
 import {
   loadFixture,
   time,
@@ -677,5 +678,78 @@ describe("Soccersm Tournaments", async function () {
     await expect(tournamentProxy.addEvent(tournamentIdHash, startTime, endTime))
       .to.emit(tournamentProxy, "NewTournamentEvent")
       .withArgs(tournamentIdHash, 0, startTime, endTime);
+  });
+
+  it("Should ban tournament", async function () {
+    const { ballsToken, tournamentProxy, baller, owner, striker, oneGrand } =
+      await loadFixture(deploySoccersm);
+
+    const SOCCERSM_COUNCIL = ethers.keccak256(toUtf8Bytes("SOCCERSM_COUNCIL"));
+
+    const now = Math.floor(Date.now() / 1000);
+    const startTime = now + 3600;
+    const endTime = startTime + 3600;
+
+    await tournamentProxy.createTournament(
+      "elimination-tournament",
+      startTime,
+      endTime,
+      100,
+      1,
+      await ballsToken.getAddress()
+    );
+    const tournamentIdHash = getStringIdHash("elimination-tournament");
+
+    await expect(tournamentProxy.banTournament(tournamentIdHash))
+      .to.emit(tournamentProxy, "TournamentBanned")
+      .withArgs(tournamentIdHash, owner.address, true);
+
+    await expect(
+      tournamentProxy.banTournament(tournamentIdHash)
+    ).to.be.revertedWithCustomError(tournamentProxy, "TournamentIsBanned");
+
+    tournamentProxy.unBanTournament(tournamentIdHash);
+
+    await expect(
+      (tournamentProxy.connect(baller) as any).banTournament(tournamentIdHash)
+    ).to.be.revertedWith(`AccessControl: account ${baller.address.toLowerCase()} is missing role ${SOCCERSM_COUNCIL}`);
+  });
+
+  it("Should unban tournament", async function () {
+    const { ballsToken, tournamentProxy, baller, owner, striker, oneGrand } =
+      await loadFixture(deploySoccersm);
+
+    const SOCCERSM_COUNCIL = ethers.keccak256(toUtf8Bytes("SOCCERSM_COUNCIL"));
+
+    const now = Math.floor(Date.now() / 1000);
+    const startTime = now + 3600;
+    const endTime = startTime + 3600;
+
+    await tournamentProxy.createTournament(
+      "elimination-tournament",
+      startTime,
+      endTime,
+      100,
+      1,
+      await ballsToken.getAddress()
+    );
+    const tournamentIdHash = getStringIdHash("elimination-tournament");
+
+    await expect(tournamentProxy.unBanTournament(tournamentIdHash))
+      .to.be.revertedWith("Tournament not banned"); 
+
+    await expect(tournamentProxy.banTournament(tournamentIdHash))
+      .to.emit(tournamentProxy, "TournamentBanned")
+      .withArgs(tournamentIdHash, owner.address, true);
+
+    await expect(
+      tournamentProxy.banTournament(tournamentIdHash)
+    ).to.be.revertedWithCustomError(tournamentProxy, "TournamentIsBanned");
+
+    await expect(tournamentProxy.unBanTournament(tournamentIdHash)).to.emit(tournamentProxy, "TournamentUnbanned");
+
+    await expect(
+      (tournamentProxy.connect(baller) as any).banTournament(tournamentIdHash)
+    ).to.be.revertedWith(`AccessControl: account ${baller.address.toLowerCase()} is missing role ${SOCCERSM_COUNCIL}`);
   });
 });
