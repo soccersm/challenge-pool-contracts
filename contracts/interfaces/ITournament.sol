@@ -65,7 +65,6 @@ abstract contract ITournament {
         uint256 startTime,
         uint256 endTime
     );
-    event TournamentEventDeleted(bytes32 tournamentId, uint256 eventId);
     event TournamentEventUpdated(
         bytes32 tournamentId,
         uint256 eventId,
@@ -97,11 +96,13 @@ abstract contract ITournament {
     event TournamentPlayerLeft(
         bytes32 tournamentId,
         address player,
+        uint256 players,
         bool isPlayer
     );
     event TournamentSpectatorLeft(
         bytes32 tournamentId,
         address spectator,
+        uint256 spectators,
         bool isSpectator
     );
 
@@ -112,6 +113,7 @@ abstract contract ITournament {
         uint256 amount, 
         bool claimed
     );
+
 
     error InvalidPeriod();
     error TournamentAlreadyExists();
