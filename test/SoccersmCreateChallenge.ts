@@ -235,7 +235,6 @@ describe("ChallengePool - Create Challenge", function () {
     );
 
     const preparedMultiStementChallenge = prepareCreateChallenge(gh.challenge);
-    console.log("Prepared statement: =========", preparedMultiStementChallenge);
     await ballsToken
       .connect(baller)
       .approve(
@@ -762,12 +761,12 @@ describe("ChallengePool - Create Challenge", function () {
       tournamentChallengeEvent.challenge
     );
     const items = preparedTournamentChallenge[0];
-    const decodedItems = items.forEach((e) =>
+    items.forEach((e) =>
       console.log(
         "eventId, eventName, eventDescription",
         coder.decode(["uint256", "string", "string"], e.params)
       )
-    ); //decoding correctly
+    );
 
     await ballsToken.approve(
       await poolHandlerProxy.getAddress(),
