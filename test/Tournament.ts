@@ -7,7 +7,17 @@ import {
 import { expect } from "chai";
 import { deploySoccersm } from "./SoccersmDeployFixture";
 import { ethers } from "hardhat";
-import { getStringIdHash } from "./lib";
+import {
+  ChallengeState,
+  ChallengeType,
+  coder,
+  getStringIdHash,
+  prepareCreateChallenge,
+  TopicId,
+  TournamentEvent,
+} from "./lib";
+import { tournamentChallenge } from "./mock";
+import { getChallenge } from "./test_helpers";
 
 describe("Soccersm Tournaments", async function () {
   interface TournamentParams {
@@ -919,5 +929,161 @@ describe("Soccersm Tournaments", async function () {
     expect(await ballsToken.balanceOf(baller.address)).to.equal(
       ballerBalanceBefore + 200n
     );
+  });
+
+  it("Should create tournament and stake and withdraw tournament challenge", async function () {
+    const {
+      tournamentProxy,
+      baller,
+      striker,
+      ballsToken,
+      keeper,
+      owner,
+      oneGrand,
+      poolHandlerProxy,
+      poolViewProxy,
+      oneMil,
+      communityProxy,
+    } = await loadFixture(deploySoccersm);
+    //create tournament
+    const now = Math.floor(Date.now() / 1000);
+    const startTime = now + 3600;
+    const endTime = startTime + 7200;
+
+    await tournamentProxy.createTournament(
+      "elimination-tournament",
+      startTime,
+      endTime,
+      100,
+      2,
+      await ballsToken.getAddress()
+    );
+    const tournamentIdHash = getStringIdHash("elimination-tournament");
+
+    //baller and striker join
+    await ballsToken
+      .connect(baller)
+      .approve(await tournamentProxy.getAddress(), oneGrand);
+    await expect(
+      (tournamentProxy.connect(baller) as any).joinTournamentAsPlayer(
+        tournamentIdHash
+      )
+    ).to.emit(tournamentProxy, "TournamentPlayerJoined");
+
+    await ballsToken
+      .connect(striker)
+      .approve(await tournamentProxy.getAddress(), oneGrand);
+    await expect(
+      (tournamentProxy.connect(striker) as any).joinTournamentAsPlayer(
+        tournamentIdHash
+      )
+    ).to.emit(tournamentProxy, "TournamentPlayerJoined");
+    //create event
+    await expect(tournamentProxy.addEvent(tournamentIdHash, startTime, endTime))
+      .to.emit(tournamentProxy, "NewTournamentEvent")
+      .withArgs(tournamentIdHash, 0, startTime, endTime);
+
+    //create challenges for the events
+    const tournament: TournamentEvent = {
+      maturity: now + 7200,
+      topicId: TopicId.Tournament,
+      eventName: "MK I Champions",
+      eventDescription: "Head to Head, who wins MK I?",
+      eventId: 0,
+    };
+    const ballerAddress = baller.address;
+    const strikerAddress = striker.address;
+
+    const opts = [ballerAddress, strikerAddress];
+
+    const tournamentChallengeEvent = tournamentChallenge(
+      await ballsToken.getAddress(),
+      1,
+      oneGrand,
+      ethers.ZeroAddress,
+      tournamentIdHash,
+      ChallengeType.tournament,
+      tournament,
+      opts
+    );
+    console.log("pool options: ", tournamentChallengeEvent.options);
+    const preparedTournamentChallenge = prepareCreateChallenge(
+      tournamentChallengeEvent.challenge
+    );
+    const items = preparedTournamentChallenge[0];
+    items.forEach((e) =>
+      console.log(
+        "eventId, eventName, eventDescription",
+        coder.decode(["uint256", "string", "string"], e.params)
+      )
+    );
+
+    await ballsToken.approve(
+      await poolHandlerProxy.getAddress(),
+      (
+        await poolViewProxy.createFee(oneGrand)
+      )[1]
+    );
+    await expect(
+      poolHandlerProxy.createChallenge(...preparedTournamentChallenge)
+    ).to.emit(poolHandlerProxy, "NewCommunityChallenge");
+
+    //owner stake
+    await ballsToken.approve(await poolHandlerProxy.getAddress(), oneMil);
+    const prediction = coder.encode(["address"], [baller.address]);
+    await expect(
+      poolHandlerProxy.stake(0, prediction, 1, ethers.ZeroAddress)
+    ).to.emit(poolHandlerProxy, "Stake");
+
+    //striker stake
+    await ballsToken
+      .connect(striker)
+      .approve(await poolHandlerProxy.getAddress(), oneMil);
+    const loosingPrediction = coder.encode(["address"], [striker.address]);
+    console.log("loosing prediction: ", loosingPrediction);
+
+    await expect(
+      (poolHandlerProxy.connect(striker) as any).stake(
+        0,
+        loosingPrediction,
+        1,
+        ethers.ZeroAddress
+      )
+    ).to.emit(poolHandlerProxy, "Stake");
+
+    await time.increaseTo(tournamentChallengeEvent.maturity + 3600);
+
+    //revert non-admin evaluate
+    await expect(
+      (communityProxy.connect(striker) as any).evaluateCustomChallenge(
+        0,
+        prediction
+      )
+    ).to.be.revertedWithCustomError(
+      communityProxy,
+      "NotTournamentOwnerOrAdmin"
+    );
+
+    await expect(communityProxy.evaluateCustomChallenge(0, prediction))
+      .to.emit(communityProxy, "EvaluateChallenge")
+      .withArgs(0, owner.address, ChallengeState.evaluated, prediction);
+
+    await time.increase(60 * 60);
+    await poolHandlerProxy.close(0);
+
+    const challengeAfter = await getChallenge(poolViewProxy, 0);
+    expect(challengeAfter.outcome).to.equal(prediction);
+    console.log(
+      "challenge after outcome: ",
+      coder.decode(["address"], challengeAfter.outcome)
+    );
+    await expect(poolHandlerProxy.withdraw(0)).to.emit(
+      poolHandlerProxy,
+      "WinningsWithdrawn"
+    );
+
+    await expect(
+      (poolHandlerProxy.connect(striker) as any).withdraw(0)
+    ).to.be.revertedWithCustomError(poolHandlerProxy, "PlayerDidNotWinPool");
   });
 });
