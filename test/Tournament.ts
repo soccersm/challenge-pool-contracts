@@ -547,6 +547,113 @@ describe("Soccersm Tournaments", async function () {
     )
       .to.emit(tournamentProxy, "TournamentSpectatorJoined")
       .withArgs(tournamentIdHash, baller.address, 1);
+
+    await expect(
+      (tournamentProxy.connect(baller) as any).joinTournamentAsSpectator(
+        tournamentIdHash
+      )
+    ).to.be.revertedWithCustomError(tournamentProxy, "AlreadySpectator");
+  });
+
+  it("Should remove player: ", async function () {
+    const { ballsToken, tournamentProxy, baller, striker, oneGrand } =
+      await loadFixture(deploySoccersm);
+    const now = Math.floor(Date.now() / 1000);
+    const startTime = now + 3600;
+    const endTime = startTime + 3600;
+
+    await tournamentProxy.createTournament(
+      "elimination-tournament",
+      startTime,
+      endTime,
+      100,
+      2,
+      await ballsToken.getAddress()
+    );
+    const tournamentIdHash = getStringIdHash("elimination-tournament");
+
+    //players join
+    await ballsToken
+      .connect(baller)
+      .approve(await tournamentProxy.getAddress(), oneGrand);
+    await expect(
+      (tournamentProxy.connect(baller) as any).joinTournamentAsPlayer(
+        tournamentIdHash
+      )
+    ).to.emit(tournamentProxy, "TournamentPlayerJoined");
+
+    await ballsToken
+      .connect(striker)
+      .approve(await tournamentProxy.getAddress(), oneGrand);
+    await expect(
+      (tournamentProxy.connect(striker) as any).joinTournamentAsPlayer(
+        tournamentIdHash
+      )
+    ).to.emit(tournamentProxy, "TournamentPlayerJoined");
+
+    await expect(tournamentProxy.removePlayer(tournamentIdHash, baller.address))
+      .to.emit(tournamentProxy, "TournamentPlayerRemoved")
+      .withArgs(tournamentIdHash, baller.address, false);
+
+    //revert not player
+    await expect(
+      tournamentProxy.removePlayer(tournamentIdHash, baller.address)
+    ).to.be.revertedWithCustomError(tournamentProxy, "NotTournamentPlayer");
+  });
+
+  it("Should leave tournament as player or spectator: ", async function () {
+    const { ballsToken, tournamentProxy, baller, striker, oneGrand } =
+      await loadFixture(deploySoccersm);
+    const now = Math.floor(Date.now() / 1000);
+    const startTime = now + 3600;
+    const endTime = startTime + 3600;
+
+    await tournamentProxy.createTournament(
+      "elimination-tournament",
+      startTime,
+      endTime,
+      100,
+      2,
+      await ballsToken.getAddress()
+    );
+    const tournamentIdHash = getStringIdHash("elimination-tournament");
+
+    //players join
+    await ballsToken
+      .connect(baller)
+      .approve(await tournamentProxy.getAddress(), oneGrand);
+    await expect(
+      (tournamentProxy.connect(baller) as any).joinTournamentAsPlayer(
+        tournamentIdHash
+      )
+    ).to.emit(tournamentProxy, "TournamentPlayerJoined");
+
+    await expect(
+      (tournamentProxy.connect(striker) as any).joinTournamentAsSpectator(
+        tournamentIdHash
+      )
+    ).to.emit(tournamentProxy, "TournamentSpectatorJoined");
+
+    await expect(
+      (tournamentProxy.connect(baller) as any).leaveTournament(tournamentIdHash)
+    ).to.emit(tournamentProxy, "TournamentPlayerLeft");
+
+    //revert not player or spectator
+    await expect(
+      (tournamentProxy.connect(baller) as any).leaveTournament(tournamentIdHash)
+    ).to.be.revertedWithCustomError(tournamentProxy, "NotPlayerOrSpectator");
+
+    await expect(
+      (tournamentProxy.connect(striker) as any).leaveTournament(
+        tournamentIdHash
+      )
+    ).to.emit(tournamentProxy, "TournamentSpectatorLeft");
+
+    await expect(
+      (tournamentProxy.connect(striker) as any).leaveTournament(
+        tournamentIdHash
+      )
+    ).to.be.revertedWithCustomError(tournamentProxy, "NotPlayerOrSpectator");
   });
 
   it("Should add tournament Event", async function () {
