@@ -6,8 +6,10 @@ import "../utils/Helpers.sol";
 import "../libraries/LibData.sol";
 import "contracts/libraries/LibTransfer.sol";
 import "contracts/diamond/interfaces/SoccersmRoles.sol";
+import "@solidstate/contracts/security/reentrancy_guard/ReentrancyGuard.sol";
 
-contract Tournament is ITournament, TournamentHelpers, Helpers, SoccersmRoles {
+
+contract Tournament is ITournament, TournamentHelpers, Helpers, SoccersmRoles, ReentrancyGuard {
     function createTournament(
         string calldata _name,
         uint256 _startTime,
@@ -367,10 +369,10 @@ contract Tournament is ITournament, TournamentHelpers, Helpers, SoccersmRoles {
 
     function claimTournamentPrize(
         bytes32 _id
-    ) external virtual override tournamentExists(_id) tournamentNotBanned(_id) {
+    ) external virtual override tournamentExists(_id) tournamentNotBanned(_id) nonReentrant {
         TournamentStore storage ts = TournamentStorage.load();
         ITournament.Tournament storage t = ts.tournaments[_id];
-        if (t.endTime <= block.timestamp) {
+        if (block.timestamp < t.endTime) {
             revert TournamentStillOngoing();
         }
         if (!ts.isPlayer[_id][msg.sender]) {
@@ -384,7 +386,7 @@ contract Tournament is ITournament, TournamentHelpers, Helpers, SoccersmRoles {
         if (t.prizePool > 0) {
             amount = t.prizePool;
             t.prizePool = 0;
-            LibTransfer._send(t.stakeToken, t.prizePool, msg.sender);
+            LibTransfer._send(t.stakeToken, amount, msg.sender);
         }
 
         emit TournamentPrizeClaimed(_id, msg.sender, amount, true);

@@ -712,7 +712,9 @@ describe("Soccersm Tournaments", async function () {
 
     await expect(
       (tournamentProxy.connect(baller) as any).banTournament(tournamentIdHash)
-    ).to.be.revertedWith(`AccessControl: account ${baller.address.toLowerCase()} is missing role ${SOCCERSM_COUNCIL}`);
+    ).to.be.revertedWith(
+      `AccessControl: account ${baller.address.toLowerCase()} is missing role ${SOCCERSM_COUNCIL}`
+    );
   });
 
   it("Should unban tournament", async function () {
@@ -735,8 +737,9 @@ describe("Soccersm Tournaments", async function () {
     );
     const tournamentIdHash = getStringIdHash("elimination-tournament");
 
-    await expect(tournamentProxy.unBanTournament(tournamentIdHash))
-      .to.be.revertedWith("Tournament not banned"); 
+    await expect(
+      tournamentProxy.unBanTournament(tournamentIdHash)
+    ).to.be.revertedWith("Tournament not banned");
 
     await expect(tournamentProxy.banTournament(tournamentIdHash))
       .to.emit(tournamentProxy, "TournamentBanned")
@@ -746,62 +749,168 @@ describe("Soccersm Tournaments", async function () {
       tournamentProxy.banTournament(tournamentIdHash)
     ).to.be.revertedWithCustomError(tournamentProxy, "TournamentIsBanned");
 
-    await expect(tournamentProxy.unBanTournament(tournamentIdHash)).to.emit(tournamentProxy, "TournamentUnbanned");
+    await expect(tournamentProxy.unBanTournament(tournamentIdHash)).to.emit(
+      tournamentProxy,
+      "TournamentUnbanned"
+    );
 
     await expect(
       (tournamentProxy.connect(baller) as any).banTournament(tournamentIdHash)
-    ).to.be.revertedWith(`AccessControl: account ${baller.address.toLowerCase()} is missing role ${SOCCERSM_COUNCIL}`);
+    ).to.be.revertedWith(
+      `AccessControl: account ${baller.address.toLowerCase()} is missing role ${SOCCERSM_COUNCIL}`
+    );
   });
 
-   it("Should setTournamentWinner", async function () {
-     const { ballsToken, tournamentProxy, baller, striker, oneGrand } =
-       await loadFixture(deploySoccersm);
+  it("Should setTournamentWinner", async function () {
+    const { ballsToken, tournamentProxy, baller, striker, keeper, oneGrand } =
+      await loadFixture(deploySoccersm);
 
-     const now = Math.floor(Date.now() / 1000);
-     const startTime = now + 3600;
-     const endTime = startTime + 3600;
+    const now = Math.floor(Date.now() / 1000);
+    const startTime = now + 3600;
+    const endTime = startTime + 3600;
 
-     await tournamentProxy.createTournament(
-       "elimination-tournament",
-       startTime,
-       endTime,
-       100,
-       1000,
-       await ballsToken.getAddress()
-     );
+    await tournamentProxy.createTournament(
+      "elimination-tournament",
+      startTime,
+      endTime,
+      100,
+      1000,
+      await ballsToken.getAddress()
+    );
 
-     const tournamentIdHash = getStringIdHash("elimination-tournament");
+    const tournamentIdHash = getStringIdHash("elimination-tournament");
 
-     //baller joins as player
-     await ballsToken
-       .connect(baller)
-       .approve(await tournamentProxy.getAddress(), oneGrand);
-     await expect(
-       (tournamentProxy.connect(baller) as any).joinTournamentAsPlayer(
-         tournamentIdHash
-       )
-     )
-       .to.emit(tournamentProxy, "TournamentPlayerJoined")
-       .withArgs(tournamentIdHash, baller.address, true, 100, 1, 1);
+    //baller joins as player
+    await ballsToken
+      .connect(baller)
+      .approve(await tournamentProxy.getAddress(), oneGrand);
+    await expect(
+      (tournamentProxy.connect(baller) as any).joinTournamentAsPlayer(
+        tournamentIdHash
+      )
+    )
+      .to.emit(tournamentProxy, "TournamentPlayerJoined")
+      .withArgs(tournamentIdHash, baller.address, true, 100, 1, 1);
 
-      //striker joins
-     await ballsToken
-       .connect(striker)
-       .approve(await tournamentProxy.getAddress(), oneGrand);
-     await expect(
-       (tournamentProxy.connect(striker) as any).joinTournamentAsPlayer(
-         tournamentIdHash
-       )
-     )
-       .to.emit(tournamentProxy, "TournamentPlayerJoined")
-       .withArgs(tournamentIdHash, striker.address, true, 200, 2, 2);
-     expect(
-       await ballsToken.balanceOf(await tournamentProxy.getAddress())
-     ).to.equal(200);
+    //striker joins
+    await ballsToken
+      .connect(striker)
+      .approve(await tournamentProxy.getAddress(), oneGrand);
+    await expect(
+      (tournamentProxy.connect(striker) as any).joinTournamentAsPlayer(
+        tournamentIdHash
+      )
+    )
+      .to.emit(tournamentProxy, "TournamentPlayerJoined")
+      .withArgs(tournamentIdHash, striker.address, true, 200, 2, 2);
+    expect(
+      await ballsToken.balanceOf(await tournamentProxy.getAddress())
+    ).to.equal(200);
 
-     //set tournament winner
-     await expect(
-       tournamentProxy.setTournamentWinner(tournamentIdHash, baller.address)
-     ).to.be.revertedWithCustomError(tournamentProxy, "TournamentStillOngoing");
-   });
+    //set tournament winner
+    await expect(
+      tournamentProxy.setTournamentWinner(tournamentIdHash, baller.address)
+    ).to.be.revertedWithCustomError(tournamentProxy, "TournamentStillOngoing");
+
+    await time.increaseTo(endTime + 1);
+    await expect(
+      tournamentProxy.setTournamentWinner(tournamentIdHash, keeper.address)
+    ).to.be.revertedWithCustomError(tournamentProxy, "NotTournamentPlayer");
+
+    await expect(
+      (tournamentProxy.connect(keeper) as any).setTournamentWinner(
+        tournamentIdHash,
+        keeper.address
+      )
+    ).to.be.revertedWithCustomError(
+      tournamentProxy,
+      "NotTournamentOwnerOrAdmin"
+    );
+
+    await expect(
+      tournamentProxy.setTournamentWinner(tournamentIdHash, baller.address)
+    )
+      .to.emit(tournamentProxy, "TournamentWinnerSet")
+      .withArgs(tournamentIdHash, baller.address);
+  });
+
+  it("Should setTournamentWinner and claim prize", async function () {
+    const { ballsToken, tournamentProxy, baller, striker, keeper, oneGrand } =
+      await loadFixture(deploySoccersm);
+
+    const now = Math.floor(Date.now() / 1000);
+    const startTime = now + 3600;
+    const endTime = startTime + 3600;
+
+    await tournamentProxy.createTournament(
+      "elimination-tournament",
+      startTime,
+      endTime,
+      100,
+      1000,
+      await ballsToken.getAddress()
+    );
+
+    const tournamentIdHash = getStringIdHash("elimination-tournament");
+
+    //baller joins as player
+    await ballsToken
+      .connect(baller)
+      .approve(await tournamentProxy.getAddress(), oneGrand);
+    await expect(
+      (tournamentProxy.connect(baller) as any).joinTournamentAsPlayer(
+        tournamentIdHash
+      )
+    )
+      .to.emit(tournamentProxy, "TournamentPlayerJoined")
+      .withArgs(tournamentIdHash, baller.address, true, 100, 1, 1);
+
+    //striker joins
+    await ballsToken
+      .connect(striker)
+      .approve(await tournamentProxy.getAddress(), oneGrand);
+    await expect(
+      (tournamentProxy.connect(striker) as any).joinTournamentAsPlayer(
+        tournamentIdHash
+      )
+    )
+      .to.emit(tournamentProxy, "TournamentPlayerJoined")
+      .withArgs(tournamentIdHash, striker.address, true, 200, 2, 2);
+    expect(
+      await ballsToken.balanceOf(await tournamentProxy.getAddress())
+    ).to.equal(200);
+
+    await time.increaseTo(endTime + 1);
+
+    await expect(
+      tournamentProxy.setTournamentWinner(tournamentIdHash, baller.address)
+    )
+      .to.emit(tournamentProxy, "TournamentWinnerSet")
+      .withArgs(tournamentIdHash, baller.address);
+
+    //claim prize
+    await expect(
+      (tournamentProxy.connect(keeper) as any).claimTournamentPrize(
+        tournamentIdHash
+      )
+    ).to.be.revertedWithCustomError(tournamentProxy, "NotTournamentPlayer");
+
+    await expect(
+      (tournamentProxy.connect(striker) as any).claimTournamentPrize(
+        tournamentIdHash
+      )
+    ).to.be.revertedWithCustomError(tournamentProxy, "NotTournamentWinner");
+    const ballerBalanceBefore = await ballsToken.balanceOf(baller.address);
+    console.log("balance before: ", ballerBalanceBefore);
+
+    await expect(
+      (tournamentProxy.connect(baller) as any).claimTournamentPrize(
+        tournamentIdHash
+      )
+    )
+      .to.emit(tournamentProxy, "TournamentPrizeClaimed")
+      .withArgs(tournamentIdHash, baller.address, 200, true);
+
+    // expect(await ballsToken.balanceOf(baller.address)).to.equal(ballerBalanceBefore + 200n);
+  });
 });
