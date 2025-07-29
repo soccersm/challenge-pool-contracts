@@ -900,7 +900,9 @@ describe("Soccersm Tournaments", async function () {
         tournamentIdHash
       )
     ).to.be.revertedWithCustomError(tournamentProxy, "NotTournamentWinner");
-    const ballerBalanceBefore = await ballsToken.balanceOf(baller.address);
+    const ballerBalanceBefore = await ballsToken.balanceOf(
+      await baller.getAddress()
+    );
     console.log("balance before: ", ballerBalanceBefore);
 
     await expect(
@@ -910,7 +912,12 @@ describe("Soccersm Tournaments", async function () {
     )
       .to.emit(tournamentProxy, "TournamentPrizeClaimed")
       .withArgs(tournamentIdHash, baller.address, 200, true);
-
-    // expect(await ballsToken.balanceOf(baller.address)).to.equal(ballerBalanceBefore + 200n);
+    const ballerBalanceAfter = await ballsToken.balanceOf(
+      await baller.getAddress()
+    );
+    console.log("balance After: ", ballerBalanceAfter);
+    expect(await ballsToken.balanceOf(baller.address)).to.equal(
+      ballerBalanceBefore + 200n
+    );
   });
 });
