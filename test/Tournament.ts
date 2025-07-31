@@ -24,21 +24,17 @@ describe("Soccersm Tournaments", async function () {
     name: string;
     startTime: number;
     endTime: number;
-    registrationFee: number;
     maxTickets: number;
-    stakeToken: string;
   }
 
   function getTournamentParams(
     tournamentParams: TournamentParams
-  ): [string, number, number, number, number, string] {
+  ): [string, number, number, number] {
     return [
       tournamentParams.name,
       tournamentParams.startTime,
       tournamentParams.endTime,
-      tournamentParams.registrationFee,
       tournamentParams.maxTickets,
-      tournamentParams.stakeToken,
     ];
   }
 
@@ -49,7 +45,6 @@ describe("Soccersm Tournaments", async function () {
       name: "elimination-tournament",
       startTime: Math.floor(Date.now() / 1000) + 3600, // now + 1 hr
       endTime: Math.floor(Date.now() / 1000) + 7200, // now + 2 hr
-      registrationFee: 10,
       maxTickets: 100,
       stakeToken: await ballsToken.getAddress(),
     };
@@ -66,9 +61,7 @@ describe("Soccersm Tournaments", async function () {
       name: "elimination-tournament",
       startTime: Math.floor(Date.now() / 1000) + 3600, // now + 1 hr
       endTime: Math.floor(Date.now() / 1000) + 7200, // now + 2 hr
-      registrationFee: 10,
       maxTickets: 100,
-      stakeToken: await ballsToken.getAddress(),
     };
     const emptyNameObj = {
       ...tournamentParams,
@@ -87,17 +80,6 @@ describe("Soccersm Tournaments", async function () {
     await expect(
       tournamentProxy.createTournament(...getTournamentParams(invalidPeriodObj))
     ).to.be.revertedWithCustomError(tournamentProxy, "InvalidPeriod");
-
-    //revert positiveAddress
-    const invalidStakeToken = {
-      ...tournamentParams,
-      stakeToken: ethers.ZeroAddress,
-    };
-    await expect(
-      tournamentProxy.createTournament(
-        ...getTournamentParams(invalidStakeToken)
-      )
-    ).to.be.revertedWithCustomError(tournamentProxy, "ZeroAddress");
 
     //revert nonzero maxTickets
     const zeroTickets = {
@@ -126,9 +108,7 @@ describe("Soccersm Tournaments", async function () {
       name: "elimination-tournament",
       startTime: Math.floor(Date.now() / 1000) + 3600, // now + 1 hr
       endTime: Math.floor(Date.now() / 1000) + 7200, // now + 2 hr
-      registrationFee: 10,
       maxTickets: 100,
-      stakeToken: await ballsToken.getAddress(),
     };
 
     await expect(
@@ -149,9 +129,7 @@ describe("Soccersm Tournaments", async function () {
       name: "elimination-tournament",
       startTime: Math.floor(Date.now() / 1000) + 3600, // now + 1 hr
       endTime: Math.floor(Date.now() / 1000) + 7200, // now + 2 hr
-      registrationFee: 10,
       maxTickets: 100,
-      stakeToken: await ballsToken.getAddress(),
     };
 
     await expect(
@@ -202,9 +180,7 @@ describe("Soccersm Tournaments", async function () {
       name: "elimination-tournament",
       startTime: Math.floor(Date.now() / 1000) + 3600, // now + 1 hr
       endTime: Math.floor(Date.now() / 1000) + 7200, // now + 2 hr
-      registrationFee: 10,
       maxTickets: 100,
-      stakeToken: await ballsToken.getAddress(),
     };
 
     await expect(
@@ -234,9 +210,7 @@ describe("Soccersm Tournaments", async function () {
       name: "elimination-tournament",
       startTime: Math.floor(Date.now() / 1000) + 3600, // now + 1 hr
       endTime: Math.floor(Date.now() / 1000) + 7200, // now + 2 hr
-      registrationFee: 10,
       maxTickets: 100,
-      stakeToken: await ballsToken.getAddress(),
     };
 
     await expect(
@@ -253,8 +227,7 @@ describe("Soccersm Tournaments", async function () {
         tournamentIdHash,
         Math.floor(Date.now() / 1000) + 1200,
         Math.floor(Date.now() / 1000) + 3600,
-        100,
-        1000
+        100
       )
     ).to.emit(tournamentProxy, "TournamentUpdated");
   });
@@ -267,9 +240,7 @@ describe("Soccersm Tournaments", async function () {
       name: "elimination-tournament",
       startTime: Math.floor(Date.now() / 1000) + 3600, // now + 1 hr
       endTime: Math.floor(Date.now() / 1000) + 7200, // now + 2 hr
-      registrationFee: 10,
       maxTickets: 100,
-      stakeToken: await ballsToken.getAddress(),
     };
 
     await expect(
@@ -288,8 +259,7 @@ describe("Soccersm Tournaments", async function () {
         nonExistingId,
         Math.floor(Date.now() / 1000) + 1200,
         Math.floor(Date.now() / 1000) + 3600,
-        100,
-        1000
+        100
       )
     ).to.be.revertedWithCustomError(tournamentProxy, "TournamentDoesNotExist");
 
@@ -299,8 +269,7 @@ describe("Soccersm Tournaments", async function () {
         tournamentIdHash,
         Math.floor(Date.now() / 1000) - 60,
         Math.floor(Date.now() / 1000) + 3600,
-        100,
-        1000
+        100
       )
     ).to.be.revertedWithCustomError(tournamentProxy, "InvalidPeriod");
     //revert notowner or admin
@@ -309,8 +278,7 @@ describe("Soccersm Tournaments", async function () {
         tournamentIdHash,
         Math.floor(Date.now() / 1000) + 1200,
         Math.floor(Date.now() / 1000) + 3600,
-        100,
-        1000
+        100
       )
     ).to.be.revertedWithCustomError(
       tournamentProxy,
@@ -330,9 +298,7 @@ describe("Soccersm Tournaments", async function () {
       "elimination-tournament",
       startTime,
       endTime,
-      100,
-      1000,
-      await ballsToken.getAddress()
+      100
     );
 
     const tournamentIdHash = getStringIdHash("elimination-tournament");
@@ -343,59 +309,11 @@ describe("Soccersm Tournaments", async function () {
     const newEnd = newStart + 3600;
 
     await expect(
-      tournamentProxy.updateTournament(
-        tournamentIdHash,
-        newStart,
-        newEnd,
-        100,
-        1000
-      )
+      tournamentProxy.updateTournament(tournamentIdHash, newStart, newEnd, 100)
     ).to.be.revertedWithCustomError(
       tournamentProxy,
       "TournamentAlreadyStarted"
     );
-  });
-
-  it("Should revert updateTournament - registrationFee if player entered", async function () {
-    const { ballsToken, tournamentProxy, baller, striker, oneGrand } =
-      await loadFixture(deploySoccersm);
-
-    const now = Math.floor(Date.now() / 1000);
-    const startTime = now + 3600;
-    const endTime = startTime + 3600;
-
-    await tournamentProxy.createTournament(
-      "elimination-tournament",
-      startTime,
-      endTime,
-      100,
-      1000,
-      await ballsToken.getAddress()
-    );
-
-    const tournamentIdHash = getStringIdHash("elimination-tournament");
-    const newStart = startTime + 1000;
-    const newEnd = endTime + 1000;
-
-    //baller joins as player
-    await ballsToken
-      .connect(baller)
-      .approve(await tournamentProxy.getAddress(), oneGrand);
-    await expect(
-      (tournamentProxy.connect(baller) as any).joinTournamentAsPlayer(
-        tournamentIdHash
-      )
-    ).to.emit(tournamentProxy, "TournamentPlayerJoined");
-    const newRegistrationFee = 1000;
-    await expect(
-      tournamentProxy.updateTournament(
-        tournamentIdHash,
-        newStart,
-        newEnd,
-        newRegistrationFee,
-        1000
-      )
-    ).to.be.revertedWith("Players already entered");
   });
 
   it("Should joinTournamentAsPlayer", async function () {
@@ -410,9 +328,7 @@ describe("Soccersm Tournaments", async function () {
       "elimination-tournament",
       startTime,
       endTime,
-      100,
-      1000,
-      await ballsToken.getAddress()
+      100
     );
 
     const tournamentIdHash = getStringIdHash("elimination-tournament");
@@ -427,10 +343,7 @@ describe("Soccersm Tournaments", async function () {
       )
     )
       .to.emit(tournamentProxy, "TournamentPlayerJoined")
-      .withArgs(tournamentIdHash, baller.address, true, 100, 1, 1);
-    expect(
-      await ballsToken.balanceOf(await tournamentProxy.getAddress())
-    ).to.equal(100);
+      .withArgs(tournamentIdHash, baller.address, true, 1, 1);
   });
 
   it("Should joinTournamentAsPlayer - reverts", async function () {
@@ -445,9 +358,7 @@ describe("Soccersm Tournaments", async function () {
       "elimination-tournament",
       startTime,
       endTime,
-      100,
-      1,
-      await ballsToken.getAddress()
+      1
     );
 
     const tournamentIdHash = getStringIdHash("elimination-tournament");
@@ -486,7 +397,7 @@ describe("Soccersm Tournaments", async function () {
       )
     )
       .to.emit(tournamentProxy, "TournamentPlayerJoined")
-      .withArgs(tournamentIdHash, baller.address, true, 100, 1, 1);
+      .withArgs(tournamentIdHash, baller.address, true, 1, 1);
 
     await expect(
       (tournamentProxy.connect(baller) as any).joinTournamentAsPlayer(
@@ -495,13 +406,9 @@ describe("Soccersm Tournaments", async function () {
     ).to.be.revertedWithCustomError(tournamentProxy, "AlreadyPlayer");
 
     //revert all tickets sold
-    await ballsToken.approve(await tournamentProxy.getAddress(), oneGrand);
     await expect(
       tournamentProxy.joinTournamentAsPlayer(tournamentIdHash)
     ).to.be.revertedWith("All tickets sold");
-    expect(
-      await ballsToken.balanceOf(await tournamentProxy.getAddress())
-    ).to.equal(100);
   });
 
   it("Should joinTournamentAsSpectator", async function () {
@@ -516,9 +423,7 @@ describe("Soccersm Tournaments", async function () {
       "elimination-tournament",
       startTime,
       endTime,
-      100,
-      1,
-      await ballsToken.getAddress()
+      100
     );
     const tournamentIdHash = getStringIdHash("elimination-tournament");
 
@@ -544,9 +449,7 @@ describe("Soccersm Tournaments", async function () {
       "elimination-tournament",
       startTime,
       endTime,
-      100,
-      1,
-      await ballsToken.getAddress()
+      100
     );
     const tournamentIdHash = getStringIdHash("elimination-tournament");
 
@@ -577,9 +480,7 @@ describe("Soccersm Tournaments", async function () {
       "elimination-tournament",
       startTime,
       endTime,
-      100,
-      2,
-      await ballsToken.getAddress()
+      100
     );
     const tournamentIdHash = getStringIdHash("elimination-tournament");
 
@@ -604,7 +505,7 @@ describe("Soccersm Tournaments", async function () {
 
     await expect(tournamentProxy.removePlayer(tournamentIdHash, baller.address))
       .to.emit(tournamentProxy, "TournamentPlayerRemoved")
-      .withArgs(tournamentIdHash, baller.address, 1, 100, 1,false);
+      .withArgs(tournamentIdHash, baller.address, 1, 1, false);
 
     //revert not player
     await expect(
@@ -623,9 +524,7 @@ describe("Soccersm Tournaments", async function () {
       "elimination-tournament",
       startTime,
       endTime,
-      100,
-      2,
-      await ballsToken.getAddress()
+      2
     );
     const tournamentIdHash = getStringIdHash("elimination-tournament");
 
@@ -679,15 +578,13 @@ describe("Soccersm Tournaments", async function () {
       "elimination-tournament",
       startTime,
       endTime,
-      100,
-      1,
-      await ballsToken.getAddress()
+      100
     );
     const tournamentIdHash = getStringIdHash("elimination-tournament");
 
     await expect(tournamentProxy.addEvent(tournamentIdHash, startTime, endTime))
       .to.emit(tournamentProxy, "NewTournamentEvent")
-      .withArgs(tournamentIdHash, 0, startTime, endTime);
+      .withArgs(tournamentIdHash, 0, startTime, endTime, ethers.ZeroAddress);
   });
 
   it("Should ban tournament", async function () {
@@ -704,9 +601,7 @@ describe("Soccersm Tournaments", async function () {
       "elimination-tournament",
       startTime,
       endTime,
-      100,
-      1,
-      await ballsToken.getAddress()
+      100
     );
     const tournamentIdHash = getStringIdHash("elimination-tournament");
 
@@ -741,9 +636,7 @@ describe("Soccersm Tournaments", async function () {
       "elimination-tournament",
       startTime,
       endTime,
-      100,
-      1,
-      await ballsToken.getAddress()
+      100
     );
     const tournamentIdHash = getStringIdHash("elimination-tournament");
 
@@ -771,7 +664,7 @@ describe("Soccersm Tournaments", async function () {
     );
   });
 
-  it("Should setTournamentWinner", async function () {
+  it("Should setEventWinner", async function () {
     const { ballsToken, tournamentProxy, baller, striker, keeper, oneGrand } =
       await loadFixture(deploySoccersm);
 
@@ -783,9 +676,7 @@ describe("Soccersm Tournaments", async function () {
       "elimination-tournament",
       startTime,
       endTime,
-      100,
-      1000,
-      await ballsToken.getAddress()
+      100
     );
 
     const tournamentIdHash = getStringIdHash("elimination-tournament");
@@ -800,7 +691,7 @@ describe("Soccersm Tournaments", async function () {
       )
     )
       .to.emit(tournamentProxy, "TournamentPlayerJoined")
-      .withArgs(tournamentIdHash, baller.address, true, 100, 1, 1);
+      .withArgs(tournamentIdHash, baller.address, true, 1, 1);
 
     //striker joins
     await ballsToken
@@ -812,24 +703,27 @@ describe("Soccersm Tournaments", async function () {
       )
     )
       .to.emit(tournamentProxy, "TournamentPlayerJoined")
-      .withArgs(tournamentIdHash, striker.address, true, 200, 2, 2);
-    expect(
-      await ballsToken.balanceOf(await tournamentProxy.getAddress())
-    ).to.equal(200);
+      .withArgs(tournamentIdHash, striker.address, true, 2, 2);
 
-    //set tournament winner
+    //createEvent
+    await expect(tournamentProxy.addEvent(tournamentIdHash, startTime, endTime))
+      .to.emit(tournamentProxy, "NewTournamentEvent")
+      .withArgs(tournamentIdHash, 0, startTime, endTime, ethers.ZeroAddress);
+
+    //set event winner
     await expect(
-      tournamentProxy.setTournamentWinner(tournamentIdHash, baller.address)
-    ).to.be.revertedWithCustomError(tournamentProxy, "TournamentStillOngoing");
+      tournamentProxy.setEventWinner(tournamentIdHash, 0, baller.address)
+    ).to.be.revertedWithCustomError(tournamentProxy, "EventStillOngoing");
 
     await time.increaseTo(endTime + 1);
     await expect(
-      tournamentProxy.setTournamentWinner(tournamentIdHash, keeper.address)
+      tournamentProxy.setEventWinner(tournamentIdHash, 0, keeper.address)
     ).to.be.revertedWithCustomError(tournamentProxy, "NotTournamentPlayer");
 
     await expect(
-      (tournamentProxy.connect(keeper) as any).setTournamentWinner(
+      (tournamentProxy.connect(keeper) as any).setEventWinner(
         tournamentIdHash,
+        0,
         keeper.address
       )
     ).to.be.revertedWithCustomError(
@@ -838,97 +732,10 @@ describe("Soccersm Tournaments", async function () {
     );
 
     await expect(
-      tournamentProxy.setTournamentWinner(tournamentIdHash, baller.address)
+      tournamentProxy.setEventWinner(tournamentIdHash,0, baller.address)
     )
-      .to.emit(tournamentProxy, "TournamentWinnerSet")
-      .withArgs(tournamentIdHash, baller.address);
-  });
-
-  it("Should setTournamentWinner and claim prize", async function () {
-    const { ballsToken, tournamentProxy, baller, striker, keeper, oneGrand } =
-      await loadFixture(deploySoccersm);
-
-    const now = Math.floor(Date.now() / 1000);
-    const startTime = now + 3600;
-    const endTime = startTime + 3600;
-
-    await tournamentProxy.createTournament(
-      "elimination-tournament",
-      startTime,
-      endTime,
-      100,
-      1000,
-      await ballsToken.getAddress()
-    );
-
-    const tournamentIdHash = getStringIdHash("elimination-tournament");
-
-    //baller joins as player
-    await ballsToken
-      .connect(baller)
-      .approve(await tournamentProxy.getAddress(), oneGrand);
-    await expect(
-      (tournamentProxy.connect(baller) as any).joinTournamentAsPlayer(
-        tournamentIdHash
-      )
-    )
-      .to.emit(tournamentProxy, "TournamentPlayerJoined")
-      .withArgs(tournamentIdHash, baller.address, true, 100, 1, 1);
-
-    //striker joins
-    await ballsToken
-      .connect(striker)
-      .approve(await tournamentProxy.getAddress(), oneGrand);
-    await expect(
-      (tournamentProxy.connect(striker) as any).joinTournamentAsPlayer(
-        tournamentIdHash
-      )
-    )
-      .to.emit(tournamentProxy, "TournamentPlayerJoined")
-      .withArgs(tournamentIdHash, striker.address, true, 200, 2, 2);
-    expect(
-      await ballsToken.balanceOf(await tournamentProxy.getAddress())
-    ).to.equal(200);
-
-    await time.increaseTo(endTime + 1);
-
-    await expect(
-      tournamentProxy.setTournamentWinner(tournamentIdHash, baller.address)
-    )
-      .to.emit(tournamentProxy, "TournamentWinnerSet")
-      .withArgs(tournamentIdHash, baller.address);
-
-    //claim prize
-    await expect(
-      (tournamentProxy.connect(keeper) as any).claimTournamentPrize(
-        tournamentIdHash
-      )
-    ).to.be.revertedWithCustomError(tournamentProxy, "NotTournamentPlayer");
-
-    await expect(
-      (tournamentProxy.connect(striker) as any).claimTournamentPrize(
-        tournamentIdHash
-      )
-    ).to.be.revertedWithCustomError(tournamentProxy, "NotTournamentWinner");
-    const ballerBalanceBefore = await ballsToken.balanceOf(
-      await baller.getAddress()
-    );
-    console.log("balance before: ", ballerBalanceBefore);
-
-    await expect(
-      (tournamentProxy.connect(baller) as any).claimTournamentPrize(
-        tournamentIdHash
-      )
-    )
-      .to.emit(tournamentProxy, "TournamentPrizeClaimed")
-      .withArgs(tournamentIdHash, baller.address, 200, 0, true);
-    const ballerBalanceAfter = await ballsToken.balanceOf(
-      await baller.getAddress()
-    );
-    console.log("balance After: ", ballerBalanceAfter);
-    expect(await ballsToken.balanceOf(baller.address)).to.equal(
-      ballerBalanceBefore + 200n
-    );
+      .to.emit(tournamentProxy, "EventWinnerSet")
+      .withArgs(tournamentIdHash,0, baller.address);
   });
 
   it("Should create tournament and stake and withdraw tournament challenge", async function () {
@@ -943,7 +750,6 @@ describe("Soccersm Tournaments", async function () {
       poolHandlerProxy,
       poolViewProxy,
       oneMil,
-      communityProxy,
     } = await loadFixture(deploySoccersm);
     //create tournament
     const now = Math.floor(Date.now() / 1000);
@@ -954,9 +760,7 @@ describe("Soccersm Tournaments", async function () {
       "elimination-tournament",
       startTime,
       endTime,
-      100,
-      2,
-      await ballsToken.getAddress()
+      100
     );
     const tournamentIdHash = getStringIdHash("elimination-tournament");
 
@@ -981,7 +785,7 @@ describe("Soccersm Tournaments", async function () {
     //create event
     await expect(tournamentProxy.addEvent(tournamentIdHash, startTime, endTime))
       .to.emit(tournamentProxy, "NewTournamentEvent")
-      .withArgs(tournamentIdHash, 0, startTime, endTime);
+      .withArgs(tournamentIdHash, 0, startTime, endTime, ethers.ZeroAddress);
 
     //create challenges for the events
     const tournament: TournamentEvent = {
@@ -1055,17 +859,18 @@ describe("Soccersm Tournaments", async function () {
 
     //revert non-admin evaluate
     await expect(
-      (communityProxy.connect(striker) as any).evaluateCustomChallenge(
+      (tournamentProxy.connect(striker) as any).evaluateTournamentChallenge(
         0,
         prediction
       )
     ).to.be.revertedWithCustomError(
-      communityProxy,
+      tournamentProxy,
       "NotTournamentOwnerOrAdmin"
     );
 
-    await expect(communityProxy.evaluateCustomChallenge(0, prediction))
-      .to.emit(communityProxy, "EvaluateChallenge")
+    //evaluate tournament challenge
+    await expect(tournamentProxy.evaluateTournamentChallenge(0, prediction))
+      .to.emit(tournamentProxy, "EvaluateChallenge")
       .withArgs(0, owner.address, ChallengeState.evaluated, prediction);
 
     await time.increase(60 * 60);

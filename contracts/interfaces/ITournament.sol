@@ -13,19 +13,15 @@ abstract contract ITournament {
         uint256 id;
         uint256 startTime;
         uint256 endTime;
+        address winner;
     }
     struct Tournament {
         bytes32 id;
         address creator;
-        address stakeToken;
         uint256 startTime;
         uint256 endTime;
-        uint256 registrationFee;
         uint256 maxTickets;
         uint256 soldTickets;
-        uint256 prizePool;
-        address winner;
-        bool prizeClaimed;
         uint256 players;
         uint256 spectators;
         uint256 nextEventId;
@@ -35,15 +31,10 @@ abstract contract ITournament {
     event NewTournament(
         bytes32 id,
         address creator,
-        address stakeToken,
         uint256 startTime,
         uint256 endTime,
-        uint256 registrationFee,
         uint256 maxTickets,
         uint256 soldTickets,
-        uint256 prizePool,
-        address winner,
-        bool prizeClaimed,
         uint256 players,
         uint256 spectators,
         uint256 nextEventId,
@@ -55,18 +46,18 @@ abstract contract ITournament {
         bytes32 id,
         uint256 startTime,
         uint256 endTime,
-        uint256 registrationFee,
         uint256 maxTickets
     );
 
     event NewTournamentEvent(
-        bytes32 tournamentId,
+        bytes32 id,
         uint256 eventId,
         uint256 startTime,
-        uint256 endTime
+        uint256 endTime,
+        address winner
     );
     event TournamentEventUpdated(
-        bytes32 tournamentId,
+        bytes32 id,
         uint256 eventId,
         uint256 startTime,
         uint256 endTime
@@ -78,48 +69,37 @@ abstract contract ITournament {
         bytes32 id,
         address player,
         bool isPlayer,
-        uint256 prizePool,
         uint256 soldTickets,
         uint256 players
     );
     event TournamentSpectatorJoined(
-        bytes32 touramentId,
+        bytes32 id,
         address spectator,
         uint256 spectators
     );
 
     event TournamentPlayerRemoved(
-        bytes32 tournamentId,
+        bytes32 id,
         address player,
         uint256 players,
-        uint256 prizePool,
         uint256 soldTickets,
         bool isPlayer
     );
     event TournamentPlayerLeft(
-        bytes32 tournamentId,
+        bytes32 id,
         address player,
         uint256 players,
-        uint256 prizePool,
         uint256 soldTickets,
         bool isPlayer
     );
     event TournamentSpectatorLeft(
-        bytes32 tournamentId,
+        bytes32 id,
         address spectator,
         uint256 spectators,
         bool isSpectator
     );
 
-    event TournamentWinnerSet(bytes32 tournamentId, address winner);
-    event TournamentPrizeClaimed(
-        bytes32 tournamentId,
-        address winner,
-        uint256 amount, 
-        uint256 prizePool,
-        bool claimed
-    );
-
+    event EventWinnerSet(bytes32 tournamentId, uint256 eventId, address winner);
 
     error InvalidPeriod();
     error TournamentAlreadyExists();
@@ -137,6 +117,7 @@ abstract contract ITournament {
     error InvalidEventPeriod();
     error TournamentEventNotFound();
     error TournamentStillOngoing();
+    error EventStillOngoing();
     error NotTournamentWinner();
     error TournamentChallengeRequiresId();
     error TournamentNotStarted();
@@ -147,17 +128,14 @@ abstract contract ITournament {
      * @param _name Name of the tournament.
      * @param _startTime Timestamp when the tournament starts.
      * @param _endTime Timestamp when the tournament ends.
-     * @param _registrationFee Fee required to register for the tournament.
      * @param _maxTickets Maximum number of tickets/participants allowed.
-     * @param _stakeToken The token to be used for challenges in the tournament
+     *
      */
     function createTournament(
         string calldata _name,
         uint256 _startTime,
         uint256 _endTime,
-        uint256 _registrationFee,
-        uint256 _maxTickets,
-        address _stakeToken
+        uint256 _maxTickets
     ) external virtual;
 
     /**
@@ -182,14 +160,12 @@ abstract contract ITournament {
      * @param _id The ID of the tournament.
      * @param _startTime New start time.
      * @param _endTime New end time.
-     * @param _registrationFee New registration fee.
      * @param _maxTickets New max tickets.
      */
     function updateTournament(
         bytes32 _id,
         uint256 _startTime,
         uint256 _endTime,
-        uint256 _registrationFee,
         uint256 _maxTickets
     ) external virtual;
 
@@ -257,15 +233,24 @@ abstract contract ITournament {
     function unBanTournament(bytes32 _id) external virtual;
 
     /**
-     * @notice admin sets tournament winner at the end of tournament
-     * @param _id ID of the completed tournament
-     * @param _winner The address of the winner of the tournament
+     * @notice admin sets event winner at the end of event
+     * @param _id ID of the completed event
+     * @param _winner The address of the winner of the event
      */
-    function setTournamentWinner(bytes32 _id, address _winner) external virtual;
+    function setEventWinner(
+        bytes32 _id,
+        uint256 _eventId,
+        address _winner
+    ) external virtual;
 
     /**
-     * @notice Tournament winner claim's prize
-     * @param _id ID of the tournament winner can claim prize
+     * @notice evaluate tournament challenge
+     * @param _challengeId ID of the challenge to evaluate
+     * @param _results Results the admin can provide
      */
-    function claimTournamentPrize(bytes32 _id) external virtual;
+
+    function evaluateTournamentChallenge(
+        uint256 _challengeId,
+        bytes memory _results
+    ) external virtual;
 }

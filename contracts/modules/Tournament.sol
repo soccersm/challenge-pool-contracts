@@ -7,11 +7,15 @@ import "../libraries/LibData.sol";
 import "contracts/libraries/LibTransfer.sol";
 import "contracts/diamond/interfaces/SoccersmRoles.sol";
 import "@solidstate/contracts/security/reentrancy_guard/ReentrancyGuard.sol";
+import "../utils/ChallengePoolHelpers.sol";
+import "../interfaces/IChallengePoolCommon.sol";
 
 contract Tournament is
     ITournament,
     TournamentHelpers,
     Helpers,
+    ChallengePoolHelpers,
+    IChallengePoolCommon,
     SoccersmRoles,
     ReentrancyGuard
 {
@@ -19,16 +23,13 @@ contract Tournament is
         string calldata _name,
         uint256 _startTime,
         uint256 _endTime,
-        uint256 _registrationFee,
-        uint256 _maxTickets,
-        address _stakeToken
+        uint256 _maxTickets
     )
         external
         virtual
         override
         nonEmptyString(_name)
         validPeriod(_startTime, _endTime)
-        positiveAddress(_stakeToken)
         nonZero(_maxTickets)
     {
         TournamentStore storage ts = TournamentStorage.load();
@@ -40,15 +41,10 @@ contract Tournament is
         ts.tournaments[tournamentId] = ITournament.Tournament({
             id: tournamentId,
             creator: msg.sender,
-            stakeToken: _stakeToken,
             startTime: _startTime,
             endTime: _endTime,
-            registrationFee: _registrationFee,
             maxTickets: _maxTickets,
             soldTickets: 0,
-            prizePool: 0,
-            winner: address(0),
-            prizeClaimed: false,
             players: 0,
             spectators: 0,
             nextEventId: 0,
@@ -57,15 +53,10 @@ contract Tournament is
         emit NewTournament(
             tournamentId,
             msg.sender,
-            _stakeToken,
             _startTime,
             _endTime,
-            _registrationFee,
             _maxTickets,
             0,
-            0,
-            address(0),
-            false,
             0,
             0,
             0,
@@ -115,7 +106,6 @@ contract Tournament is
         bytes32 _id,
         uint256 _startTime,
         uint256 _endTime,
-        uint256 _registrationFee,
         uint256 _maxTickets
     )
         external
@@ -126,27 +116,15 @@ contract Tournament is
         tournamentNotBanned(_id)
         tournamentOwnerOrAdmin(_id)
         pendingTournament(_id)
+        nonZero(_maxTickets)
     {
         TournamentStore storage ts = TournamentStorage.load();
         ITournament.Tournament storage t = ts.tournaments[_id];
-        if (t.prizePool != 0) {
-            require(
-                _registrationFee == t.registrationFee,
-                "Players already entered"
-            );
-        }
         t.startTime = _startTime;
         t.endTime = _endTime;
-        t.registrationFee = _registrationFee;
         t.maxTickets = _maxTickets;
 
-        emit TournamentUpdated(
-            _id,
-            _startTime,
-            _endTime,
-            _registrationFee,
-            _maxTickets
-        );
+        emit TournamentUpdated(_id, _startTime, _endTime, _maxTickets);
     }
 
     function joinTournamentAsPlayer(
@@ -167,16 +145,11 @@ contract Tournament is
         require(t.soldTickets < t.maxTickets, "All tickets sold");
         t.soldTickets += 1;
         t.players += 1;
-        if (t.registrationFee > 0) {
-            t.prizePool += t.registrationFee;
-            LibTransfer._receive(t.stakeToken, t.registrationFee, msg.sender);
-        }
         ts.isPlayer[_id][msg.sender] = true;
         emit TournamentPlayerJoined(
             _id,
             msg.sender,
             true,
-            t.prizePool,
             t.soldTickets,
             t.players
         );
@@ -223,15 +196,10 @@ contract Tournament is
         t.players -= 1;
         t.soldTickets -= 1;
         delete ts.isPlayer[_id][_player];
-        if (t.registrationFee > 0) {
-            t.prizePool -= t.registrationFee;
-            LibTransfer._send(t.stakeToken, t.registrationFee, _player);
-        }
         emit TournamentPlayerRemoved(
             _id,
             _player,
             t.players,
-            t.prizePool,
             t.soldTickets,
             false
         );
@@ -258,15 +226,10 @@ contract Tournament is
             t.soldTickets -= 1;
             t.players -= 1;
             delete ts.isPlayer[_id][msg.sender];
-            if (t.registrationFee > 0) {
-                t.prizePool -= t.registrationFee;
-                LibTransfer._send(t.stakeToken, t.registrationFee, msg.sender);
-            }
             emit TournamentPlayerLeft(
                 _id,
                 msg.sender,
                 t.players,
-                t.prizePool,
                 t.soldTickets,
                 false
             );
@@ -299,12 +262,13 @@ contract Tournament is
         ts.tournamentEvents[_id][eventId] = ITournament.TournamentEvent({
             id: eventId,
             startTime: _startTime,
-            endTime: _endTime
+            endTime: _endTime,
+            winner: address(0)
         });
-
+        address winner = ts.tournamentEvents[_id][eventId].winner;
         t.nextEventId++;
 
-        emit NewTournamentEvent(_id, eventId, _startTime, _endTime);
+        emit NewTournamentEvent(_id, eventId, _startTime, _endTime, winner);
     }
 
     function updateEvent(
@@ -363,8 +327,9 @@ contract Tournament is
         emit TournamentUnbanned(_id, msg.sender, false);
     }
 
-    function setTournamentWinner(
+    function setEventWinner(
         bytes32 _id,
+        uint256 _eventId,
         address _winner
     )
         external
@@ -376,46 +341,50 @@ contract Tournament is
         positiveAddress(_winner)
     {
         TournamentStore storage ts = TournamentStorage.load();
-        ITournament.Tournament storage t = ts.tournaments[_id];
-        if (block.timestamp < t.endTime) {
-            revert TournamentStillOngoing();
+        ITournament.TournamentEvent storage events = ts.tournamentEvents[_id][
+            _eventId
+        ];
+        if (block.timestamp < events.endTime) {
+            revert EventStillOngoing();
         }
         if (!ts.isPlayer[_id][_winner]) {
             revert NotTournamentPlayer();
         }
-        t.winner = _winner;
-        emit TournamentWinnerSet(_id, _winner);
+        events.winner = _winner;
+        emit EventWinnerSet(_id, _eventId, _winner);
     }
 
-    function claimTournamentPrize(
-        bytes32 _id
-    )
-        external
-        virtual
-        override
-        tournamentExists(_id)
-        tournamentNotBanned(_id)
-        nonReentrant
-    {
+    function evaluateTournamentChallenge(
+        uint256 _challengeId,
+        bytes memory _results
+    ) external override poolInState(_challengeId, ChallengeState.matured) {
+        CPStore storage s = CPStorage.load();
+        IChallengePool.Challenge storage challenge = s.challenges[_challengeId];
+        bytes32 tournamentId = challenge.communityId;
         TournamentStore storage ts = TournamentStorage.load();
-        ITournament.Tournament storage t = ts.tournaments[_id];
+        ITournament.Tournament storage t = ts.tournaments[tournamentId];
+        if (t.creator == address(0)) {
+            revert TournamentDoesNotExist();
+        }
         if (block.timestamp < t.endTime) {
             revert TournamentStillOngoing();
         }
-        if (!ts.isPlayer[_id][msg.sender]) {
-            revert NotTournamentPlayer();
+        if (t.banned) {
+            revert TournamentIsBanned();
         }
-        if (t.winner != msg.sender) {
-            revert NotTournamentWinner();
+        bool admin = ts.isAdmin[tournamentId][msg.sender];
+        bool owner = t.creator == msg.sender;
+        if (!owner && !admin) {
+            revert NotTournamentOwnerOrAdmin();
         }
-        t.prizeClaimed = true;
-        uint256 amount;
-        if (t.prizePool > 0) {
-            amount = t.prizePool;
-            t.prizePool = 0;
-            LibTransfer._send(t.stakeToken, amount, msg.sender);
-        }
-
-        emit TournamentPrizeClaimed(_id, msg.sender, amount, t.prizePool, true);
+        challenge.outcome = _results;
+        challenge.lastOutcomeSet = block.timestamp;
+        challenge.state = ChallengeState.evaluated;
+        emit IChallengePoolHandler.EvaluateChallenge(
+            _challengeId,
+            msg.sender,
+            ChallengeState.evaluated,
+            _results
+        );
     }
 }
