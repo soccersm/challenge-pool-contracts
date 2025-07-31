@@ -604,7 +604,7 @@ describe("Soccersm Tournaments", async function () {
 
     await expect(tournamentProxy.removePlayer(tournamentIdHash, baller.address))
       .to.emit(tournamentProxy, "TournamentPlayerRemoved")
-      .withArgs(tournamentIdHash, baller.address, 1, false);
+      .withArgs(tournamentIdHash, baller.address, 1, 100, 1,false);
 
     //revert not player
     await expect(
@@ -921,7 +921,7 @@ describe("Soccersm Tournaments", async function () {
       )
     )
       .to.emit(tournamentProxy, "TournamentPrizeClaimed")
-      .withArgs(tournamentIdHash, baller.address, 200, true);
+      .withArgs(tournamentIdHash, baller.address, 200, 0, true);
     const ballerBalanceAfter = await ballsToken.balanceOf(
       await baller.getAddress()
     );
