@@ -81,5 +81,11 @@
   "ChallengePoolHandler_CommunityChallengeEventUpdateModule#ChallengePoolHandler": "0xc2ce6bF717399f6790f7B9F6895541E6d1954055",
   "ChallengePoolHandler_CommunityChallengeEventUpdateModule2#DiamondCutFacet": "0x56d3719CcB48124d7CeE71F70B3e0bAa860E7FB6",
   "ChallengePoolHandler_CommunityChallengeEventUpdateModule2#SoccersmChallengePoolHandler": "0x56d3719CcB48124d7CeE71F70B3e0bAa860E7FB6",
-  "ChallengePoolHandler_CommunityChallengeEventUpdateModule2#ChallengePoolHandler": "0x8C2B39Cae990fFc7d189e55700Ef33e46f78a7a2"
+  "ChallengePoolHandler_CommunityChallengeEventUpdateModule2#ChallengePoolHandler": "0x8C2B39Cae990fFc7d189e55700Ef33e46f78a7a2",
+  "Challenge_TournamentModule#DiamondCutFacet": "0x56d3719CcB48124d7CeE71F70B3e0bAa860E7FB6",
+  "Challenge_TournamentModule#SoccersmChallengePoolHandler": "0x56d3719CcB48124d7CeE71F70B3e0bAa860E7FB6",
+  "Challenge_TournamentModule#Tournament": "0x2cF13761e38b73e9820d47974F30dD8a0D60c55d",
+  "ChallengePoolHandler_TournamentChallengeEventUpdateModule#DiamondCutFacet": "0x56d3719CcB48124d7CeE71F70B3e0bAa860E7FB6",
+  "ChallengePoolHandler_TournamentChallengeEventUpdateModule#SoccersmChallengePoolHandler": "0x56d3719CcB48124d7CeE71F70B3e0bAa860E7FB6",
+  "ChallengePoolHandler_TournamentChallengeEventUpdateModule#ChallengePoolHandler": "0x151Ab596D8652052C7ADFE46B3a01a51a4412590"
 }
