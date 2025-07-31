@@ -91,6 +91,7 @@ abstract contract ITournament {
     event TournamentPlayerRemoved(
         bytes32 tournamentId,
         address player,
+        uint256 players,
         bool isPlayer
     );
     event TournamentPlayerLeft(

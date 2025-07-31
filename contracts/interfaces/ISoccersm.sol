@@ -7,6 +7,7 @@ import "./IDataProvider.sol";
 import "./IPoolResolver.sol";
 import "./ICommunity.sol";
 import "./ICommunityView.sol";
+import "./ITournament.sol";
 
 abstract contract ISoccersm is
     IChallengePool,
@@ -14,5 +15,6 @@ abstract contract ISoccersm is
     IDataProvider,
     IPoolResolver,
     ICommunity,
-    ICommunityView
+    ICommunityView,
+    ITournament
 {}
