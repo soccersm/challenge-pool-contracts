@@ -8,8 +8,13 @@ import "contracts/libraries/LibTransfer.sol";
 import "contracts/diamond/interfaces/SoccersmRoles.sol";
 import "@solidstate/contracts/security/reentrancy_guard/ReentrancyGuard.sol";
 
-
-contract Tournament is ITournament, TournamentHelpers, Helpers, SoccersmRoles, ReentrancyGuard {
+contract Tournament is
+    ITournament,
+    TournamentHelpers,
+    Helpers,
+    SoccersmRoles,
+    ReentrancyGuard
+{
     function createTournament(
         string calldata _name,
         uint256 _startTime,
@@ -216,12 +221,20 @@ contract Tournament is ITournament, TournamentHelpers, Helpers, SoccersmRoles, R
             revert NotTournamentPlayer();
         }
         t.players -= 1;
+        t.soldTickets -= 1;
         delete ts.isPlayer[_id][_player];
         if (t.registrationFee > 0) {
             t.prizePool -= t.registrationFee;
             LibTransfer._send(t.stakeToken, t.registrationFee, _player);
         }
-        emit TournamentPlayerRemoved(_id, _player, t.players, false);
+        emit TournamentPlayerRemoved(
+            _id,
+            _player,
+            t.players,
+            t.prizePool,
+            t.soldTickets,
+            false
+        );
     }
 
     function leaveTournament(
@@ -249,7 +262,14 @@ contract Tournament is ITournament, TournamentHelpers, Helpers, SoccersmRoles, R
                 t.prizePool -= t.registrationFee;
                 LibTransfer._send(t.stakeToken, t.registrationFee, msg.sender);
             }
-            emit TournamentPlayerLeft(_id, msg.sender, t.players, false);
+            emit TournamentPlayerLeft(
+                _id,
+                msg.sender,
+                t.players,
+                t.prizePool,
+                t.soldTickets,
+                false
+            );
         } else {
             t.spectators -= 1;
             delete ts.isSpectator[_id][msg.sender];
@@ -369,7 +389,14 @@ contract Tournament is ITournament, TournamentHelpers, Helpers, SoccersmRoles, R
 
     function claimTournamentPrize(
         bytes32 _id
-    ) external virtual override tournamentExists(_id) tournamentNotBanned(_id) nonReentrant {
+    )
+        external
+        virtual
+        override
+        tournamentExists(_id)
+        tournamentNotBanned(_id)
+        nonReentrant
+    {
         TournamentStore storage ts = TournamentStorage.load();
         ITournament.Tournament storage t = ts.tournaments[_id];
         if (block.timestamp < t.endTime) {
@@ -389,6 +416,6 @@ contract Tournament is ITournament, TournamentHelpers, Helpers, SoccersmRoles, R
             LibTransfer._send(t.stakeToken, amount, msg.sender);
         }
 
-        emit TournamentPrizeClaimed(_id, msg.sender, amount, true);
+        emit TournamentPrizeClaimed(_id, msg.sender, amount, t.prizePool, true);
     }
 }
