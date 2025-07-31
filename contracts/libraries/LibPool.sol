@@ -10,6 +10,7 @@ import "./LibTransfer.sol";
 import "./LibPrice.sol";
 import "../utils/Helpers.sol";
 import "../interfaces/ICommunity.sol";
+import "contracts/interfaces/ITournament.sol";
 
 library LibPool {
     function _initPool(

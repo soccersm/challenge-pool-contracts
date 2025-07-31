@@ -15,6 +15,7 @@ import {
   MultiFootBallTotalScoreRangeEvent,
   StatementEvent,
   TopicId,
+  TournamentEvent,
 } from "./lib";
 import { ethers } from "hardhat";
 
@@ -748,6 +749,62 @@ export function customChallenge(
     statementId: statement.statementId,
     maturity,
     topicId: TopicId.Statement,
+    options: opts,
+  };
+}
+
+export function tournamentChallenge(
+  stakeToken: string,
+  quantity: number,
+  basePrice: BigInt,
+  paymaster: string,
+  communityId: string, //tournamentId
+  challengeType: ChallengeType,
+  tournament: TournamentEvent,
+  opts: EventOption[]
+): {
+  challenge: CreateChallenge;
+  eventId: number;
+  eventName: string;
+  maturity: number;
+  eventDescription: string;
+  topicId: TopicId.Tournament;
+  options: EventOption[];
+} {
+  //const maturity = Math.floor(Date.now() / 1000) + 60 * 60 * 24;
+
+  // const tournament: TournamentEvent = {
+  //   maturity,
+  //   topicId: TopicId.Tournament,
+  //   eventName: "Who wins MK11?",
+  //   eventDescription: "MK11 Champions",
+  //   eventId: 1,
+  // };
+  // //player1, player2
+  // const opts: EventOption[] = [
+  //   "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+  //   "0x70997970C51812dc3A010C7d01b50e0d17dc79C8",
+  // ];
+
+  const tournamentStatementEvent: CreateChallenge = {
+    events: [tournament],
+    options: opts,
+    stakeToken,
+    prediction: opts[0],
+    quantity,
+    basePrice,
+    paymaster,
+    communityId,
+    challengeType,
+  };
+
+  return {
+    challenge: tournamentStatementEvent,
+    eventId: tournament.eventId,
+    eventName: tournament.eventName,
+    eventDescription: tournament.eventDescription,
+    maturity: tournament.maturity,
+    topicId: TopicId.Tournament,
     options: opts,
   };
 }

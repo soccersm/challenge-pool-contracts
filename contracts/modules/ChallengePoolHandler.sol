@@ -11,6 +11,7 @@ import "../interfaces/IChallengePoolHandler.sol";
 import "../libraries/LibPrice.sol";
 import "../libraries/LibTransfer.sol";
 import "../libraries/LibPool.sol";
+import "../libraries/LibTournament.sol";
 
 import "../utils/Helpers.sol";
 import "../utils/Errors.sol";
@@ -20,6 +21,7 @@ import "./TopicRegistry.sol";
 import "../diamond/interfaces/SoccersmRoles.sol";
 import "../utils/ChallengePoolHelpers.sol";
 import "../interfaces/ICommunity.sol";
+import "../interfaces/ITournament.sol";
 
 contract ChallengePoolHandler is
     IChallengePoolHandler,
@@ -52,11 +54,10 @@ contract ChallengePoolHandler is
     {
         CPStore storage s = CPStorage.load();
 
-        if (_communityId == bytes32(0)) {
-            if (_cType != ChallengeType.standard) {
+        if (_cType == ChallengeType.community) {
+            if (_communityId == bytes32(0)) {
                 revert ICommunity.CommunityChallengeRequiresCommunity();
             }
-        } else {
             CommunityStore storage cs = CommunityStorage.load();
             ICommunity.Community storage community = cs.communities[
                 _communityId
@@ -106,6 +107,18 @@ contract ChallengePoolHandler is
             if (_cType == ChallengeType.standard) {
                 LibPool._validateOptions(t, _events[0], poolOptions);
             }
+
+            if (_cType == ChallengeType.tournament) {
+                TournamentStore storage ts = TournamentStorage.load();
+                if (_communityId == bytes32(0)) {
+                    revert ITournament.TournamentChallengeRequiresId();
+                }
+                LibTournament._validateTournamentOptions(
+                    ts,
+                    _communityId,
+                    poolOptions
+                );
+            }
         }
 
         bool predictionExists = false;
@@ -144,6 +157,17 @@ contract ChallengePoolHandler is
                 }
 
                 LibPool._validateEvent(t, _events[i]);
+            }
+            if (_cType == ChallengeType.tournament) {
+                TournamentStore storage ts = TournamentStorage.load();
+                bool eventExists = LibTournament._validateTournamentEvent(
+                    ts,
+                    _communityId,
+                    _events[i]
+                );
+                if (!eventExists) {
+                    revert ITournament.TournamentEventNotFound();
+                }
             }
         }
         uint256 totalAmount = _basePrice * _quantity;

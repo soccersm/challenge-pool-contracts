@@ -289,7 +289,7 @@ contract Community is
         );
     }
 
-    function evaluateCustomChallenge(
+     function evaluateCustomChallenge(
         uint256 _challengeId,
         bytes memory _results
     ) external override poolInState(_challengeId, ChallengeState.matured) {

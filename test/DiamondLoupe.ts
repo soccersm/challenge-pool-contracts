@@ -39,7 +39,7 @@ describe("Diamond, DiamondLoupe", async function () {
     facetAddresses.forEach((address, index) => {
       console.log(`${index + 1}. ${address}`);
     });
-    assert.equal(facetAddresses.length, 12);
+    assert.equal(facetAddresses.length, 13);
   });
 
   it("Should have right function selectors", async function () {
@@ -103,13 +103,13 @@ describe("Diamond, DiamondLoupe", async function () {
       await diamondLoupeFacet.facetAddress("0xa6a21a5d")
     );
 
-    //ownership - [10] - 0x8da5cb5b
-    expect(facetAddresses[10]).to.equal(
+    //ownership - [11] - 0x8da5cb5b
+    expect(facetAddresses[11]).to.equal(
       await diamondLoupeFacet.facetAddress("0x8da5cb5b")
     );
 
-    //DiamondLoupe - [11] - 0xcdffacc6, 0x52ef6b2c
-    expect(facetAddresses[11]).to.equal(
+    //DiamondLoupe - [12] - 0xcdffacc6, 0x52ef6b2c
+    expect(facetAddresses[12]).to.equal(
       await diamondLoupeFacet.facetAddress("0x52ef6b2c")
     );
 

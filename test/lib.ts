@@ -1,4 +1,5 @@
 import { ethers } from "hardhat";
+import { Tournament } from "../typechain-types";
 
 export enum TopicId {
   AssetPriceBounded = "AssetPriceBounded",
@@ -12,6 +13,7 @@ export enum TopicId {
   MultiFootBallTotalExact = "MultiFootBallTotalExact",
   MultiFootBallTotalScoreRange = "MultiFootBallTotalScoreRange",
   Statement = "Statement",
+  Tournament = "Tournament",
 }
 
 export type BaseEvent = {
@@ -49,6 +51,12 @@ export type StatementEvent = BaseEvent & {
   statement: string;
 };
 
+export type TournamentEvent = BaseEvent & {
+  topicId: TopicId.Tournament;
+  eventName: string;
+  eventDescription: string;
+  eventId: number;
+};
 
 export type MultiAssetRangeEvent = BaseEvent & {
   assetSymbol: string;
@@ -75,7 +83,8 @@ export type EventParam =
   | MultiFootBallTotalScoreRangeEvent
   | MultiFootBallTotalExactEvent
   | MultiFootBallOutcomeEvent
-  | MultiFootBallCorrectScoreEvent;
+  | MultiFootBallCorrectScoreEvent
+  | TournamentEvent;
 
 export type StringOption = string;
 export type IntOption = number;
@@ -156,9 +165,14 @@ export function prepareCreateChallenge(
     events.push(encodeEventByTopic(e));
   }
   if (isMulti) {
-    const topicId = create.events[0].topicId;
-    prediction = encodeMultiOptionByTopic(topicId, create.prediction);
-    options = create.options.map((o) => encodeMultiOptionByTopic(topicId, o));
+    if (create.challengeType == ChallengeType.tournament) {
+      prediction = encodeTournamentOption(create.prediction);
+      options = create.options.map((o) => encodeTournamentOption(o));
+    } else {
+      const topicId = create.events[0].topicId;
+      prediction = encodeMultiOptionByTopic(topicId, create.prediction);
+      options = create.options.map((o) => encodeMultiOptionByTopic(topicId, o));
+    }
   } else if (
     create.events.length === 1 &&
     create.events[0].topicId === TopicId.AssetPriceTarget
@@ -218,11 +232,14 @@ export function encodeMultiOptionByTopic(
     case TopicId.AssetPriceTarget:
     case TopicId.FootBallCorrectScore:
     case TopicId.FootBallOutcome:
-    // return coder.encode(["string"], [option as StringOption]);
     case TopicId.FootballOverUnder:
     default:
       throw new Error("Invalid Event Topic, must be a multi event");
   }
+}
+
+function encodeTournamentOption(option: EventOption) {
+  return coder.encode(["address"], [option]);
 }
 
 export function encodeEventByTopic(e: EventParam): ParamEncodedEventChallenge {
@@ -259,8 +276,10 @@ export function encodeEventByTopic(e: EventParam): ParamEncodedEventChallenge {
       );
     case TopicId.MultiAssetRange:
       return prepareMultiAssetRangeEventParam(e as MultiAssetRangeEvent);
+    case TopicId.Tournament:
+      return prepareTournamentEvent(e as TournamentEvent);
     default:
-      throw new Error("Invalid Event Topic", e.topicId);
+      throw new Error("Invalid Event Topic");
   }
 }
 
@@ -504,6 +523,20 @@ export function prepareFootballOverUnderProvision(
   return ["FootballOverUnder", params];
 }
 
-export function getCommunityIdHash(communityId: string): string {
-  return ethers.keccak256(ethers.toUtf8Bytes(communityId));
+export function prepareTournamentEvent(
+  ev: TournamentEvent
+): ParamEncodedEventChallenge {
+  const params = coder.encode(
+    ["uint256", "string", "string"],
+    [ev.eventId, ev.eventName, ev.eventDescription]
+  );
+  return {
+    params,
+    topicId: ev.topicId,
+    maturity: BigInt(ev.maturity),
+  };
+}
+
+export function getStringIdHash(stringId: string): string {
+  return ethers.keccak256(ethers.toUtf8Bytes(stringId));
 }

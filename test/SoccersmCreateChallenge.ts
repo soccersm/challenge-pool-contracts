@@ -1,7 +1,4 @@
-import {
-  time,
-  loadFixture,
-} from "@nomicfoundation/hardhat-toolbox/network-helpers";
+import { loadFixture } from "@nomicfoundation/hardhat-toolbox/network-helpers";
 
 import { expect } from "chai";
 import { ethers } from "hardhat";
@@ -16,20 +13,20 @@ import {
   multiOutcome,
   multiTotalExact,
   soccersmEvent,
+  tournamentChallenge,
 } from "./mock";
 import {
   ChallengeType,
   coder,
   encodeMultiOptionByTopic,
-  getCommunityIdHash,
+  getStringIdHash,
   prepareCreateChallenge,
+  prepareTournamentEvent,
+  TopicId,
+  TournamentEvent,
   yesNo,
 } from "./lib";
-import {
-  getChallenge,
-  getChallengeState,
-  getPlayerOptionSupply,
-} from "./test_helpers";
+import { getChallengeState, getPlayerOptionSupply } from "./test_helpers";
 import { anyValue } from "@nomicfoundation/hardhat-chai-matchers/withArgs";
 
 describe("ChallengePool - Create Challenge", function () {
@@ -238,7 +235,6 @@ describe("ChallengePool - Create Challenge", function () {
     );
 
     const preparedMultiStementChallenge = prepareCreateChallenge(gh.challenge);
-    console.log("Prepared statement: =========", preparedMultiStementChallenge);
     await ballsToken
       .connect(baller)
       .approve(
@@ -521,20 +517,16 @@ describe("ChallengePool - Create Challenge", function () {
       baller,
       ballsToken,
       poolHandlerProxy,
-      registryProxy,
       poolViewProxy,
-      poolManagerProxy,
       communityProxy,
       communityViewProxy,
       keeper,
-      paymaster,
       owner,
-      oneMil,
     } = await loadFixture(deploySoccersm);
 
     //create new community
     const COMMUNITY_ID = "Community1";
-    const COMMUNITY_ID_HASH = getCommunityIdHash(COMMUNITY_ID);
+    const COMMUNITY_ID_HASH = getStringIdHash(COMMUNITY_ID);
     await expect(communityProxy.createCommunity(COMMUNITY_ID))
       .to.emit(communityProxy, "NewCommunity")
       .withArgs(
@@ -609,18 +601,15 @@ describe("ChallengePool - Create Challenge", function () {
       poolHandlerProxy,
       registryProxy,
       poolViewProxy,
-      poolManagerProxy,
       communityProxy,
       communityViewProxy,
       keeper,
-      paymaster,
       owner,
-      oneMil,
     } = await loadFixture(deploySoccersm);
 
     //create new community
     const COMMUNITY_ID = "Community1";
-    const COMMUNITY_ID_HASH = getCommunityIdHash(COMMUNITY_ID);
+    const COMMUNITY_ID_HASH = getStringIdHash(COMMUNITY_ID);
     await expect(communityProxy.createCommunity(COMMUNITY_ID))
       .to.emit(communityProxy, "NewCommunity")
       .withArgs(
