@@ -92,12 +92,16 @@ abstract contract ITournament {
         bytes32 tournamentId,
         address player,
         uint256 players,
+        uint256 prizePool,
+        uint256 soldTickets,
         bool isPlayer
     );
     event TournamentPlayerLeft(
         bytes32 tournamentId,
         address player,
         uint256 players,
+        uint256 prizePool,
+        uint256 soldTickets,
         bool isPlayer
     );
     event TournamentSpectatorLeft(
@@ -112,6 +116,7 @@ abstract contract ITournament {
         bytes32 tournamentId,
         address winner,
         uint256 amount, 
+        uint256 prizePool,
         bool claimed
     );
 
