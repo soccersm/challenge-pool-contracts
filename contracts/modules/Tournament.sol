@@ -221,7 +221,7 @@ contract Tournament is ITournament, TournamentHelpers, Helpers, SoccersmRoles, R
             t.prizePool -= t.registrationFee;
             LibTransfer._send(t.stakeToken, t.registrationFee, _player);
         }
-        emit TournamentPlayerRemoved(_id, _player, false);
+        emit TournamentPlayerRemoved(_id, _player, t.players, false);
     }
 
     function leaveTournament(

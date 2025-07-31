@@ -604,7 +604,7 @@ describe("Soccersm Tournaments", async function () {
 
     await expect(tournamentProxy.removePlayer(tournamentIdHash, baller.address))
       .to.emit(tournamentProxy, "TournamentPlayerRemoved")
-      .withArgs(tournamentIdHash, baller.address, false);
+      .withArgs(tournamentIdHash, baller.address, 1, false);
 
     //revert not player
     await expect(
