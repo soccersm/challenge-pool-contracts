@@ -44,16 +44,24 @@ const ChallengePoolModule = buildModule("ChallengePoolModule", (m) => {
   const commV = m.contract("CommunityView");
   const commvC = [commV, FacetCutAction.Add, commvS];
 
+  const touS = functionSelectors("Tournament");
+  const tou = m.contract("Tournament");
+  const touC = [tou, FacetCutAction.Add, touS];
+
   m.call(
     soccersm.cutProxy,
     "diamondCut",
     [
-      [trC, cphC, cpdC, cpmC, cpvC, commC, commvC],
+      [trC, cphC, cpdC, cpmC, cpvC, commC, commvC, touC],
       cpiInit.contract,
       cpiInit.selector,
     ],
     { id: "ChallengePoolDiamondCut" }
   );
+
+  const tournamentProxy = m.contractAt("Tournament", soccersm.soccersm, {
+    id: "SoccersmTournament",
+  });
 
   const communityProxy = m.contractAt("Community", soccersm.soccersm, {
     id: "SoccersmCommunity",
@@ -103,6 +111,7 @@ const ChallengePoolModule = buildModule("ChallengePoolModule", (m) => {
     poolManagerProxy,
     communityProxy,
     communityViewProxy,
+    tournamentProxy,
   };
 });
 
